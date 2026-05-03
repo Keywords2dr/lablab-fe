@@ -1,0 +1,102 @@
+/* Tổng thể */
+.login-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background-color: #f4f6f8;
+  font-family: 'Inter', 'Roboto', sans-serif;
+}
+
+/* Banner bên trái */
+.login-banner {
+  flex: 1.2;
+  background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  padding: 3rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.banner-content {
+  z-index: 2;
+  max-width: 500px;
+}
+
+.banner-title {
+  font-size: 4rem;
+  font-weight: 900;
+  letter-spacing: 4px;
+  margin-bottom: 0.5rem;
+  text-shadow: 2px 4px 10px rgba(0,0,0,0.3);
+}
+
+.banner-divider {
+  height: 4px;
+  width: 80px;
+  background-color: #4facfe;
+  margin-bottom: 1.5rem;
+  border-radius: 2px;
+}
+
+.banner-subtitle {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.banner-features {
+  list-style: none;
+  padding: 0;
+  font-size: 1.1rem;
+  opacity: 0.85;
+}
+
+.banner-features li {
+  margin-bottom: 0.8rem;
+}
+
+/* Phần Form bên phải */
+.login-form-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+  padding: 2rem;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.03);
+}
+
+.form-wrapper {
+  width: 100%;
+  max-width: 420px;
+}
+
+/* Hiệu ứng mờ dần khi chuyển đổi form */
+.fade-in {
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive cho màn hình nhỏ/Điện thoại */
+@media (max-width: 900px) {
+  .login-banner {
+    display: none;
+  }
+  .login-form-section {
+    background-color: #f4f6f8;
+  }
+  .form-wrapper {
+    background-color: #ffffff;
+    padding: 3rem 2rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  }
+}

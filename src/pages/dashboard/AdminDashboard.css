@@ -1,0 +1,38 @@
+.admin-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: transform 0.2s;
+}
+.admin-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08); }
+
+.ac-info h4 { margin: 0 0 8px 0; color: #64748b; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+.ac-info h2 { margin: 0; color: #0f172a; font-size: 2.2rem; font-weight: 800; }
+
+.ac-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+.ac-icon.orange { background: #fffbeb; color: #d97706; }
+.ac-icon.blue { background: #eff6ff; color: #2563eb; }
+.ac-icon.green { background: #f0fdf4; color: #16a34a; }
+.ac-icon.red { background: #fef2f2; color: #dc2626; }
+
+/* Bảng Duyệt Phiếu */
+.admin-table-container { background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; margin-top: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+.admin-table { width: 100%; border-collapse: collapse; }
+.admin-table th { background: #f8fafc; color: #475569; font-weight: 700; font-size: 0.85rem; padding: 16px 24px; text-align: left; border-bottom: 2px solid #e2e8f0; }
+.admin-table td { padding: 16px 24px; color: #334155; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+.admin-table tr:hover { background-color: #f8fafc; }
+
+.role-badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
+.role-badge.teacher { background: #f5f3ff; color: #7c3aed; }
+.role-badge.student { background: #f0fdf4; color: #16a34a; }
+
+.action-btn { border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; margin-right: 8px; }
+.btn-approve { background: #16a34a; color: white; }
+.btn-approve:hover { background: #15803d; }
+.btn-reject { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.btn-reject:hover { background: #fee2e2; }
