@@ -8,6 +8,7 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 import DashboardPage from "./pages/dashboard/DashboardPage";
 import Profile from "./pages/profile/Profile";
 import AdminDashboard from "./pages/admin/dashboard/AdminDashboard";
+import MaterialManagement from "./pages/admin/materials/MaterialManagement";
 
 import MainLayout from "./components/layouts/MainLayout";
 
@@ -36,6 +37,7 @@ function App() {
 
               <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
                 <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/materials" element={<MaterialManagement />} />
               </Route>
             </Route>
 

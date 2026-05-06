@@ -52,7 +52,7 @@ const handleLogout = () => {
             <li className="menu-item">
               <Receipt fontSize="small" /> <span>Duyệt Phiếu Mượn</span>
             </li>
-            <li className="menu-item">
+            <li className="menu-item" onClick={() => navigate("/admin/materials")}>
               <Inventory fontSize="small" /> <span>Quản lý Vật tư</span>
             </li>
             <li className="menu-item">

@@ -1,0 +1,21 @@
+.material-management {
+  padding: 24px;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+.material-management .MuiTableContainer-root {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.material-management th {
+  background: #f1f5f9;
+  font-weight: 600;
+  color: #475569;
+}
+
+.material-management .MuiChip-root {
+  font-weight: 500;
+}
