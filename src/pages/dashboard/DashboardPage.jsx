@@ -1,6 +1,7 @@
-import { useAuthStore } from "../../store/authStore";
-import AdminDashboard from "./AdminDashboard";
+import AdminDashboard from "../admin/dashboard/AdminDashboard";
 import UserDashboard from "./UserDashboard";
+import { useAuthStore } from "../../store/authStore";
+
 
 export default function DashboardPage() {
   const user = useAuthStore((state) => state.user);

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import { useAuthStore } from "../store/authStore";
-import { userApi } from "../api/userApi";
+import { useAuthStore } from "../../store/authStore";
+import { userApi } from "../../api/userApi";
 import { toast } from "react-toastify";
 
 import {

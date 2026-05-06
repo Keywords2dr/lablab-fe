@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom"; 
+import { useAuthStore } from "../../../store/authStore"; //new
 import { 
   Grid, Typography, Badge, Avatar, 
   Menu, MenuItem, ListItemIcon 
@@ -10,14 +11,11 @@ import {
   WarningAmber, History, Settings, Notifications,
   Logout
 } from "@mui/icons-material";
-import "./AdminDashboard.css"; 
+import "./AdminDashboard.css";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-
-  // =====================================
-  // STATE & HÀM XỬ LÝ MENU AVATAR
-  // =====================================
+  const logout = useAuthStore((state) => state.logout);
   const [anchorEl, setAnchorEl] = useState(null);
   const openMenu = Boolean(anchorEl);
 
@@ -29,11 +27,9 @@ export default function AdminDashboard() {
     setAnchorEl(null);
   };
 
-  const handleLogout = () => {
+const handleLogout = () => {
     handleCloseMenu();
-    // Xóa token hoặc gọi API đăng xuất ở đây
-    
-    // Đã xóa dòng alert ở đây, chuyển thẳng trang
+    logout(); 
     navigate("/login"); 
   };
 

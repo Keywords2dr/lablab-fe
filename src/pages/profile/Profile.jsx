@@ -5,6 +5,9 @@ import "./Profile.css";
 
 export default function Profile() {
   const [user, setUser] = useState(null);
+
+  const [isEditing, setIsEditing] = useState(false);
+
   const [formData, setFormData] = useState({
     fullName: "",
     phoneNumber: "",
@@ -31,24 +34,40 @@ export default function Profile() {
     }
   };
 
-  // ── Chặn ký tự không phải số khi nhập số điện thoại ──────────
+  const handleCancel = () => {
+    setIsEditing(false);
+    setErrors({});
+    setFormData({
+      fullName: user.fullName || "",
+      phoneNumber: user.phoneNumber || "",
+    });
+  };
+
   const handlePhoneKeyDown = (e) => {
     const allowedKeys = [
-      "Backspace", "Delete", "Tab", "Escape", "Enter",
-      "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown",
-      "Home", "End",
+      "Backspace",
+      "Delete",
+      "Tab",
+      "Escape",
+      "Enter",
+      "ArrowLeft",
+      "ArrowRight",
+      "ArrowUp",
+      "ArrowDown",
+      "Home",
+      "End",
     ];
-    // Cho phép Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-    if (allowedKeys.includes(e.key) || (e.ctrlKey && ["a", "c", "v", "x"].includes(e.key.toLowerCase()))) {
+    if (
+      allowedKeys.includes(e.key) ||
+      (e.ctrlKey && ["a", "c", "v", "x"].includes(e.key.toLowerCase()))
+    ) {
       return;
     }
-    // Chặn tất cả ký tự không phải số
     if (!/^\d$/.test(e.key)) {
       e.preventDefault();
     }
   };
 
-  // ── Chặn paste chứa ký tự không phải số vào ô SĐT ───────────
   const handlePhonePaste = (e) => {
     const pasted = e.clipboardData.getData("text");
     if (!/^\d+$/.test(pasted)) {
@@ -57,23 +76,32 @@ export default function Profile() {
     }
   };
 
-  // ── Chặn ký tự số khi nhập Họ và tên ─────────────────────────
   const handleFullNameKeyDown = (e) => {
     const allowedKeys = [
-      "Backspace", "Delete", "Tab", "Escape", "Enter",
-      "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown",
-      "Home", "End", " ",
+      "Backspace",
+      "Delete",
+      "Tab",
+      "Escape",
+      "Enter",
+      "ArrowLeft",
+      "ArrowRight",
+      "ArrowUp",
+      "ArrowDown",
+      "Home",
+      "End",
+      " ",
     ];
-    if (allowedKeys.includes(e.key) || (e.ctrlKey && ["a", "c", "v", "x"].includes(e.key.toLowerCase()))) {
+    if (
+      allowedKeys.includes(e.key) ||
+      (e.ctrlKey && ["a", "c", "v", "x"].includes(e.key.toLowerCase()))
+    ) {
       return;
     }
-    // Chặn ký tự số và ký tự đặc biệt
     if (/[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(e.key)) {
       e.preventDefault();
     }
   };
 
-  // ── Chặn paste số/ký tự đặc biệt vào ô Họ tên ───────────────
   const handleFullNamePaste = (e) => {
     const pasted = e.clipboardData.getData("text");
     if (/[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(pasted)) {
@@ -85,14 +113,11 @@ export default function Profile() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Xoá lỗi của trường đó ngay khi người dùng bắt đầu nhập lại
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const validate = () => {
     const errs = {};
-
-    // ── Họ và tên ──────────────────────────────────────────────
     const fullName = formData.fullName.trim();
     if (!fullName) {
       errs.fullName = "Họ và tên không được để trống!";
@@ -101,19 +126,21 @@ export default function Profile() {
     } else if (/\s{2,}/.test(fullName)) {
       errs.fullName = "Họ và tên không được chứa nhiều khoảng trắng liên tiếp!";
     } else if (
-      !/^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/.test(fullName)
+      !/^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/.test(
+        fullName,
+      )
     ) {
       errs.fullName = "Họ và tên chỉ được chứa chữ cái và khoảng trắng!";
     }
 
-    // ── Số điện thoại ──────────────────────────────────────────
     const phone = formData.phoneNumber.trim();
     if (!phone) {
       errs.phoneNumber = "Số điện thoại không được để trống!";
     } else if (phone.length !== 10) {
       errs.phoneNumber = "Số điện thoại phải đúng 10 chữ số!";
     } else if (!/^(03|05|07|08|09)\d{8}$/.test(phone)) {
-      errs.phoneNumber = "Số điện thoại không hợp lệ (đầu số phải là 03x, 05x, 07x, 08x, 09x)!";
+      errs.phoneNumber =
+        "Số điện thoại không hợp lệ (đầu số phải là 03x, 05x, 07x, 08x, 09x)!";
     }
 
     return errs;
@@ -136,6 +163,8 @@ export default function Profile() {
       const res = await userApi.updateProfile(payload);
       setUser((prev) => ({ ...prev, ...res.data }));
       toast.success("Cập nhật thông tin thành công! 🎉");
+
+      setIsEditing(false);
     } catch (err) {
       const data = err.response?.data;
       const errorMessage = data?.message || data?.error || "Cập nhật thất bại!";
@@ -162,10 +191,9 @@ export default function Profile() {
         </div>
 
         <div className="profile-form">
-          {/* Họ và tên */}
           <div className="form-group">
             <label>
-              Họ và tên <span className="required">*</span>
+              Họ và tên {isEditing && <span className="required">*</span>}
             </label>
             <input
               type="text"
@@ -177,16 +205,16 @@ export default function Profile() {
               className={errors.fullName ? "input-error" : ""}
               placeholder="Nhập họ và tên"
               maxLength={50}
+              disabled={!isEditing}
             />
             {errors.fullName && (
               <span className="error-msg">{errors.fullName}</span>
             )}
           </div>
 
-          {/* Số điện thoại */}
           <div className="form-group">
             <label>
-              Số điện thoại <span className="required">*</span>
+              Số điện thoại {isEditing && <span className="required">*</span>}
             </label>
             <input
               type="tel"
@@ -198,6 +226,7 @@ export default function Profile() {
               className={errors.phoneNumber ? "input-error" : ""}
               placeholder="Nhập số điện thoại "
               maxLength={10}
+              disabled={!isEditing}
             />
             {errors.phoneNumber && (
               <span className="error-msg">{errors.phoneNumber}</span>
@@ -222,13 +251,28 @@ export default function Profile() {
             <div className="readonly-text">{user.major || "Chưa có"}</div>
           </div>
 
-          <button
-            className="btn-primary"
-            onClick={handleSave}
-            disabled={loading}
-          >
-            {loading ? "Đang lưu..." : "Lưu thay đổi"}
-          </button>
+          {!isEditing ? (
+            <button className="btn-primary" onClick={() => setIsEditing(true)}>
+              Thay đổi thông tin
+            </button>
+          ) : (
+            <div className="action-group">
+              <button
+                className="btn-secondary"
+                onClick={handleCancel}
+                disabled={loading}
+              >
+                Hủy
+              </button>
+              <button
+                className="btn-primary"
+                onClick={handleSave}
+                disabled={loading}
+              >
+                {loading ? "Đang lưu..." : "Lưu thay đổi"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

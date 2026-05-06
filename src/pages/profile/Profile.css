@@ -1,11 +1,9 @@
-/* ===== Container ===== */
 .profile-container {
   padding: 30px 40px;
   background: #f1f5f9;
   min-height: 100vh;
 }
 
-/* ===== HEADER ===== */
 .profile-title {
   background: linear-gradient(135deg, #0f172a, #1e3a8a);
   color: white;
@@ -17,17 +15,13 @@
   box-shadow: 0 15px 35px rgba(15, 23, 42, 0.25);
 }
 
-/* ===== Layout ===== */
 .profile-content {
   display: grid;
   grid-template-columns: 300px 1fr;
   gap: 30px;
-
-  /* 🔥 FIX chiều cao */
   align-items: start;
 }
 
-/* ===== LEFT CARD ===== */
 .profile-card {
   background: linear-gradient(180deg, #ffffff, #f8fafc);
   border-radius: 24px;
@@ -36,7 +30,6 @@
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
 
-  /* 🔥 FIX không bị kéo dài */
   align-self: start;
 }
 
@@ -44,7 +37,6 @@
   transform: translateY(-6px);
 }
 
-/* Avatar */
 .avatar-circle {
   width: 80px;
   height: 80px;
@@ -61,7 +53,6 @@
   box-shadow: 0 8px 20px rgba(59, 130, 246, 0.35);
 }
 
-/* Text */
 .profile-card h3 {
   margin: 8px 0 4px;
   font-size: 18px;
@@ -74,7 +65,6 @@
   margin-bottom: 10px;
 }
 
-/* Badge */
 .role-badge {
   display: inline-block;
   padding: 5px 14px;
@@ -85,7 +75,6 @@
   font-size: 11px;
 }
 
-/* ===== RIGHT FORM ===== */
 .profile-form {
   background: linear-gradient(180deg, #ffffff, #f8fafc);
   border-radius: 24px;
@@ -93,12 +82,10 @@
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
 }
 
-/* Form group */
 .form-group {
   margin-bottom: 20px;
 }
 
-/* Label */
 .form-group label {
   display: block;
   margin-bottom: 6px;
@@ -107,7 +94,6 @@
   font-weight: 500;
 }
 
-/* Input */
 .form-group input {
   width: 100%;
   padding: 13px 15px;
@@ -129,7 +115,6 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
-/* Readonly */
 .readonly-text {
   padding: 13px 15px;
   border-radius: 12px;
@@ -138,7 +123,6 @@
   font-size: 14px;
 }
 
-/* Button */
 .btn-primary {
   width: 100%;
   margin-top: 20px;
@@ -161,7 +145,6 @@
   box-shadow: 0 15px 30px rgba(59, 130, 246, 0.45);
 }
 
-/* ===== RESPONSIVE ===== */
 @media (max-width: 900px) {
   .profile-content {
     grid-template-columns: 1fr;
@@ -172,12 +155,10 @@
   }
 }
 
-/* === Tô đỏ dấu * === */
 .required {
   color: #e53e3e;
 }
 
-/* === Tô đỏ thông báo  === */
 .error-msg {
   display: block;
   margin-top: 4px;
@@ -190,4 +171,42 @@
   border-color: #e53e3e !important;
   background-color: #fff5f5 !important;
   box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.15);
+}
+
+.form-group input:disabled {
+  background: #f1f5f9;
+  color: #64748b;
+  border-color: transparent;
+  cursor: not-allowed;
+  font-weight: 500;
+  box-shadow: none;
+}
+
+.action-group {
+  display: flex;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.action-group .btn-primary {
+  margin-top: 0;
+}
+
+.btn-secondary {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
 }
