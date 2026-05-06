@@ -1,0 +1,64 @@
+/* ===== LAYOUT ROOT ===== */
+.layout-root {
+  min-height: 100vh;
+  background: #f1f5f9;
+}
+
+/* ===== USER HEADER ===== */
+.user-topbar {
+  height: 64px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* ===== LOGO ===== */
+.user-logo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: bold;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.user-logo span {
+  color: #2563eb;
+}
+
+/* ===== RIGHT SIDE ===== */
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* ===== AVATAR ===== */
+.avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.user-info {
+  text-align: right;
+}
+
+.username {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.role {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* ===== CONTENT ===== */
+.layout-content {
+  padding: 24px;
+}

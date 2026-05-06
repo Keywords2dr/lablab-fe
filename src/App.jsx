@@ -6,6 +6,11 @@ import "react-toastify/dist/ReactToastify.css";
 import LoginPage from "./pages/auth/LoginPage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import DashboardPage from "./pages/dashboard/DashboardPage";
+import Profile from "./pages/profile/Profile";
+import AdminDashboard from "./pages/dashboard/AdminDashboard";
+
+
+import MainLayout from "./layouts/MainLayout";
 
 const theme = createTheme({
   palette: {
@@ -22,10 +27,19 @@ function App() {
 
       <BrowserRouter>
         <Routes>
+          {/* PUBLIC */}
           <Route path="/login" element={<LoginPage />} />
 
+          {/* PROTECTED */}
           <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<DashboardPage />} />
+            
+            {/* 🔥 BỌC LAYOUT Ở ĐÂY */}
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+            </Route>
+
           </Route>
         </Routes>
       </BrowserRouter>
