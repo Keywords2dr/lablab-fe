@@ -1,0 +1,537 @@
+/* ── Toolbar ── */
+.mm-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px 22px;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+  border: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+}
+
+.mm-search-wrap {
+  flex: 1;
+  position: relative;
+  min-width: 180px;
+}
+
+.mm-search-wrap svg.mm-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 20px;
+  pointer-events: none;
+}
+
+.mm-search-wrap input {
+  width: 100%;
+  padding: 10px 36px 10px 44px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  color: #1e293b;
+  background: #f8fafc;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.mm-search-wrap input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.mm-search-wrap input::placeholder {
+  color: #94a3b8;
+}
+
+/* Clear button trong search */
+.mm-search-clear {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: #e2e8f0;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.15s;
+}
+
+.mm-search-clear:hover {
+  background: #cbd5e1;
+}
+
+.mm-search-clear svg {
+  font-size: 14px;
+  color: #475569;
+}
+
+/* ── Filter pills (Đóng gói / Nhà CC / Sắp xếp) ── */
+.mm-filter-pill {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mm-filter-pill-label {
+  font-size: 0.67rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.mm-filter-pill input,
+.mm-filter-pill select {
+  padding: 8px 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  color: #1e293b;
+  background: #f8fafc;
+  transition: all 0.2s;
+  min-width: 110px;
+  max-width: 140px;
+}
+
+.mm-filter-pill input:focus,
+.mm-filter-pill select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.mm-filter-pill input::placeholder {
+  color: #94a3b8;
+}
+
+.mm-filter-pill select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%2394a3b8' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+  cursor: pointer;
+}
+
+/* ── Nút reset filter ── */
+.mm-btn-reset {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 14px;
+  border: 1.5px solid #fecaca;
+  border-radius: 10px;
+  background: #fff1f2;
+  color: #e11d48;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s;
+  align-self: flex-end;
+}
+
+.mm-btn-reset:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.mm-btn-reset svg {
+  font-size: 15px;
+}
+
+/* ── Nút làm mới (icon only) ── */
+.mm-btn-icon {
+  width: 40px;
+  height: 40px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 11px;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s;
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+
+.mm-btn-icon:hover:not(:disabled) {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.mm-btn-icon:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.mm-btn-icon svg {
+  font-size: 20px;
+}
+
+/* ── Nút thùng rác (icon only, amber) ── */
+.mm-btn-trash {
+  border-color: #fed7aa;
+  color: #ea580c;
+  background: #fff7ed;
+}
+
+.mm-btn-trash:hover {
+  border-color: #fb923c;
+  color: #c2410c;
+  background: #ffedd5;
+}
+
+/* ── Active filter chips bar ── */
+.mm-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 4px 4px;
+  animation: fadeIn 0.18s ease;
+}
+
+.mm-chip-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  border-radius: 20px;
+  padding: 4px 10px 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.mm-chip-filter button {
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: #bfdbfe;
+  color: #1d4ed8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.15s;
+}
+
+.mm-chip-filter button:hover {
+  background: #93c5fd;
+}
+
+.mm-chip-filter button svg {
+  font-size: 12px;
+}
+
+.mm-chips-clear-all {
+  border: none;
+  background: none;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 4px 6px;
+  transition: color 0.15s;
+}
+
+.mm-chips-clear-all:hover {
+  color: #e11d48;
+}
+
+/* Tag "Đang lọc" trong table info */
+.mm-filter-active-tag {
+  color: #3b82f6;
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+
+/* ── Action buttons (toolbar) ── */
+.mm-btn-add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 11px 22px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.mm-btn-add:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.42);
+}
+
+.mm-btn-add:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.mm-btn-add svg {
+  font-size: 18px;
+}
+
+/* ── Table card ── */
+.mm-table-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.07);
+  overflow: hidden;
+  margin-bottom: 20px;
+  border: 1px solid #f1f5f9;
+}
+
+.mm-table-info {
+  padding: 14px 24px 0;
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.mm-table-wrap {
+  overflow-x: auto;
+}
+
+/* ── Table ── */
+table.mm-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table.mm-table thead tr {
+  background: linear-gradient(90deg, #f8fafc, #f1f5f9);
+}
+
+table.mm-table thead th {
+  padding: 13px 16px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #475569;
+  text-align: left;
+  border-bottom: 2px solid #e8edf3;
+  white-space: nowrap;
+}
+
+table.mm-table thead th.center {
+  text-align: center;
+}
+
+table.mm-table thead th.right {
+  text-align: right;
+}
+
+table.mm-table tbody tr {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.13s;
+}
+
+table.mm-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+table.mm-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+table.mm-table tbody td {
+  padding: 13px 16px;
+  font-size: 0.875rem;
+  color: #334155;
+  vertical-align: middle;
+}
+
+table.mm-table tbody td.center {
+  text-align: center;
+}
+
+table.mm-table tbody td.right {
+  text-align: right;
+}
+
+/* ── Cell components ── */
+.mm-code {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.76rem;
+  font-weight: 700;
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 3px 9px;
+  border-radius: 6px;
+  letter-spacing: 0.3px;
+}
+
+.mm-name {
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.4;
+}
+
+/* ── Action buttons (table rows) ── */
+.mm-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.mm-act-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s;
+}
+
+.mm-act-btn.edit {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.mm-act-btn.edit:hover {
+  background: #2563eb;
+  color: #fff;
+  transform: scale(1.1);
+}
+
+.mm-act-btn.del {
+  background: #fff1f2;
+  color: #e11d48;
+}
+
+.mm-act-btn.del:hover {
+  background: #e11d48;
+  color: #fff;
+  transform: scale(1.1);
+}
+
+.mm-act-btn svg {
+  font-size: 16px;
+}
+
+/* ── Empty state ── */
+.mm-empty {
+  text-align: center;
+  padding: 64px 24px;
+  color: #94a3b8;
+}
+
+.mm-empty svg {
+  font-size: 52px;
+  opacity: 0.22;
+  margin-bottom: 12px;
+  display: block;
+  margin-inline: auto;
+}
+
+.mm-empty p {
+  font-size: 0.92rem;
+}
+
+/* ── Pagination ── */
+.mm-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px 22px;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+  border: 1px solid #f1f5f9;
+  margin-top: 4px;
+}
+
+.mm-page-info {
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.mm-page-btns {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.mm-page-btn {
+  min-width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s;
+  font-family: 'Inter', sans-serif;
+}
+
+.mm-page-btn:hover:not(:disabled) {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  background: #eff6ff;
+}
+
+.mm-page-btn.active {
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(99, 102, 241, 0.35);
+}
+
+.mm-page-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .mm-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .mm-pagination {
+    flex-direction: column;
+    gap: 10px;
+  }
+}

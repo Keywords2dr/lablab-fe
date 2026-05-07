@@ -1,0 +1,208 @@
+/* ═══════════════════════════════════════════════════
+   ChemicalFormModal.css — Add / Edit Chemical Modal
+   ═══════════════════════════════════════════════════ */
+
+.mm-modal {
+  background: #fff;
+  border-radius: 22px;
+  width: 100%;
+  max-width: 580px;
+  box-shadow: 0 24px 72px rgba(15, 23, 42, 0.22);
+  animation: slideUp 0.25s ease;
+  max-height: 92vh;
+  overflow-y: auto;
+}
+
+/* ── Modal Header ── */
+.mm-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 28px 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.mm-modal-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.mm-modal-title span {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: #94a3b8;
+  margin-top: 3px;
+}
+
+.mm-modal-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  border: none;
+  background: #f1f5f9;
+  color: #475569;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s;
+  flex-shrink: 0;
+}
+
+.mm-modal-close:hover {
+  background: #fee2e2;
+  color: #e11d48;
+}
+
+.mm-modal-close svg {
+  font-size: 18px;
+}
+
+/* ── Modal Body / Form ── */
+.mm-modal-body {
+  padding: 20px 28px;
+}
+
+.mm-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.mm-form-grid .full {
+  grid-column: 1 / -1;
+}
+
+.mm-field label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mm-field label .req {
+  color: #e11d48;
+  margin-left: 2px;
+}
+
+.mm-field input,
+.mm-field select,
+.mm-field textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  color: #1e293b;
+  background: #f8fafc;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.mm-field input:focus,
+.mm-field select:focus,
+.mm-field textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.mm-field input.error,
+.mm-field select.error {
+  border-color: #e11d48;
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.1);
+}
+
+.mm-field-error {
+  color: #e11d48;
+  font-size: 0.75rem;
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mm-field textarea {
+  resize: vertical;
+  min-height: 72px;
+  line-height: 1.5;
+}
+
+/* ── Modal Footer ── */
+.mm-divider {
+  height: 1px;
+  background: #f1f5f9;
+  margin: 8px 0;
+}
+
+.mm-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 0 28px 24px;
+}
+
+.mm-btn-cancel {
+  padding: 10px 22px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 11px;
+  background: #fff;
+  color: #475569;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.mm-btn-cancel:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.mm-btn-save {
+  padding: 10px 26px;
+  border: none;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.32);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.mm-btn-save:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.44);
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .mm-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mm-modal {
+    border-radius: 16px;
+  }
+
+  .mm-modal-body {
+    padding: 16px 18px;
+  }
+
+  .mm-modal-footer {
+    padding: 0 18px 18px;
+  }
+}

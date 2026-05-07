@@ -1,21 +1,187 @@
-.material-management {
-  padding: 24px;
-  background: #f8fafc;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* ── Root Layout ── */
+.mm-root {
+  font-family: 'Inter', sans-serif;
+  padding: 28px 32px;
+  background: linear-gradient(160deg, #f0f4ff 0%, #e8eef8 100%);
   min-height: 100vh;
 }
 
-.material-management .MuiTableContainer-root {
-  background: white;
-  border-radius: 16px;
+/* ── Page Header ── */
+.mm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 60%, #1e3a5f 100%);
+  border-radius: 20px;
+  padding: 28px 36px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.25);
+  position: relative;
   overflow: hidden;
 }
 
-.material-management th {
-  background: #f1f5f9;
-  font-weight: 600;
-  color: #475569;
+.mm-header::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: rgba(99, 179, 255, 0.08);
+  pointer-events: none;
 }
 
-.material-management .MuiChip-root {
-  font-weight: 500;
+.mm-header::after {
+  content: '';
+  position: absolute;
+  bottom: -40px;
+  left: 30%;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: rgba(139, 92, 246, 0.07);
+  pointer-events: none;
+}
+
+.mm-header-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  position: relative;
+  z-index: 1;
+}
+
+.mm-header-icon {
+  width: 54px;
+  height: 54px;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+  flex-shrink: 0;
+}
+
+.mm-header-icon svg {
+  color: #fff;
+  font-size: 26px;
+}
+
+.mm-header-title {
+  color: #f8fafc;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+
+.mm-header-sub {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  margin-top: 3px;
+}
+
+.mm-stats {
+  display: flex;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.mm-stat-badge {
+  background: rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  padding: 12px 22px;
+  text-align: center;
+  min-width: 90px;
+  transition: background 0.2s;
+}
+
+.mm-stat-badge:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.mm-stat-badge .num {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: -0.5px;
+}
+
+.mm-stat-badge .lbl {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-top: 2px;
+}
+
+/* ── Shared Keyframes ── */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Shared Modal Overlay ── */
+.mm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: fadeIn 0.2s;
+}
+
+/* ── Shared Responsive ── */
+@media (max-width: 768px) {
+  .mm-root {
+    padding: 14px 16px;
+  }
+
+  .mm-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 20px 22px;
+  }
+
+  .mm-stats {
+    flex-wrap: wrap;
+  }
 }

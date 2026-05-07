@@ -1,23 +1,12 @@
-/* ===============================
-   LAYOUT GENERAL & OVERRIDE 
-================================= */
 .app-layout {
   display: flex;
   height: 100vh;
   width: 100vw;
   background-color: #f1f5f9;
   overflow: hidden;
-  /* Kỹ thuật đè: Ép giao diện này đè lên mọi thứ khác đang bị lỗi ở component cha */
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 9999;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* ===============================
-   SIDEBAR (MENU TRÁI)
-================================= */
 .sidebar {
   width: 260px;
   background-color: #111827;
@@ -25,7 +14,7 @@
   display: flex;
   flex-direction: column;
   padding: 1.5rem 0;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   z-index: 10;
 }
 
@@ -36,6 +25,7 @@
   color: #fff;
   cursor: pointer;
 }
+
 .sidebar-logo span {
   color: #3b82f6;
 }
@@ -82,9 +72,6 @@
   font-weight: 600;
 }
 
-/* ===============================
-   MAIN WRAPPER & TOPBAR (PHẢI)
-================================= */
 .main-wrapper {
   flex: 1;
   display: flex;
@@ -137,18 +124,12 @@
   font-weight: 600;
 }
 
-/* ===============================
-   CONTENT AREA
-================================= */
 .content-area {
   padding: 2rem;
   overflow-y: auto;
   height: calc(100vh - 70px);
 }
 
-/* ===============================
-   THẺ THỐNG KÊ (ADMIN CARDS)
-================================= */
 .admin-card {
   background-color: #ffffff;
   border-radius: 16px;
@@ -185,14 +166,26 @@
   justify-content: center;
 }
 
-.ac-icon.orange { background-color: #fef3c7; color: #f59e0b; }
-.ac-icon.blue { background-color: #e0f2fe; color: #3b82f6; }
-.ac-icon.green { background-color: #dcfce7; color: #10b981; }
-.ac-icon.red { background-color: #fee2e2; color: #ef4444; }
+.ac-icon.orange {
+  background-color: #fef3c7;
+  color: #f59e0b;
+}
 
-/* ===============================
-   BẢNG DỮ LIỆU (TABLE)
-================================= */
+.ac-icon.blue {
+  background-color: #e0f2fe;
+  color: #3b82f6;
+}
+
+.ac-icon.green {
+  background-color: #dcfce7;
+  color: #10b981;
+}
+
+.ac-icon.red {
+  background-color: #fee2e2;
+  color: #ef4444;
+}
+
 .admin-table-container {
   background-color: #ffffff;
   border-radius: 16px;
@@ -225,9 +218,6 @@
   border-bottom: none;
 }
 
-/* ===============================
-   NHÃN PHÂN QUYỀN (BADGES)
-================================= */
 .role-badge {
   display: inline-block;
   padding: 4px 10px;
@@ -237,12 +227,16 @@
   margin-top: 6px;
 }
 
-.role-badge.teacher { background-color: #f3e8ff; color: #9333ea; }
-.role-badge.student { background-color: #dcfce7; color: #16a34a; }
+.role-badge.teacher {
+  background-color: #f3e8ff;
+  color: #9333ea;
+}
 
-/* ===============================
-   NÚT HÀNH ĐỘNG (BUTTONS)
-================================= */
+.role-badge.student {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
 .action-btn {
   display: inline-flex;
   align-items: center;
@@ -257,8 +251,22 @@
   transition: all 0.2s ease;
 }
 
-.btn-approve { background-color: #10b981; color: #ffffff; }
-.btn-approve:hover { background-color: #059669; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
+.btn-approve {
+  background-color: #10b981;
+  color: #ffffff;
+}
 
-.btn-reject { background-color: #fef2f2; color: #ef4444; border: 1px solid #fecaca; }
-.btn-reject:hover { background-color: #fee2e2; }
+.btn-approve:hover {
+  background-color: #059669;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.btn-reject {
+  background-color: #fef2f2;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+}
+
+.btn-reject:hover {
+  background-color: #fee2e2;
+}

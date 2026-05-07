@@ -1,0 +1,65 @@
+/* ═══════════════════════════════════════════════════
+   DeleteConfirmModal.css — Confirm Delete Dialog
+   ═══════════════════════════════════════════════════ */
+
+/* Reuses .mm-overlay, .mm-modal, .mm-modal-header,
+   .mm-modal-close, .mm-modal-footer, .mm-btn-cancel
+   from shared files. Only defines delete-specific parts. */
+
+.mm-confirm-icon {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 8px auto 18px;
+  box-shadow: 0 4px 18px rgba(220, 38, 38, 0.18);
+}
+
+.mm-confirm-icon svg {
+  font-size: 30px;
+  color: #dc2626;
+}
+
+.mm-confirm-text {
+  text-align: center;
+  padding: 0 12px 12px;
+}
+
+.mm-confirm-text h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 10px;
+}
+
+.mm-confirm-text p {
+  font-size: 0.88rem;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.mm-btn-del {
+  padding: 10px 26px;
+  border: none;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.32);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mm-btn-del:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.44);
+}

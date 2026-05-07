@@ -1,10 +1,13 @@
-import AdminDashboard from "../admin/dashboard/AdminDashboard";
-import UserDashboard from "./UserDashboard";
+import { Navigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
+import UserDashboard from "./UserDashboard";
 
 export default function DashboardPage() {
   const user = useAuthStore((state) => state.user);
-  const isAdmin = user?.role === "ADMIN";
 
-  return isAdmin ? <AdminDashboard /> : <UserDashboard />;
+  if (user?.role === "ADMIN") {
+    return <Navigate to="/admin" replace />;
+  }
+
+  return <UserDashboard />;
 }

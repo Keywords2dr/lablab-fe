@@ -9,7 +9,6 @@ import DashboardPage from "./pages/dashboard/DashboardPage";
 import Profile from "./pages/profile/Profile";
 import AdminDashboard from "./pages/admin/dashboard/AdminDashboard";
 import MaterialManagement from "./pages/admin/materials/MaterialManagement";
-
 import MainLayout from "./components/layouts/MainLayout";
 
 const theme = createTheme({
@@ -30,17 +29,15 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
 
           <Route element={<ProtectedRoute />}>
-
             <Route element={<MainLayout />}>
               <Route path="/" element={<DashboardPage />} />
               <Route path="/profile" element={<Profile />} />
-
-              <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/materials" element={<MaterialManagement />} />
-              </Route>
             </Route>
+          </Route>
 
+          <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/materials" element={<MaterialManagement />} />
           </Route>
         </Routes>
       </BrowserRouter>
