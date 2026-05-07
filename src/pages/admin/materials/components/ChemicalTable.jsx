@@ -150,7 +150,6 @@ export default function ChemicalTable({
         </button>
       </div>
 
-      {/* ── Active filter chips ── */}
       {hasActiveFilters && (
         <div className="mm-filter-chips">
           {filters.keyword && (
@@ -211,7 +210,19 @@ export default function ChemicalTable({
                 return (
                   <tr key={item.itemId}>
                     <td><span className="mm-code">{item.itemCode}</span></td>
-                    <td><span className="mm-name">{item.name}</span></td>
+                    <td>
+                      <span className="mm-name">{item.name}</span>
+                      {grandTotal === 0 && (
+                        <span style={{
+                          display: "inline-block", marginLeft: 6,
+                          background: "#fef2f2", color: "#dc2626",
+                          border: "1px solid #fecaca", borderRadius: 4,
+                          fontSize: "0.68rem", fontWeight: 700,
+                          padding: "1px 5px", verticalAlign: "middle",
+                        }}>Hết hàng</span>
+                      )}
+                    </td>
+
                     <td style={{ fontFamily: "monospace", fontSize: "0.82rem", color: "#4f46e5" }}>{item.formula || "—"}</td>
                     <td className="center">{item.unit}</td>
                     <td className="center" style={{ fontSize: "0.82rem", color: "#64748b" }}>{item.packaging || "—"}</td>

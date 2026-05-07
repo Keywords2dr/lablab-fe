@@ -46,7 +46,6 @@ function parseExcel(file) {
       try {
         const wb = XLSX.read(e.target.result, { type: "array" });
 
-        // ── Tự động chọn sheet có nhiều cột khớp nhất ──────────────────────
         let bestSheet = null;
         let bestScore = -1;
         let bestName = "";
@@ -185,7 +184,6 @@ export default function ImportExportSection({ totalFiltered, onOpenPreview }) {
     try {
       const res = await chemicalApi.exportChemicals();
 
-      // Lấy tên file từ header Content-Disposition nếu BE trả về
       let filename = `hoa-chat-${new Date().toISOString().slice(0, 10)}.xlsx`;
       const cd = res.headers?.["content-disposition"] ?? res.headers?.["Content-Disposition"];
       if (cd) {
@@ -193,7 +191,6 @@ export default function ImportExportSection({ totalFiltered, onOpenPreview }) {
         if (match?.[1]) filename = match[1].replace(/['"]/g, "").trim();
       }
 
-      // Tạo blob URL và kích hoạt download
       const blob = new Blob([res.data], {
         type: res.headers?.["content-type"] || "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });

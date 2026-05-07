@@ -10,6 +10,7 @@ import Profile from "./pages/profile/Profile";
 import AdminDashboard from "./pages/admin/dashboard/AdminDashboard";
 import MaterialManagement from "./pages/admin/materials/MaterialManagement";
 import MainLayout from "./components/layouts/MainLayout";
+import AdminLayout from "./components/layouts/AdminLayout";
 
 const theme = createTheme({
   palette: {
@@ -36,8 +37,10 @@ function App() {
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/materials" element={<MaterialManagement />} />
+            <Route element={<AdminLayout />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/materials" element={<MaterialManagement />} />
+            </Route>
           </Route>
         </Routes>
       </BrowserRouter>

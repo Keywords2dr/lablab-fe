@@ -92,10 +92,18 @@ export default function MaterialManagement() {
             <div className="num">{totalElements}</div>
             <div className="lbl">Tổng số</div>
           </div>
-          <div className="mm-stat-badge">
-            <div className="num" style={{ color: "#60a5fa" }}>{filteredCount}</div>
-            <div className="lbl">Kết quả</div>
-          </div>
+          {(() => {
+            const outOfStock = chemicals.filter((c) => {
+              const inv = inventory[c.itemId];
+              return (inv?.grandTotal ?? -1) === 0;
+            }).length;
+            return outOfStock > 0 ? (
+              <div className="mm-stat-badge" style={{ background: "#fef2f2", borderColor: "#fecaca" }}>
+                <div className="num" style={{ color: "#dc2626" }}>{outOfStock}</div>
+                <div className="lbl" style={{ color: "#dc2626" }}>Hết hàng</div>
+              </div>
+            ) : null;
+          })()}
         </div>
       </div>
 
