@@ -1,0 +1,65 @@
+/* src/components/wiki/components/Pagination.css */
+
+.wiki-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 32px;
+  padding: 20px 0;
+  flex-wrap: wrap;
+}
+
+.pg-btn {
+  min-width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: white;
+  color: #374151;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.pg-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.pg-btn.active {
+  background: #1e40af;
+  color: white;
+  border-color: #1e40af;
+  font-weight: 600;
+}
+
+.pg-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: #f8fafc;
+}
+
+.pg-ellipsis {
+  padding: 0 8px;
+  color: #94a3b8;
+  font-size: 18px;
+  user-select: none;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .wiki-pagination {
+    gap: 6px;
+  }
+  
+  .pg-btn {
+    min-width: 34px;
+    height: 34px;
+    font-size: 13px;
+  }
+}

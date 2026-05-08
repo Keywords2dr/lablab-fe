@@ -11,6 +11,7 @@ import AdminDashboard from "./pages/admin/dashboard/AdminDashboard";
 import MaterialManagement from "./pages/admin/materials/MaterialManagement";
 import MainLayout from "./components/layouts/MainLayout";
 import AdminLayout from "./components/layouts/AdminLayout";
+import WikiPage from "./pages/wiki/ChemicalWiki";
 
 const theme = createTheme({
   palette: {
@@ -33,6 +34,8 @@ function App() {
             <Route element={<MainLayout />}>
               <Route path="/" element={<DashboardPage />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/wiki"element={<WikiPage />}/>
+
             </Route>
           </Route>
 

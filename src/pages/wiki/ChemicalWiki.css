@@ -1,0 +1,460 @@
+/* ============================================================
+   ChemicalWiki.css
+   Import vào ChemicalWiki.jsx:
+   import "./ChemicalWiki.css";
+   ============================================================ */
+
+/* ── Reset cơ bản ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ══════════════════════════════════════════
+   WIKI PAGE – wrapper ngoài cùng
+══════════════════════════════════════════ */
+.wiki-page {
+  min-height: 100vh;
+  background: #f1f5f9;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  color: #0f172a;
+}
+
+/* ══════════════════════════════════════════
+   HEADER
+══════════════════════════════════════════ */
+.wiki-header {
+  background: #ffffff;
+  border-bottom: 0.5px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.wiki-header-content {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* Title block */
+.wiki-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.wiki-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #1e3a5f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff !important;
+  font-size: 22px !important;
+}
+
+.wiki-title h1 {
+  font-size: 17px;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.wiki-title p {
+  font-size: 12px;
+  color: #64748b;
+  margin: 2px 0 0;
+}
+
+/* Search */
+.wiki-search-container {
+  flex: 1;
+  max-width: 520px;
+}
+
+.search-wrapper {
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 18px !important;
+  pointer-events: none;
+}
+
+.wiki-search-input {
+  width: 100%;
+  height: 40px;
+  border: 0.5px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 0 14px 0 38px;
+  font-size: 14px;
+  color: #0f172a;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.wiki-search-input::placeholder {
+  color: #94a3b8;
+}
+
+.wiki-search-input:focus {
+  border-color: #3b82f6;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+}
+
+/* ══════════════════════════════════════════
+   CONTENT AREA
+══════════════════════════════════════════ */
+.wiki-content {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem 3rem;
+}
+
+/* Mobile filter toggle */
+.filter-toggle-btn {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  padding: 7px 14px;
+  border: 0.5px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #374151;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.filter-toggle-btn:hover {
+  background: #f1f5f9;
+}
+
+/* Main layout: sidebar + results */
+.wiki-main-layout {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+/* ══════════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════════ */
+.wiki-sidebar {
+  width: 248px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: sticky;
+  top: 84px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+.wiki-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+.wiki-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.wiki-sidebar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+/* WikiFilters wrapper */
+.wiki-filters-card {
+  background: #ffffff;
+  border: 0.5px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  height: fit-content;
+}
+
+.wiki-filters-head {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #f8fafc;
+  font-weight: 600;
+  color: #0f172a;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.wiki-filters-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Filter section */
+.filter-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 2px 0;
+}
+
+.filter-chip input[type="checkbox"] {
+  accent-color: #1e3a5f;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.filter-chip-label {
+  font-size: 13px;
+  color: #374151;
+  flex: 1;
+}
+
+.filter-chip-count {
+  font-size: 11px;
+  color: #94a3b8;
+  background: #f1f5f9;
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+
+.filter-select {
+  width: 100%;
+  height: 42px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: white;
+  padding: 0 12px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.filter-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* ══════════════════════════════════════════
+   RESULTS AREA
+══════════════════════════════════════════ */
+.wiki-results {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.results-count {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+.results-count strong {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+/* ══════════════════════════════════════════
+   CHEMICAL GRID - ĐÃ FIX
+══════════════════════════════════════════ */
+.chemical-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  padding: 20px 0;
+  width: 100%;
+}
+
+.chemical-card {
+  background: #ffffff;
+  border: 0.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  height: 100%;                    /* Làm các card cùng chiều cao */
+}
+
+.chemical-card:hover {
+  border-color: #94a3b8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Loading & Empty State */
+.loading-state,
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 4rem 20px;
+  background: #ffffff;
+  border: 0.5px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+/* ══════════════════════════════════════════
+   PAGINATION
+══════════════════════════════════════════ */
+.wiki-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.pg-btn {
+  min-width: 32px;
+  height: 32px;
+  border: 0.5px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 13px;
+  color: #374151;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.pg-btn:hover {
+  background: #f1f5f9;
+}
+
+.pg-btn.active {
+  background: #1e3a5f;
+  color: #ffffff;
+  border-color: #1e3a5f;
+}
+
+.pg-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════ */
+@media (max-width: 1200px) {
+  .chemical-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .wiki-header-content {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 12px 1rem;
+    gap: 10px;
+  }
+
+  .wiki-search-container {
+    max-width: 100%;
+    width: 100%;
+    order: 3;
+  }
+
+  .wiki-content {
+    padding: 1rem;
+  }
+
+  .filter-toggle-btn {
+    display: flex;
+  }
+
+  .wiki-main-layout {
+    flex-direction: column;
+  }
+
+  .wiki-sidebar {
+    width: 100%;
+    position: static;
+    max-height: none;
+  }
+
+  .chemical-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .chemical-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+  }
+}
+
+/* ====================== FIX HORIZONTAL SCROLLBAR ====================== */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+.wiki-page,
+.wiki-content,
+.wiki-main-layout,
+.wiki-results,
+.chemical-grid {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.chemical-card {
+  max-width: 100%;
+  box-sizing: border-box;
+}
