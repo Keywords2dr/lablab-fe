@@ -24,7 +24,7 @@ const NAV_ITEMS = [
     group: "QUẢN TRỊ & GIÁM SÁT",
     items: [
       { label: "Báo cáo Sự cố", icon: <WarningAmber fontSize="small" />, path: null },
-      { label: "Nhật ký Hệ thống", icon: <History fontSize="small" />, path: null },
+      { label: "Nhật ký Hệ thống", icon: <History fontSize="small" />, path: "/admin/audit-logs" },
     ],
   },
   {

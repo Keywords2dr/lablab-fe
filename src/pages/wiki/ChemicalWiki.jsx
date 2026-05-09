@@ -43,11 +43,25 @@ export default function ChemicalWiki() {
       {/* Header */}
       <div className="wiki-header">
         <div className="wiki-header-content">
-          <div className="wiki-title">
-            <Science className="wiki-icon" />
-            <div>
-              <h1>Wiki Hóa Chất</h1>
-              <p>Thư viện kiến thức hóa chất - Phòng thí nghiệm</p>
+          <div className="wiki-header-top-row">
+            <div className="wiki-title">
+              <div className="wiki-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="22" height="22">
+                  <circle cx="12" cy="12" r="3" />
+                  <circle cx="4" cy="6" r="1.5" />
+                  <circle cx="20" cy="6" r="1.5" />
+                  <circle cx="4" cy="18" r="1.5" />
+                  <circle cx="20" cy="18" r="1.5" />
+                  <line x1="9.5" y1="10.7" x2="5.5" y2="7.3" />
+                  <line x1="14.5" y1="10.7" x2="18.5" y2="7.3" />
+                  <line x1="9.5" y1="13.3" x2="5.5" y2="16.7" />
+                  <line x1="14.5" y1="13.3" x2="18.5" y2="16.7" />
+                </svg>
+              </div>
+              <div>
+                <h1>Wiki</h1>
+
+              </div>
             </div>
           </div>
 
@@ -56,7 +70,7 @@ export default function ChemicalWiki() {
               <Search className="search-icon" />
               <input
                 type="text"
-                placeholder="Tìm kiếm tên hóa chất, mã item, CAS number..."
+                placeholder="Tìm kiếm tên hóa chất"
                 value={filters.keyword || ""}
                 onChange={(e) => applyFilters({ keyword: e.target.value })}
                 className="wiki-search-input"
@@ -66,6 +80,7 @@ export default function ChemicalWiki() {
         </div>
       </div>
 
+
       <div className="wiki-content">
         <button
           className="filter-toggle-btn"
@@ -74,24 +89,25 @@ export default function ChemicalWiki() {
           <FilterList /> {showFilters ? "Ẩn bộ lọc" : "Hiện bộ lọc"}
         </button>
 
+        <p className="results-count" style={{ marginBottom: '14px' }}>
+          Tìm thấy <strong>{totalElements.toLocaleString()}</strong> hóa chất
+        </p>
+
         <div className="wiki-main-layout">
           {showFilters && (
             <div className="wiki-sidebar">
-              <WikiFilters
-                filters={filters}
-                formOptions={formOptions}
-                onFilterChange={applyFilters}
-                onReset={resetFilters}
-              />
+              <div className="wiki-sidebar-sticky">
+                <WikiFilters
+                  filters={filters}
+                  formOptions={formOptions}
+                  onFilterChange={applyFilters}
+                  onReset={resetFilters}
+                />
+              </div>
             </div>
           )}
 
           <div className="wiki-results">
-            <div className="results-header">
-              <p className="results-count">
-                Tìm thấy <strong>{totalElements.toLocaleString()}</strong> hóa chất
-              </p>
-            </div>
 
             {loading ? (
               <div className="loading-state">

@@ -38,7 +38,7 @@ export default function UserDashboard() {
           </p>
           <button
             className="ud-hero-btn"
-            onClick={() => window.open("/wiki", "_blank")}
+            onClick={() => navigate("/wiki")}   // ← Đã sửa ở đây
           >
             <MenuBook fontSize="small" /> Truy cập Wiki
           </button>
@@ -196,7 +196,7 @@ export default function UserDashboard() {
             </tr>
           </thead>
           <tbody>
-            {/* Dòng 1: Đang mượn (Ví dụ mượn ca Tối hôm nay) */}
+            {/* Dòng 1: Đang mượn */}
             <tr>
               <td>
                 <span className="ud-item-name">Phòng Thực Hành Hóa 01</span>
@@ -228,7 +228,7 @@ export default function UserDashboard() {
               </td>
             </tr>
 
-            {/* Dòng 2: Chờ duyệt (Mượn sáng mai) */}
+            {/* Dòng 2: Chờ duyệt */}
             <tr>
               <td>
                 <span className="ud-item-name">Ống nghiệm thủy tinh x10</span>

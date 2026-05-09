@@ -9,6 +9,7 @@ import DashboardPage from "./pages/dashboard/DashboardPage";
 import Profile from "./pages/profile/Profile";
 import AdminDashboard from "./pages/admin/dashboard/AdminDashboard";
 import MaterialManagement from "./pages/admin/materials/MaterialManagement";
+import AuditLogPage from "./pages/admin/dashboard/AuditLogPage";
 import MainLayout from "./components/layouts/MainLayout";
 import AdminLayout from "./components/layouts/AdminLayout";
 import WikiPage from "./pages/wiki/ChemicalWiki";
@@ -43,6 +44,7 @@ function App() {
             <Route element={<AdminLayout />}>
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/materials" element={<MaterialManagement />} />
+              <Route path="/admin/audit-logs" element={<AuditLogPage />} />
             </Route>
           </Route>
         </Routes>
