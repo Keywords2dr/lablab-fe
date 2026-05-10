@@ -11,6 +11,7 @@ export default function Profile() {
   const [formData, setFormData] = useState({
     fullName: "",
     phoneNumber: "",
+    email: "",
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -27,6 +28,7 @@ export default function Profile() {
       setFormData({
         fullName: userData.fullName || "",
         phoneNumber: userData.phoneNumber || "",
+        email: userData.email || "",
       });
     } catch (err) {
       console.error("Lỗi tải profile:", err);
@@ -40,6 +42,7 @@ export default function Profile() {
     setFormData({
       fullName: user.fullName || "",
       phoneNumber: user.phoneNumber || "",
+      email: user.email || "",
     });
   };
 
@@ -118,6 +121,7 @@ export default function Profile() {
 
   const validate = () => {
     const errs = {};
+
     const fullName = formData.fullName.trim();
     if (!fullName) {
       errs.fullName = "Họ và tên không được để trống!";
@@ -143,6 +147,16 @@ export default function Profile() {
         "Số điện thoại không hợp lệ (đầu số phải là 03x, 05x, 07x, 08x, 09x)!";
     }
 
+    const email = formData.email.trim();
+    if (!email) {
+      errs.email = "Email không được để trống!";
+    } else if (
+      !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}$/.test(email)
+    ) {
+      errs.email =
+        "Định dạng Email không chính xác (Ví dụ hợp lệ: name@domain.com)!";
+    }
+
     return errs;
   };
 
@@ -156,7 +170,7 @@ export default function Profile() {
       const payload = {
         fullName: formData.fullName.trim(),
         phoneNumber: formData.phoneNumber.trim(),
-        email: user.email,
+        email: formData.email.trim(),
         avatar: user.avatar || null,
       };
 
@@ -224,12 +238,31 @@ export default function Profile() {
               onKeyDown={handlePhoneKeyDown}
               onPaste={handlePhonePaste}
               className={errors.phoneNumber ? "input-error" : ""}
-              placeholder="Nhập số điện thoại "
+              placeholder="Nhập số điện thoại"
               maxLength={10}
               disabled={!isEditing}
             />
             {errors.phoneNumber && (
               <span className="error-msg">{errors.phoneNumber}</span>
+            )}
+          </div>
+
+          {/* Email */}
+          <div className="form-group">
+            <label>
+              Email {isEditing && <span className="required">*</span>}
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className={errors.email ? "input-error" : ""}
+              placeholder="Nhập email"
+              disabled={!isEditing}
+            />
+            {errors.email && (
+              <span className="error-msg">{errors.email}</span>
             )}
           </div>
 

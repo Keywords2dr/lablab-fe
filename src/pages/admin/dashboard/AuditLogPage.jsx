@@ -7,9 +7,9 @@ const ACTION_COLORS = {
   CREATE: { bg: '#dcfce7', color: '#15803d' },
   UPDATE: { bg: '#dbeafe', color: '#1d4ed8' },
   DELETE: { bg: '#fee2e2', color: '#b91c1c' },
-  LOGIN:  { bg: '#fef9c3', color: '#a16207' },
+  LOGIN: { bg: '#fef9c3', color: '#a16207' },
   LOGOUT: { bg: '#f3e8ff', color: '#7e22ce' },
-  VIEW:   { bg: '#e0f2fe', color: '#0369a1' },
+  VIEW: { bg: '#e0f2fe', color: '#0369a1' },
 };
 
 const getActionStyle = (action = '') => {
@@ -27,10 +27,152 @@ function SkeletonRow() {
   );
 }
 
+function parseSafe(jsonString) {
+  if (!jsonString) return null;
+  try { return JSON.parse(jsonString); } catch { return null; }
+}
+
+function buildDiff(oldObj, newObj) {
+  const allKeys = Array.from(new Set([
+    ...Object.keys(oldObj || {}),
+    ...Object.keys(newObj || {}),
+  ]));
+  return allKeys.map(key => {
+    const oldVal = oldObj?.[key];
+    const newVal = newObj?.[key];
+    const changed = JSON.stringify(oldVal) !== JSON.stringify(newVal);
+    return { key, oldVal, newVal, changed };
+  });
+}
+
+function AuditLogModal({ log, isOpen, onClose }) {
+  if (!isOpen || !log) return null;
+
+  const oldObj = parseSafe(log.oldData);
+  const newObj = parseSafe(log.newData);
+  const hasDiff = oldObj || newObj;
+  const diffRows = hasDiff ? buildDiff(oldObj, newObj) : [];
+  const changedCount = diffRows.filter(r => r.changed).length;
+  const actionStyle = getActionStyle(log.action);
+
+  return (
+    <div className="al-modal-overlay" onClick={onClose}>
+      <div className="al-modal-content" onClick={e => e.stopPropagation()}>
+
+        {/* Header */}
+        <div className="al-modal-header">
+          <div className="al-modal-header-left">
+            <div className="al-modal-header-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <line x1="10" y1="9" x2="8" y2="9"/>
+              </svg>
+            </div>
+            <div>
+              <h2>Chi tiết nhật ký hệ thống</h2>
+              {log.logId && (
+                <p className="al-modal-subid">
+                  ID &nbsp;<span className="al-mono">{log.logId}</span>
+                </p>
+              )}
+            </div>
+          </div>
+          <button className="al-modal-close" onClick={onClose}>×</button>
+        </div>
+
+        {/* Body */}
+        <div className="al-modal-body">
+
+          {/* Meta strip */}
+          <div className="al-meta-strip">
+            {[
+              { label: 'Thời gian', value: log.createdAt ? new Date(log.createdAt).toLocaleString('vi-VN') : '—' },
+              { label: 'Người thực hiện', value: log.actorUsername || '—' },
+              {
+                label: 'Hành động',
+                value: (
+                  <span
+                    className="al-badge"
+                    style={{ background: actionStyle.bg, color: actionStyle.color }}
+                  >
+                    {log.action}
+                  </span>
+                ),
+              },
+              { label: 'Entity', value: log.entityName || '—' },
+              { label: 'Vai trò', value: log.actorRole || '—' },
+            ].map(({ label, value }) => (
+              <div key={label} className="al-meta-cell">
+                <span className="al-meta-label">{label}</span>
+                <span className="al-meta-value">{value}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Diff panels */}
+          {hasDiff ? (
+            <div className="al-diff-grid">
+              {/* Old */}
+              <div className="al-diff-panel">
+                <div className="al-diff-panel-header al-diff-old">
+                  <span className="al-diff-icon">−</span>
+                  <span>Dữ liệu cũ</span>
+                </div>
+                <div className="al-diff-body">
+                  {diffRows.map(({ key, oldVal, changed }) => (
+                    <div key={key} className="al-diff-row">
+                      <span className="al-diff-key">{key}</span>
+                      <span className={`al-diff-val${changed ? ' al-diff-val--old' : ''}`}>
+                        {oldVal === undefined ? '—' : String(oldVal)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* New */}
+              <div className="al-diff-panel">
+                <div className="al-diff-panel-header al-diff-new">
+                  <span className="al-diff-icon">+</span>
+                  <span>Dữ liệu mới</span>
+                </div>
+                <div className="al-diff-body">
+                  {diffRows.map(({ key, newVal, changed }) => (
+                    <div key={key} className="al-diff-row">
+                      <span className="al-diff-key">{key}</span>
+                      <span className={`al-diff-val${changed ? ' al-diff-val--new' : ''}`}>
+                        {newVal === undefined ? '—' : String(newVal)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="al-diff-empty">Không có dữ liệu thay đổi</div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="al-modal-footer">
+          <span className="al-modal-footer-meta">
+            {changedCount > 0 ? `${changedCount} trường đã thay đổi` : 'Không có thay đổi'}
+          </span>
+          <button className="al-btn-secondary" onClick={onClose}>Đóng</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AuditLogPage() {
   const [logs, setLogs] = useState([]);
   const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedLog, setSelectedLog] = useState(null);
 
   const [filters, setFilters] = useState({
     role: '',
@@ -93,6 +235,9 @@ export default function AuditLogPage() {
   const handlePageChange = (newPage) => {
     setFilters(prev => ({ ...prev, page: newPage }));
   };
+
+  const openDetail = (log) => setSelectedLog(log);
+  const closeModal = () => setSelectedLog(null);
 
   const formatDate = (dateString) => {
     if (!dateString) return '—';
@@ -165,12 +310,11 @@ export default function AuditLogPage() {
             <label>Module</label>
             <div className="al-select-wrap">
               <select value={filters.module} onChange={e => handleFilterChange('module', e.target.value)}>
-                <option value="">Tất cả Modules</option>
+                <option value="">Tất cả </option>
                 {modules.map((mod, i) => <option key={i} value={mod}>{mod}</option>)}
               </select>
             </div>
           </div>
-
           <div className="al-filter-item">
             <label>Vai trò</label>
             <div className="al-input-wrap">
@@ -185,7 +329,6 @@ export default function AuditLogPage() {
               />
             </div>
           </div>
-
           <div className="al-filter-item">
             <label>Sắp xếp</label>
             <div className="al-select-wrap">
@@ -195,8 +338,6 @@ export default function AuditLogPage() {
               </select>
             </div>
           </div>
-
-
         </div>
       </div>
 
@@ -233,7 +374,7 @@ export default function AuditLogPage() {
                   const dt = formatDate(log.createdAt);
                   const actionStyle = getActionStyle(log.action);
                   return (
-                    <tr key={log.logId} className="al-row">
+                    <tr key={log.logId} className="al-row" onClick={() => openDetail(log)} style={{ cursor: 'pointer' }}>
                       <td>
                         <div className="al-datetime">
                           <span className="al-date">{dt.date}</span>
@@ -247,19 +388,12 @@ export default function AuditLogPage() {
                         </div>
                       </td>
                       <td>
-                        <span
-                          className="al-badge"
-                          style={{ background: actionStyle.bg, color: actionStyle.color }}
-                        >
+                        <span className="al-badge" style={{ background: actionStyle.bg, color: actionStyle.color }}>
                           {log.action}
                         </span>
                       </td>
-                      <td>
-                        <span className="al-module-tag">{log.entityName || '—'}</span>
-                      </td>
-                      <td>
-                        <span className="al-role">{log.actorRole || '—'}</span>
-                      </td>
+                      <td><span className="al-module-tag">{log.entityName || '—'}</span></td>
+                      <td><span className="al-role">{log.actorRole || '—'}</span></td>
                       <td className="al-desc" title={log.newData}>
                         {log.newData ? (() => {
                           try {
@@ -285,42 +419,21 @@ export default function AuditLogPage() {
               : `Hiển thị ${from}–${to} / ${pagination.totalElements.toLocaleString()} bản ghi`}
           </span>
           <div className="al-page-buttons">
-            <button
-              className="al-page-btn"
-              onClick={() => handlePageChange(0)}
-              disabled={filters.page === 0}
-              title="Trang đầu"
-            >«</button>
-            <button
-              className="al-page-btn"
-              onClick={() => handlePageChange(filters.page - 1)}
-              disabled={filters.page === 0}
-              title="Trang trước"
-            >‹</button>
+            <button className="al-page-btn" onClick={() => handlePageChange(0)} disabled={filters.page === 0} title="Trang đầu">«</button>
+            <button className="al-page-btn" onClick={() => handlePageChange(filters.page - 1)} disabled={filters.page === 0} title="Trang trước">‹</button>
             {pageNumbers().map(p => (
-              <button
-                key={p}
-                className={`al-page-btn ${p === filters.page ? 'active' : ''}`}
-                onClick={() => handlePageChange(p)}
-              >
+              <button key={p} className={`al-page-btn ${p === filters.page ? 'active' : ''}`} onClick={() => handlePageChange(p)}>
                 {p + 1}
               </button>
             ))}
-            <button
-              className="al-page-btn"
-              onClick={() => handlePageChange(filters.page + 1)}
-              disabled={filters.page >= pagination.totalPages - 1}
-              title="Trang sau"
-            >›</button>
-            <button
-              className="al-page-btn"
-              onClick={() => handlePageChange(pagination.totalPages - 1)}
-              disabled={filters.page >= pagination.totalPages - 1}
-              title="Trang cuối"
-            >»</button>
+            <button className="al-page-btn" onClick={() => handlePageChange(filters.page + 1)} disabled={filters.page >= pagination.totalPages - 1} title="Trang sau">›</button>
+            <button className="al-page-btn" onClick={() => handlePageChange(pagination.totalPages - 1)} disabled={filters.page >= pagination.totalPages - 1} title="Trang cuối">»</button>
           </div>
         </div>
       </div>
+
+      <AuditLogModal log={selectedLog} isOpen={!!selectedLog} onClose={closeModal} />
     </div>
   );
 }
+
