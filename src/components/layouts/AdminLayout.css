@@ -90,6 +90,42 @@
   color: #cbd5e1;
 }
 
+/* ── Sub-menu (children) ─────────────────────────────────── */
+.admin-nav-sub-list {
+  list-style: none;
+  padding: 4px 0 4px 14px;
+  margin: 0;
+  border-left: 2px solid #1e293b;
+  margin-left: 20px;
+  margin-top: 2px;
+}
+
+.admin-nav-sub-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0.75rem;
+  color: #94a3b8;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background .18s, color .18s;
+  margin-bottom: 1px;
+  font-size: 0.83rem;
+}
+
+.admin-nav-sub-item:hover {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+.admin-nav-sub-item.active {
+  background: rgba(59,130,246,0.18);
+  color: #93c5fd;
+  font-weight: 600;
+  border-left: 2px solid #3b82f6;
+  margin-left: -2px;
+}
+
 /* ── Main wrapper ─────────────────────────────────────────── */
 .admin-main-wrapper {
   flex: 1;

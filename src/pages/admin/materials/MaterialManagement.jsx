@@ -15,10 +15,17 @@ import "./MaterialManagement.css";
 
 export default function MaterialManagement() {
   const {
-    chemicals, inventory, loading,
-    serverPage, totalPages, totalElements,
-    filters, applyFilters, resetFilters,
-    fetchData, formOptions,
+    chemicals,
+    inventory,
+    loading,
+    serverPage,
+    totalPages,
+    totalElements,
+    filters,
+    applyFilters,
+    resetFilters,
+    fetchData,
+    formOptions,
   } = useChemicals();
   const [editingItem, setEditingItem] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -29,21 +36,35 @@ export default function MaterialManagement() {
   const [previewData, setPreviewData] = useState(null);
   const [previewFileName, setPreviewFileName] = useState("");
   const [previewFileObj, setPreviewFileObj] = useState(null);
-  const [previewMode, setPreviewMode] = useState("preview"); // "preview" | "result"
+  const [previewMode, setPreviewMode] = useState("preview");
   const [previewResult, setPreviewResult] = useState(null);
   const [previewOpen, setPreviewOpen] = useState(false);
 
   // ── Handlers ────────────────────────────────
-  const handleOpenAdd = () => { setEditingItem(null); setFormOpen(true); };
-  const handleOpenEdit = (item) => { setEditingItem(item); setFormOpen(true); };
-  const handleFormClose = () => { setFormOpen(false); setEditingItem(null); };
-  const handleSaved = () => { handleFormClose(); fetchData(serverPage); };
+  const handleOpenAdd = () => {
+    setEditingItem(null);
+    setFormOpen(true);
+  };
+  const handleOpenEdit = (item) => {
+    setEditingItem(item);
+    setFormOpen(true);
+  };
+  const handleFormClose = () => {
+    setFormOpen(false);
+    setEditingItem(null);
+  };
+  const handleSaved = () => {
+    handleFormClose();
+    fetchData(serverPage);
+  };
   const handleRestored = () => fetchData(serverPage);
 
   const handleDeleteClose = () => setDeleteTarget(null);
-  const handleDeleteConfirm = () => { handleDeleteClose(); fetchData(serverPage); };
+  const handleDeleteConfirm = () => {
+    handleDeleteClose();
+    fetchData(serverPage);
+  };
 
-  // Nhận dữ liệu preview từ FE — chưa import
   const handleOpenPreview = (data, fileName, fileObj) => {
     setPreviewData(data);
     setPreviewFileName(fileName);
@@ -56,13 +77,21 @@ export default function MaterialManagement() {
   const handlePreviewClose = () => setPreviewOpen(false);
 
   const handlePreviewConfirm = async (file) => {
-    if (!file) { handlePreviewClose(); fetchData(serverPage); return; }
+    if (!file) {
+      handlePreviewClose();
+      fetchData(serverPage);
+      return;
+    }
     try {
       const res = await chemicalApi.importChemicals(file);
       const d = res.data;
       const ok = d?.successCount ?? 0;
       const fails = Array.isArray(d?.failures) ? d.failures : [];
-      setPreviewResult({ successCount: ok, failures: fails, message: d?.message });
+      setPreviewResult({
+        successCount: ok,
+        failures: fails,
+        message: d?.message,
+      });
       setPreviewMode("result");
       fetchData(serverPage);
     } catch (err) {
@@ -72,14 +101,19 @@ export default function MaterialManagement() {
   };
 
   const filteredCount = totalElements;
+  const outOfStockCount = Object.values(inventory).filter(
+    (inv) => inv.grandTotal === 0,
+  ).length;
+  const hasOutOfStock = outOfStockCount > 0;
 
   return (
     <div className="mm-root">
-
       {/* ── Page Header ── */}
       <div className="mm-header">
         <div className="mm-header-left">
-          <div className="mm-header-icon"><InventoryIcon /></div>
+          <div className="mm-header-icon">
+            <InventoryIcon />
+          </div>
           <div>
             <div className="mm-header-title">Quản lý Hóa chất &amp; Vật tư</div>
             <div className="mm-header-sub">
@@ -87,23 +121,49 @@ export default function MaterialManagement() {
             </div>
           </div>
         </div>
+
         <div className="mm-stats">
-          <div className="mm-stat-badge">
+          {/* Tổng số */}
+          <div className="mm-stat-badge" title="Tổng số hóa chất">
             <div className="num">{totalElements}</div>
             <div className="lbl">Tổng số</div>
           </div>
-          {(() => {
-            const outOfStock = chemicals.filter((c) => {
-              const inv = inventory[c.itemId];
-              return (inv?.grandTotal ?? -1) === 0;
-            }).length;
-            return outOfStock > 0 ? (
-              <div className="mm-stat-badge" style={{ background: "#fef2f2", borderColor: "#fecaca" }}>
-                <div className="num" style={{ color: "#dc2626" }}>{outOfStock}</div>
-                <div className="lbl" style={{ color: "#dc2626" }}>Hết hàng</div>
-              </div>
-            ) : null;
-          })()}
+
+          {/* Hết hàng — style giống "Ngừng HĐ" bên phòng Lab */}
+          <div
+            className="mm-stat-badge"
+            title={
+              hasOutOfStock
+                ? "Xem hóa chất hết hàng"
+                : "Không có hóa chất nào hết hàng"
+            }
+            style={
+              hasOutOfStock
+                ? {
+                    cursor: "pointer",
+                    background: "rgba(60, 20, 30, 0.55)",
+                    border: "1.5px solid rgba(239, 68, 68, 0.55)",
+                    color: "#f87171",
+                  }
+                : {
+                    cursor: "default",
+                    background: "rgba(20, 60, 30, 0.45)",
+                    border: "1.5px solid rgba(34, 197, 94, 0.45)",
+                    color: "#4ade80",
+                  }
+            }
+            onClick={() => {
+              if (hasOutOfStock)
+                applyFilters({ outOfStock: !filters.outOfStock });
+            }}
+          >
+            <div className="num" style={{ color: "inherit" }}>
+              {outOfStockCount}
+            </div>
+            <div className="lbl" style={{ color: "inherit", opacity: 0.8 }}>
+              Hết hàng
+            </div>
+          </div>
         </div>
       </div>
 
@@ -163,7 +223,6 @@ export default function MaterialManagement() {
         onClose={() => setTrashOpen(false)}
         onRestored={handleRestored}
       />
-
     </div>
   );
 }

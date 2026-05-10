@@ -5,32 +5,48 @@ import { chemicalApi } from "../../../../api/chemicalApi";
 import "./ChemicalFormModal.css";
 
 const emptyForm = {
-  itemCode: "", name: "", formula: "", unit: "",
-  packaging: "", amountPerPackage: "", supplier: "",
+  itemCode: "",
+  name: "",
+  formula: "",
+  unit: "",
+  packaging: "",
+  amountPerPackage: "",
+  supplier: "",
 };
 
 const NAV_KEYS = [
-  "Backspace", "Delete", "Tab", "Escape", "Enter",
-  "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End",
+  "Backspace",
+  "Delete",
+  "Tab",
+  "Escape",
+  "Enter",
+  "ArrowLeft",
+  "ArrowRight",
+  "ArrowUp",
+  "ArrowDown",
+  "Home",
+  "End",
 ];
 const isNavKey = (e) =>
   NAV_KEYS.includes(e.key) ||
   (e.ctrlKey && ["a", "c", "v", "x", "z"].includes(e.key.toLowerCase()));
 
+// FIX: removed unnecessary escapes \-, \[, \.
 const handleCodeKeyDown = (e) => {
   if (isNavKey(e)) return;
-  if (!/^[a-zA-Z0-9_\-]$/.test(e.key)) e.preventDefault();
+  if (!/^[a-zA-Z0-9_-]$/.test(e.key)) e.preventDefault();
 };
 
+// Cho phép số vì tên hóa chất có thể chứa số, VD: "3-Aminopropyl", "2-Propanol"
 const handleTextKeyDown = (e) => {
   if (isNavKey(e)) return;
   if (e.key === "Process" || e.key === "Unidentified") return;
-  if (/^[0-9!@#$%^&*+=\[\]{};:"\\|<>?`~]$/.test(e.key)) e.preventDefault();
+  if (/^[!@#$%^&*+=[\]{};:"\\|<>?`~]$/.test(e.key)) e.preventDefault();
 };
 
 const handleFormulaKeyDown = (e) => {
   if (isNavKey(e)) return;
-  if (!/^[a-zA-Z0-9()+\-\.]$/.test(e.key)) e.preventDefault();
+  if (!/^[a-zA-Z0-9()+\-.]+$/.test(e.key)) e.preventDefault();
 };
 
 const handleNumberKeyDown = (e) => {
@@ -40,7 +56,7 @@ const handleNumberKeyDown = (e) => {
 
 const handleCodePaste = (e) => {
   const pasted = e.clipboardData.getData("text");
-  if (!/^[a-zA-Z0-9_\-]+$/.test(pasted)) {
+  if (!/^[a-zA-Z0-9_-]+$/.test(pasted)) {
     e.preventDefault();
     toast.warning("Mã chỉ được chứa chữ cái, số, dấu gạch dưới và gạch ngang!");
   }
@@ -48,7 +64,7 @@ const handleCodePaste = (e) => {
 
 const handleFormulaPaste = (e) => {
   const pasted = e.clipboardData.getData("text");
-  if (!/^[a-zA-Z0-9()+\-\.]+$/.test(pasted)) {
+  if (!/^[a-zA-Z0-9()+\-.]+$/.test(pasted)) {
     e.preventDefault();
     toast.warning("Công thức chỉ được chứa chữ cái, số và ký hiệu hóa học!");
   }
@@ -62,7 +78,13 @@ const handleNumberPaste = (e) => {
   }
 };
 
-export default function ChemicalFormModal({ open, editingItem, onClose, onSaved, formOptions }) {
+export default function ChemicalFormModal({
+  open,
+  editingItem,
+  onClose,
+  onSaved,
+  formOptions,
+}) {
   const [formData, setFormData] = useState(emptyForm);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -76,8 +98,10 @@ export default function ChemicalFormModal({ open, editingItem, onClose, onSaved,
         formula: editingItem.formula || "",
         unit: editingItem.unit || "",
         packaging: editingItem.packaging || "",
-        amountPerPackage: editingItem.amountPerPackage != null
-          ? String(editingItem.amountPerPackage) : "",
+        amountPerPackage:
+          editingItem.amountPerPackage != null
+            ? String(editingItem.amountPerPackage)
+            : "",
         supplier: editingItem.supplier || "",
       });
     } else {
@@ -96,20 +120,17 @@ export default function ChemicalFormModal({ open, editingItem, onClose, onSaved,
     const errs = {};
 
     const itemCode = formData.itemCode.trim();
-    if (!itemCode)
-      errs.itemCode = "Mã hóa chất không được để trống!";
-    else if (!/^[a-zA-Z0-9_\-]+$/.test(itemCode))
+    if (!itemCode) errs.itemCode = "Mã hóa chất không được để trống!";
+    else if (!/^[a-zA-Z0-9_-]+$/.test(itemCode))
       errs.itemCode = "Mã chỉ được chứa chữ cái, số, dấu _ và -!";
 
     const name = formData.name.trim();
-    if (!name)
-      errs.name = "Tên hóa chất không được để trống!";
+    if (!name) errs.name = "Tên hóa chất không được để trống!";
     else if (name.length < 2 || name.length > 100)
       errs.name = "Tên phải từ 2 đến 100 ký tự!";
 
     const unit = formData.unit.trim();
-    if (!unit)
-      errs.unit = "Đơn vị tính không được để trống!";
+    if (!unit) errs.unit = "Đơn vị tính không được để trống!";
 
     const amt = formData.amountPerPackage.trim();
     if (amt !== "" && (isNaN(Number(amt)) || Number(amt) < 0))
@@ -129,8 +150,10 @@ export default function ChemicalFormModal({ open, editingItem, onClose, onSaved,
       unit: formData.unit.trim(),
       formula: formData.formula.trim() || null,
       packaging: formData.packaging.trim() || null,
-      amountPerPackage: formData.amountPerPackage.trim() !== ""
-        ? Number(formData.amountPerPackage) : null,
+      amountPerPackage:
+        formData.amountPerPackage.trim() !== ""
+          ? Number(formData.amountPerPackage)
+          : null,
       supplier: formData.supplier.trim() || null,
     };
 
@@ -138,10 +161,10 @@ export default function ChemicalFormModal({ open, editingItem, onClose, onSaved,
     try {
       if (editingItem) {
         await chemicalApi.updateChemical(editingItem.itemId, payload);
-        toast.success("✅ Cập nhật hóa chất thành công!");
+        toast.success("Cập nhật hóa chất thành công!");
       } else {
         await chemicalApi.createChemical(payload);
-        toast.success("✅ Thêm hóa chất mới thành công!");
+        toast.success("Thêm hóa chất mới thành công!");
       }
       onSaved();
     } catch (err) {
@@ -168,16 +191,23 @@ export default function ChemicalFormModal({ open, editingItem, onClose, onSaved,
         <div className="mm-modal-header">
           <div className="mm-modal-title">
             {editingItem ? "Chỉnh sửa hóa chất" : "Thêm hóa chất mới"}
-            <span>{editingItem ? "Cập nhật thông tin" : "Điền đầy đủ thông tin bên dưới"}</span>
+            <span>
+              {editingItem
+                ? "Cập nhật thông tin"
+                : "Điền đầy đủ thông tin bên dưới"}
+            </span>
           </div>
-          <button className="mm-modal-close" onClick={onClose}><Close /></button>
+          <button className="mm-modal-close" onClick={onClose}>
+            <Close />
+          </button>
         </div>
 
         <div className="mm-modal-body">
           <div className="mm-form-grid">
-
             <div className="mm-field">
-              <label>Mã hóa chất <span className="req">*</span></label>
+              <label>
+                Mã hóa chất <span className="req">*</span>
+              </label>
               <input
                 name="itemCode"
                 placeholder="VD: HC_001"
@@ -188,11 +218,15 @@ export default function ChemicalFormModal({ open, editingItem, onClose, onSaved,
                 className={errors.itemCode ? "error" : ""}
                 maxLength={30}
               />
-              {errors.itemCode && <div className="mm-field-error">{errors.itemCode}</div>}
+              {errors.itemCode && (
+                <div className="mm-field-error">{errors.itemCode}</div>
+              )}
             </div>
 
             <div className="mm-field">
-              <label>Đơn vị tính <span className="req">*</span></label>
+              <label>
+                Đơn vị tính <span className="req">*</span>
+              </label>
               <input
                 list="dl-unit"
                 name="unit"
@@ -204,13 +238,19 @@ export default function ChemicalFormModal({ open, editingItem, onClose, onSaved,
                 maxLength={20}
               />
               <datalist id="dl-unit">
-                {(formOptions?.units || []).map((u) => <option key={u} value={u} />)}
+                {(formOptions?.units || []).map((u) => (
+                  <option key={u} value={u} />
+                ))}
               </datalist>
-              {errors.unit && <div className="mm-field-error">{errors.unit}</div>}
+              {errors.unit && (
+                <div className="mm-field-error">{errors.unit}</div>
+              )}
             </div>
 
             <div className="mm-field full">
-              <label>Tên hóa chất <span className="req">*</span></label>
+              <label>
+                Tên hóa chất <span className="req">*</span>
+              </label>
               <input
                 name="name"
                 placeholder="VD: Axit iodic"
@@ -220,7 +260,9 @@ export default function ChemicalFormModal({ open, editingItem, onClose, onSaved,
                 className={errors.name ? "error" : ""}
                 maxLength={100}
               />
-              {errors.name && <div className="mm-field-error">{errors.name}</div>}
+              {errors.name && (
+                <div className="mm-field-error">{errors.name}</div>
+              )}
             </div>
 
             <div className="mm-field">
@@ -248,7 +290,9 @@ export default function ChemicalFormModal({ open, editingItem, onClose, onSaved,
                 maxLength={50}
               />
               <datalist id="dl-packaging">
-                {(formOptions?.packagings || []).map((p) => <option key={p} value={p} />)}
+                {(formOptions?.packagings || []).map((p) => (
+                  <option key={p} value={p} />
+                ))}
               </datalist>
             </div>
 
@@ -282,18 +326,27 @@ export default function ChemicalFormModal({ open, editingItem, onClose, onSaved,
                 maxLength={100}
               />
               <datalist id="dl-supplier">
-                {(formOptions?.suppliers || []).map((s) => <option key={s} value={s} />)}
+                {(formOptions?.suppliers || []).map((s) => (
+                  <option key={s} value={s} />
+                ))}
               </datalist>
             </div>
-
           </div>
         </div>
 
         <div className="mm-divider" />
         <div className="mm-modal-footer">
-          <button className="mm-btn-cancel" onClick={onClose} disabled={saving}>Hủy</button>
-          <button className="mm-btn-save" onClick={handleSave} disabled={saving}>
-            <Save style={{ fontSize: 16, marginRight: 6, verticalAlign: "middle" }} />
+          <button className="mm-btn-cancel" onClick={onClose} disabled={saving}>
+            Hủy
+          </button>
+          <button
+            className="mm-btn-save"
+            onClick={handleSave}
+            disabled={saving}
+          >
+            <Save
+              style={{ fontSize: 16, marginRight: 6, verticalAlign: "middle" }}
+            />
             {saving ? "Đang lưu..." : editingItem ? "Cập nhật" : "Thêm mới"}
           </button>
         </div>

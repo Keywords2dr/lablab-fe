@@ -15,7 +15,7 @@ export default function TrashModal({ open, onClose, onRestored }) {
       const res = await chemicalApi.getTrash();
       setItems(res.data || []);
     } catch (err) {
-      toast.error("❌ Không tải được thùng rác: " + (err.response?.data?.message || err.message));
+      toast.error(" Không tải được thùng rác: " + (err.response?.data?.message || err.message));
     } finally {
       setLoading(false);
     }
@@ -30,7 +30,7 @@ export default function TrashModal({ open, onClose, onRestored }) {
     setRestoring(item.itemId);
     try {
       await chemicalApi.restoreChemical(item.itemId);
-      toast.success(`✅ Đã khôi phục "${item.name}" thành công!`);
+      toast.success(` Đã khôi phục "${item.name}" thành công!`);
       setItems((prev) => prev.filter((i) => i.itemId !== item.itemId));
       onRestored(); // báo parent refresh bảng chính
     } catch (err) {
@@ -48,7 +48,7 @@ export default function TrashModal({ open, onClose, onRestored }) {
         {/* Header */}
         <div className="mm-modal-header">
           <div className="mm-modal-title">
-            🗑️ Thùng rác
+             Thùng rác
             <span>Hóa chất đã xóa — có thể khôi phục</span>
           </div>
           <button className="mm-modal-close" onClick={onClose}><Close /></button>

@@ -1,10 +1,24 @@
 import React, { useState } from "react";
-import { Close, CheckCircle, Warning, ErrorRounded, Upload } from "@mui/icons-material";
+import {
+  Close,
+  CheckCircle,
+  Warning,
+  ErrorRounded,
+  Upload,
+} from "@mui/icons-material";
 import "./PreviewModal.css";
 
-
-export default function PreviewModal({ open, data, fileName, mode = "preview", result, onClose, onConfirm }) {
+export default function PreviewModal({
+  open,
+  data,
+  fileName,
+  mode = "preview",
+  result,
+  onClose,
+  onConfirm,
+}) {
   const [importing, setImporting] = useState(false);
+  const [showConfirmClose, setShowConfirmClose] = useState(false);
 
   if (!open) return null;
 
@@ -13,33 +27,59 @@ export default function PreviewModal({ open, data, fileName, mode = "preview", r
 
     const handleConfirm = async () => {
       setImporting(true);
-      try { await onConfirm(); }
-      finally { setImporting(false); }
+      try {
+        await onConfirm();
+      } finally {
+        setImporting(false);
+      }
     };
 
     return (
-      <div className="mm-overlay" onClick={(e) => e.target === e.currentTarget && !importing && onClose()}>
+      <div className="mm-overlay">
         <div className="mm-preview-modal">
-
           <div className="mm-preview-header">
             <div className="mm-preview-title">
               Xem trước dữ liệu nhập
-              <span>từ file: {fileName} — {rows.length} dòng</span>
+              <span>
+                từ file: {fileName} — {rows.length} dòng
+              </span>
             </div>
-            <button className="mm-modal-close" onClick={onClose} disabled={importing}><Close /></button>
+            <button
+              className="mm-modal-close"
+              onClick={onClose}
+              disabled={importing}
+            >
+              <Close />
+            </button>
           </div>
 
           <div className="mm-preview-body">
             <div className="mm-preview-stats">
-              <div className="mm-preview-stat"><strong>{rows.length}</strong> Tổng dòng sẽ nhập</div>
-              <div className="mm-preview-stat" style={{ background: "#eff6ff", borderColor: "#bfdbfe", color: "#1d4ed8" }}>
+              <div className="mm-preview-stat">
+                <strong>{rows.length}</strong> Tổng dòng sẽ nhập
+              </div>
+              <div
+                className="mm-preview-stat"
+                style={{
+                  background: "#eff6ff",
+                  borderColor: "#bfdbfe",
+                  color: "#1d4ed8",
+                }}
+              >
                 🔖 Mã hóa chất sẽ được hệ thống tự sinh
               </div>
             </div>
 
             {rows.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "2rem", color: "#64748b" }}>
-                Không đọc được dữ liệu. Hãy mở DevTools Console để xem headers thực tế trong file.
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "2rem",
+                  color: "#64748b",
+                }}
+              >
+                Không đọc được dữ liệu. Hãy mở DevTools Console để xem headers
+                thực tế trong file.
               </div>
             ) : (
               <div className="mm-preview-table-wrap">
@@ -58,15 +98,35 @@ export default function PreviewModal({ open, data, fileName, mode = "preview", r
                   <tbody>
                     {rows.map((row, i) => (
                       <tr key={i}>
-                        <td style={{ color: "#94a3b8", fontSize: "0.78rem", fontWeight: 600 }}>
+                        <td
+                          style={{
+                            color: "#94a3b8",
+                            fontSize: "0.78rem",
+                            fontWeight: 600,
+                          }}
+                        >
                           {row.rowNumber ?? i + 1}
                         </td>
-                        <td style={{ fontWeight: 600, color: "#1e293b" }}>{row.name || "—"}</td>
-                        <td style={{ fontFamily: "monospace", fontSize: "0.8rem", color: "#4f46e5" }}>{row.formula || "—"}</td>
+                        <td style={{ fontWeight: 600, color: "#1e293b" }}>
+                          {row.name || "—"}
+                        </td>
+                        <td
+                          style={{
+                            fontFamily: "monospace",
+                            fontSize: "0.8rem",
+                            color: "#4f46e5",
+                          }}
+                        >
+                          {row.formula || "—"}
+                        </td>
                         <td>{row.unit || "—"}</td>
-                        <td style={{ fontSize: "0.8rem", color: "#64748b" }}>{row.packaging || "—"}</td>
+                        <td style={{ fontSize: "0.8rem", color: "#64748b" }}>
+                          {row.packaging || "—"}
+                        </td>
                         <td>{row.amountPerPackage || "—"}</td>
-                        <td style={{ fontSize: "0.8rem", color: "#64748b" }}>{row.supplier || "—"}</td>
+                        <td style={{ fontSize: "0.8rem", color: "#64748b" }}>
+                          {row.supplier || "—"}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -80,20 +140,31 @@ export default function PreviewModal({ open, data, fileName, mode = "preview", r
               Kiểm tra kỹ trước khi nhập vào hệ thống.
             </span>
             <div style={{ display: "flex", gap: 10 }}>
-              <button className="mm-btn-cancel" onClick={onClose} disabled={importing}>Hủy</button>
+              <button
+                className="mm-btn-cancel"
+                onClick={onClose}
+                disabled={importing}
+              >
+                Hủy
+              </button>
               <button
                 className="mm-btn-confirm-import"
                 onClick={handleConfirm}
                 disabled={importing || rows.length === 0}
               >
-                {importing
-                  ? <><span style={{ marginRight: 6 }}>⏳</span>Đang nhập...</>
-                  : <><Upload style={{ fontSize: 16 }} /> Xác nhận nhập {rows.length} dòng</>
-                }
+                {importing ? (
+                  <>
+                    <span style={{ marginRight: 6 }}>⏳</span>Đang nhập...
+                  </>
+                ) : (
+                  <>
+                    <Upload style={{ fontSize: 16 }} /> Xác nhận nhập{" "}
+                    {rows.length} dòng
+                  </>
+                )}
               </button>
             </div>
           </div>
-
         </div>
       </div>
     );
@@ -123,24 +194,42 @@ export default function PreviewModal({ open, data, fileName, mode = "preview", r
     _msg: f.reason ?? f.message ?? "Lỗi không xác định",
   }));
 
-  return (
-    <div className="mm-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="mm-preview-modal">
+  const handleCloseResult = () => {
+    if (errCount > 0 && !showConfirmClose) {
+      setShowConfirmClose(true);
+    } else {
+      setShowConfirmClose(false);
+      onClose();
+    }
+  };
 
+  return (
+    <div className="mm-overlay">
+      <div className="mm-preview-modal">
         <div className="mm-preview-header">
           <div className="mm-preview-title">
             Kết quả nhập dữ liệu
             <span>từ file: {fileName}</span>
           </div>
-          <button className="mm-modal-close" onClick={onClose}><Close /></button>
+          <button className="mm-modal-close" onClick={handleCloseResult}>
+            <Close />
+          </button>
         </div>
 
         <div className="mm-preview-body">
           {/* Stats */}
           <div className="mm-preview-stats">
-            <div className="mm-preview-stat"><strong>{total}</strong> Tổng dòng</div>
-            <div className="mm-preview-stat"><strong style={{ color: "#16a34a" }}>{successCount}</strong> Thành công</div>
-            <div className="mm-preview-stat"><strong style={{ color: "#dc2626" }}>{errCount}</strong> Lỗi / Bỏ qua</div>
+            <div className="mm-preview-stat">
+              <strong>{total}</strong> Tổng dòng
+            </div>
+            <div className="mm-preview-stat">
+              <strong style={{ color: "#16a34a" }}>{successCount}</strong> Thành
+              công
+            </div>
+            <div className="mm-preview-stat">
+              <strong style={{ color: "#dc2626" }}>{errCount}</strong> Lỗi / Bỏ
+              qua
+            </div>
           </div>
 
           {/* Banner thành công */}
@@ -148,8 +237,13 @@ export default function PreviewModal({ open, data, fileName, mode = "preview", r
             <div className="mm-import-success-banner">
               <div className="banner-icon">✅</div>
               <div className="banner-text">
-                <strong>{successCount} dòng đã được nhập thành công vào hệ thống</strong>
-                <span>{result?.message ?? "Dữ liệu đã được lưu — danh sách bên dưới đã được làm mới."}</span>
+                <strong>
+                  {successCount} dòng đã được nhập thành công vào hệ thống
+                </strong>
+                <span>
+                  {result?.message ??
+                    "Dữ liệu đã được lưu — danh sách bên dưới đã được làm mới."}
+                </span>
               </div>
             </div>
           )}
@@ -179,16 +273,47 @@ export default function PreviewModal({ open, data, fileName, mode = "preview", r
                   <tbody>
                     {failRows.map((row, i) => (
                       <tr key={i} className="mm-preview-row-err">
-                        <td style={{ color: "#94a3b8", fontSize: "0.78rem", fontWeight: 600 }}>{row.rowNumber}</td>
-                        <td><span className="mm-code">{row.itemCode}</span></td>
-                        <td style={{ fontWeight: 600, color: "#1e293b" }}>{row.name}</td>
-                        <td style={{ fontFamily: "monospace", fontSize: "0.8rem", color: "#4f46e5" }}>{row.formula || "—"}</td>
-                        <td>{row.unit || "—"}</td>
-                        <td style={{ fontSize: "0.8rem", color: "#64748b" }}>{row.packaging || "—"}</td>
-                        <td>{row.amountPerPackage ?? "—"}</td>
-                        <td style={{ fontSize: "0.8rem", color: "#64748b" }}>{row.supplier || "—"}</td>
+                        <td
+                          style={{
+                            color: "#94a3b8",
+                            fontSize: "0.78rem",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {row.rowNumber}
+                        </td>
                         <td>
-                          <span className="mm-row-badge err" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                          <span className="mm-code">{row.itemCode}</span>
+                        </td>
+                        <td style={{ fontWeight: 600, color: "#1e293b" }}>
+                          {row.name}
+                        </td>
+                        <td
+                          style={{
+                            fontFamily: "monospace",
+                            fontSize: "0.8rem",
+                            color: "#4f46e5",
+                          }}
+                        >
+                          {row.formula || "—"}
+                        </td>
+                        <td>{row.unit || "—"}</td>
+                        <td style={{ fontSize: "0.8rem", color: "#64748b" }}>
+                          {row.packaging || "—"}
+                        </td>
+                        <td>{row.amountPerPackage ?? "—"}</td>
+                        <td style={{ fontSize: "0.8rem", color: "#64748b" }}>
+                          {row.supplier || "—"}
+                        </td>
+                        <td>
+                          <span
+                            className="mm-row-badge err"
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 4,
+                            }}
+                          >
                             {statusIcon.error} {row._msg}
                           </span>
                         </td>
@@ -202,7 +327,15 @@ export default function PreviewModal({ open, data, fileName, mode = "preview", r
 
           {/* Tất cả thành công */}
           {failRows.length === 0 && successCount > 0 && (
-            <div style={{ textAlign: "center", padding: "1.5rem", color: "#15803d", fontSize: "0.95rem", fontWeight: 600 }}>
+            <div
+              style={{
+                textAlign: "center",
+                padding: "1.5rem",
+                color: "#15803d",
+                fontSize: "0.95rem",
+                fontWeight: 600,
+              }}
+            >
               🎉 Tất cả {successCount} dòng đều nhập thành công!
             </div>
           )}
@@ -213,11 +346,40 @@ export default function PreviewModal({ open, data, fileName, mode = "preview", r
             <span className="lg-ok">Thành công</span>
             <span className="lg-err">Lỗi (bỏ qua)</span>
           </div>
-          <button className="mm-btn-confirm-import" onClick={onClose}>
-            <CheckCircle style={{ fontSize: 16 }} /> Hoàn tất
-          </button>
-        </div>
 
+          {showConfirmClose ? (
+            <div className="mm-confirm-close-wrap">
+              <span className="mm-confirm-close-text">
+                ⚠️ Còn <strong>{errCount} dòng lỗi</strong> chưa xử lý. Bạn chắc
+                chắn muốn đóng?
+              </span>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  className="mm-btn-cancel"
+                  onClick={() => setShowConfirmClose(false)}
+                >
+                  Xem lại lỗi
+                </button>
+                <button
+                  className="mm-btn-confirm-import mm-btn-danger"
+                  onClick={() => {
+                    setShowConfirmClose(false);
+                    onClose();
+                  }}
+                >
+                  <Close style={{ fontSize: 15 }} /> Đóng
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              className="mm-btn-confirm-import"
+              onClick={handleCloseResult}
+            >
+              <CheckCircle style={{ fontSize: 16 }} /> Hoàn tất
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

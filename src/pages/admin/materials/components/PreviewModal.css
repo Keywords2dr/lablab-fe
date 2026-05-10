@@ -285,6 +285,35 @@ table.mm-preview-table tbody td {
   font-size: 18px;
 }
 
+/* ── Confirm close bar ── */
+.mm-confirm-close-wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+  padding: 10px 16px;
+  animation: fadeIn 0.15s ease;
+}
+
+.mm-confirm-close-text {
+  font-size: 0.83rem;
+  color: #92400e;
+  flex: 1;
+}
+
+/* ── Danger confirm button ── */
+.mm-btn-confirm-import.mm-btn-danger {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.32);
+}
+
+.mm-btn-confirm-import.mm-btn-danger:hover {
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.44);
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .mm-preview-modal {

@@ -13,7 +13,7 @@ export default function DeleteConfirmModal({ target, onClose, onConfirm }) {
     setDeleting(true);
     try {
       await chemicalApi.deleteChemical(target.itemId);
-      toast.success(`🗑️ "${target.name}" đã được chuyển vào thùng rác.`);
+      toast.success(` "${target.name}" đã được chuyển vào thùng rác.`);
       onConfirm();
     } catch (err) {
       const status = err.response?.status;

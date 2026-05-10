@@ -1,0 +1,15 @@
+/*
+ * rooms.css — Entry point duy nhất cho Room Management module.
+ * Thứ tự import có ý nghĩa:
+ *   1. base   — biến, font, layout gốc, header, stats
+ *   2. table  — toolbar, table card, pagination
+ *   3. modal  — overlay, modal shell, form, buttons
+ *   4. staff  — manager assignment panel
+ *   5. supply — supply transfer panel
+ */
+
+@import "./base.css";
+@import "./table.css";
+@import "./modal.css";
+@import "./staff.css";
+@import "./supply.css";
