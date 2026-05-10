@@ -9,13 +9,10 @@ import DashboardPage from "./pages/dashboard/DashboardPage";
 import Profile from "./pages/profile/Profile";
 import AdminDashboard from "./pages/admin/dashboard/AdminDashboard";
 import MaterialManagement from "./pages/admin/materials/MaterialManagement";
-<<<<<<< HEAD
 import AuditLogPage from "./pages/admin/dashboard/AuditLogPage";
-=======
 import RoomManagement from "./pages/admin/rooms/RoomManagement";
 import RoomManagerAssignment from "./pages/admin/rooms/RoomManagerAssignment";
 import RoomSupplyDistribution from "./pages/admin/rooms/RoomSupplyDistribution";
->>>>>>> 8456b71 (feat: implement Room Management module and update Material Management components)
 import MainLayout from "./components/layouts/MainLayout";
 import AdminLayout from "./components/layouts/AdminLayout";
 import WikiPage from "./pages/wiki/ChemicalWiki";
@@ -41,8 +38,7 @@ function App() {
             <Route element={<MainLayout />}>
               <Route path="/" element={<DashboardPage />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path="/wiki"element={<WikiPage />}/>
-
+              <Route path="/wiki" element={<WikiPage />} />
             </Route>
           </Route>
 
@@ -52,8 +48,14 @@ function App() {
               <Route path="/admin/materials" element={<MaterialManagement />} />
               <Route path="/admin/audit-logs" element={<AuditLogPage />} />
               <Route path="/admin/rooms" element={<RoomManagement />} />
-              <Route path="/admin/rooms/managers" element={<RoomManagerAssignment />} />
-              <Route path="/admin/rooms/supplies" element={<RoomSupplyDistribution />} />
+              <Route
+                path="/admin/rooms/managers"
+                element={<RoomManagerAssignment />}
+              />
+              <Route
+                path="/admin/rooms/supplies"
+                element={<RoomSupplyDistribution />}
+              />
             </Route>
           </Route>
         </Routes>
