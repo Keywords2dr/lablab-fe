@@ -54,6 +54,14 @@ export default function MainLayout() {
     navigate("/login");
   };
 
+  const handleClosePasswordModal = () => {
+    setOpenPassword(false);
+    setOldPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setShowPassword(false);
+  };
+
   // CHANGE PASSWORD
   const handleChangePassword = async () => {
     if (!oldPassword || !newPassword || !confirmPassword) {
@@ -75,10 +83,7 @@ export default function MainLayout() {
 
       toast.success("Đổi mật khẩu thành công!");
 
-      setOpenPassword(false);
-      setOldPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
+      handleClosePasswordModal();
     } catch (err) {
       toast.error(err.response?.data?.message || "Đổi mật khẩu thất bại!");
     }
@@ -108,15 +113,11 @@ export default function MainLayout() {
             onClick={(e) => setAnchorEl(e.currentTarget)}
           >
             <div className="user-info">
-              <div className="username">
-                {user?.username || "Guest"}
-              </div>
+              <div className="username">{user?.username || "Guest"}</div>
 
-              <div className="role">
-                {user?.role || "STUDENT"}
-              </div>
+              <div className="role">{user?.role || "STUDENT"}</div>
 
-              {/* 🔥 ADMIN MENU (FIX CHÍNH Ở ĐÂY) */}
+              {/* ADMIN MENU */}
               {user?.role?.toLowerCase() === "admin" && (
                 <div
                   style={{
@@ -124,10 +125,10 @@ export default function MainLayout() {
                     color: "#2563eb",
                     cursor: "pointer",
                     marginTop: "4px",
-                    fontWeight: "500"
+                    fontWeight: "500",
                   }}
                   onClick={(e) => {
-                    e.stopPropagation(); // tránh mở menu avatar
+                    e.stopPropagation();
                     navigate("/admin");
                   }}
                 >
@@ -136,9 +137,7 @@ export default function MainLayout() {
               )}
             </div>
 
-            <Avatar>
-              {user?.username?.charAt(0).toUpperCase() || "U"}
-            </Avatar>
+            <Avatar>{user?.username?.charAt(0).toUpperCase() || "U"}</Avatar>
           </div>
 
           {/* MENU */}
@@ -192,7 +191,7 @@ export default function MainLayout() {
       </div>
 
       {/* MODAL PASSWORD */}
-      <Dialog open={openPassword} onClose={() => setOpenPassword(false)}>
+      <Dialog open={openPassword} onClose={handleClosePasswordModal}>
         <DialogTitle>Đổi mật khẩu</DialogTitle>
 
         <DialogContent>
@@ -203,7 +202,18 @@ export default function MainLayout() {
             margin="normal"
             value={oldPassword}
             onChange={(e) => setOldPassword(e.target.value)}
-            inputProps={{ autoComplete: "new-password" }}
+            slotProps={{
+              htmlInput: { autoComplete: "new-password" },
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowPassword(!showPassword)}>
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
           />
 
           <TextField
@@ -213,17 +223,17 @@ export default function MainLayout() {
             margin="normal"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            inputProps={{ autoComplete: "new-password" }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
+            slotProps={{
+              htmlInput: { autoComplete: "new-password" },
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowPassword(!showPassword)}>
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
             }}
           />
 
@@ -234,12 +244,23 @@ export default function MainLayout() {
             margin="normal"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            inputProps={{ autoComplete: "new-password" }}
+            slotProps={{
+              htmlInput: { autoComplete: "new-password" },
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowPassword(!showPassword)}>
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
           />
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={() => setOpenPassword(false)}>Hủy</Button>
+          <Button onClick={handleClosePasswordModal}>Hủy</Button>
           <Button variant="contained" onClick={handleChangePassword}>
             Xác nhận
           </Button>

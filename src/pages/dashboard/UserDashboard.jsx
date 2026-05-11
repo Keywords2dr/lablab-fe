@@ -36,10 +36,7 @@ export default function UserDashboard() {
             Nền tảng tra cứu thông tin, đặt vé mượn theo ca và quản lý vật tư
             thí nghiệm thời gian thực.
           </p>
-          <button
-            className="ud-hero-btn"
-            onClick={() => navigate("/wiki")}   // ← Đã sửa ở đây
-          >
+          <button className="ud-hero-btn" onClick={() => navigate("/wiki")}>
             <MenuBook fontSize="small" /> Truy cập Wiki
           </button>
         </div>
@@ -53,7 +50,7 @@ export default function UserDashboard() {
       </div>
 
       <Grid container spacing={3} mb={6}>
-        <Grid item xs={12} sm={6} md={gridCol}>
+        <Grid xs={12} sm={6} md={gridCol}>
           <div
             className="ud-action-card chemical"
             onClick={() => navigate("/borrow/chemical")}
@@ -68,7 +65,7 @@ export default function UserDashboard() {
           </div>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={gridCol}>
+        <Grid xs={12} sm={6} md={gridCol}>
           <div
             className="ud-action-card room"
             onClick={() => navigate("/borrow/room")}
@@ -85,7 +82,7 @@ export default function UserDashboard() {
 
         {/* NẾU LÀ TEACHER -> HIỆN THÊM Ô QUẢN LÝ PHÒNG */}
         {isTeacher && (
-          <Grid item xs={12} sm={6} md={gridCol}>
+          <Grid xs={12} sm={6} md={gridCol}>
             <div
               className="ud-action-card manage"
               onClick={() => navigate("/manage/assigned-rooms")}
@@ -101,7 +98,7 @@ export default function UserDashboard() {
           </Grid>
         )}
 
-        <Grid item xs={12} sm={6} md={gridCol}>
+        <Grid xs={12} sm={6} md={gridCol}>
           <div
             className="ud-action-card report"
             onClick={() => navigate("/report")}
@@ -125,7 +122,7 @@ export default function UserDashboard() {
       </div>
 
       <Grid container spacing={3} mb={6}>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid xs={12} sm={6} md={3}>
           <div className="ud-stat-card">
             <div className="ud-stat-top">
               <span className="ud-stat-label">Đang mượn</span>
@@ -137,7 +134,7 @@ export default function UserDashboard() {
             <div className="ud-stat-trend">Ca mượn đang diễn ra</div>
           </div>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid xs={12} sm={6} md={3}>
           <div className="ud-stat-card">
             <div className="ud-stat-top">
               <span className="ud-stat-label">Chờ duyệt</span>
@@ -149,7 +146,7 @@ export default function UserDashboard() {
             <div className="ud-stat-trend">Yêu cầu đang chờ duyệt</div>
           </div>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid xs={12} sm={6} md={3}>
           <div className="ud-stat-card">
             <div className="ud-stat-top">
               <span className="ud-stat-label">Cảnh báo trả</span>
@@ -163,7 +160,7 @@ export default function UserDashboard() {
             </div>
           </div>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid xs={12} sm={6} md={3}>
           <div className="ud-stat-card">
             <div className="ud-stat-top">
               <span className="ud-stat-label">Hoàn tất</span>

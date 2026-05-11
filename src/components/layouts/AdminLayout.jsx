@@ -221,9 +221,11 @@ export default function AdminLayout() {
               onClose={() => setAnchorEl(null)}
               transformOrigin={{ horizontal: "right", vertical: "top" }}
               anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-              PaperProps={{
-                elevation: 3,
-                sx: { mt: 1.5, minWidth: 160, borderRadius: "12px" },
+              slotProps={{
+                paper: {
+                  elevation: 3,
+                  sx: { mt: 1.5, minWidth: 160, borderRadius: "12px" },
+                },
               }}
             >
               <MenuItem onClick={handleLogout} sx={{ color: "error.main" }}>
