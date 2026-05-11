@@ -59,7 +59,7 @@ export function useInventory() {
 
   // ── Phân phối ────────────────────────────────────────────────────────
   /**
-   * @param {Array<{ roomId: string, items: Array<{ itemId, packageCount, quantity }> }>} allocations
+   * @param {Array<{ roomId: string, items: Array<{ itemId: string, packageCount: number }> }>} allocations
    * @param {string} note
    */
   const allocate = useCallback(
@@ -86,7 +86,7 @@ export function useInventory() {
 
   // ── Thu hồi ──────────────────────────────────────────────────────────
   /**
-   * @param {Array<{ roomId: string, items: Array<{ itemId, packageCount, quantity }> }>} revocations
+   * @param {Array<{ roomId: string, items: Array<{ itemId: string, packageCount: number }> }>} revocations
    * @param {string} note
    */
   const revoke = useCallback(

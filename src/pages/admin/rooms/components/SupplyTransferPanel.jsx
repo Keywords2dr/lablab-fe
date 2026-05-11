@@ -237,7 +237,6 @@ export default function SupplyTransferPanel({ rooms = [] }) {
     const items = selectedItemIds.map((id) => ({
       itemId: id,
       packageCount: Number(selectedItems[id]),
-      quantity: 0,
     }));
 
     const targets = Array.from(selectedRoomIds).map((roomId) => ({
