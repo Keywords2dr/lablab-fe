@@ -11,10 +11,10 @@ export default function RoomDeactivateModal({ target, onClose, onConfirm, onDeac
     setLoading(true);
     try {
       await onDeactivateRoom(target.roomId);
-      toast.success(`🚫 Đã ngừng hoạt động phòng "${target.roomName}"`);
+      toast.success(` Đã ngừng hoạt động phòng "${target.roomName}"`);
       onConfirm();
     } catch (err) {
-      toast.error(`❌ ${err.response?.data?.message || err.message}`);
+      toast.error(` ${err.response?.data?.message || err.message}`);
     } finally {
       setLoading(false);
     }

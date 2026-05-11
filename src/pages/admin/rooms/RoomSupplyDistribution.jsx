@@ -8,7 +8,9 @@ import "./styles/supply.css";
 
 export default function RoomSupplyDistribution() {
   const { rooms, stats } = useRooms();
+
   const roomsList = Array.isArray(rooms) ? rooms : [];
+  const activeRooms = roomsList.filter((r) => r.isActive === true);
 
   return (
     <div className="rm-root">
@@ -41,9 +43,7 @@ export default function RoomSupplyDistribution() {
       </div>
 
       {/* ── Supply Panel ── */}
-      <SupplyTransferPanel
-        rooms={roomsList.filter((r) => r.status === "ACTIVE")}
-      />
+      <SupplyTransferPanel rooms={activeRooms} />
     </div>
   );
 }
