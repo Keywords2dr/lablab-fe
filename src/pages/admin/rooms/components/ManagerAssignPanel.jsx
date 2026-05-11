@@ -11,6 +11,14 @@ import {
 import { toast } from "react-toastify";
 import Avatar from "./Avatar";
 
+const RE_ROOM_SEARCH = /^[\p{L}\p{N}\s]*$/u;
+const filterRoomSearch = (val) =>
+  [...val].filter((ch) => RE_ROOM_SEARCH.test(ch)).join("");
+
+const RE_USER_SEARCH = /^[\p{L}\p{N}\s@._-]*$/u;
+const filterUserSearch = (val) =>
+  [...val].filter((ch) => RE_USER_SEARCH.test(ch)).join("");
+
 function ConfirmDialog({
   open,
   title,
@@ -153,6 +161,17 @@ export default function ManagerAssignPanel({
     });
   };
 
+  const handleRoomSearchChange = (e) => {
+    const filtered = filterRoomSearch(e.target.value);
+    setRoomSearch(filtered);
+  };
+
+  const handleTeacherSearchChange = (e) => {
+    const filtered = filterUserSearch(e.target.value);
+    setSearch(filtered);
+    if (!isComposing.current) commitSearch(filtered);
+  };
+
   const filteredRooms = roomSearch.trim()
     ? rooms.filter((r) =>
         r.roomName.toLowerCase().includes(roomSearch.toLowerCase()),
@@ -185,7 +204,7 @@ export default function ManagerAssignPanel({
             <input
               placeholder="Tìm tên phòng..."
               value={roomSearch}
-              onChange={(e) => setRoomSearch(e.target.value)}
+              onChange={handleRoomSearchChange}
             />
             {roomSearch && (
               <button
@@ -314,14 +333,11 @@ export default function ManagerAssignPanel({
                   }}
                   onCompositionEnd={(e) => {
                     isComposing.current = false;
-                    setSearch(e.target.value);
-                    commitSearch(e.target.value);
+                    const filtered = filterUserSearch(e.target.value);
+                    setSearch(filtered);
+                    commitSearch(filtered);
                   }}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setSearch(val);
-                    if (!isComposing.current) commitSearch(val);
-                  }}
+                  onChange={handleTeacherSearchChange}
                 />
                 {search && (
                   <button

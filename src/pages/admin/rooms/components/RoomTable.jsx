@@ -14,6 +14,10 @@ import {
   DoNotDisturb,
 } from "@mui/icons-material";
 
+const RE_SEARCH = /^[\p{L}\p{N}\s]*$/u;
+const filterSearchInput = (val) =>
+  [...val].filter((ch) => RE_SEARCH.test(ch)).join("");
+
 export default function RoomTable({
   rooms,
   loading,
@@ -40,6 +44,13 @@ export default function RoomTable({
     );
   };
 
+  const handleKeywordChange = (e) => {
+    const raw = e.target.value;
+    const filtered = filterSearchInput(raw);
+    onFilterChange({ keyword: filtered });
+    if (!isComposing.current) commitSearch(filtered);
+  };
+
   const {
     page = 0,
     totalElements = 0,
@@ -63,14 +74,11 @@ export default function RoomTable({
             }}
             onCompositionEnd={(e) => {
               isComposing.current = false;
-              commitSearch(e.target.value);
-              onFilterChange({ keyword: e.target.value.trim() });
+              const filtered = filterSearchInput(e.target.value);
+              commitSearch(filtered);
+              onFilterChange({ keyword: filtered });
             }}
-            onChange={(e) => {
-              const v = e.target.value;
-              onFilterChange({ keyword: v });
-              if (!isComposing.current) commitSearch(v);
-            }}
+            onChange={handleKeywordChange}
           />
           {filters.keyword && (
             <button

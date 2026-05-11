@@ -17,6 +17,10 @@ import {
 import { useInventory } from "../hooks/useInventory";
 import "../styles/supply.css";
 
+const RE_SEARCH = /^[\p{L}\p{N}\s]*$/u;
+const filterSearchInput = (val) =>
+  [...val].filter((ch) => RE_SEARCH.test(ch)).join("");
+
 function validatePackageCount(val) {
   const n = Number(val);
   if (!val && val !== 0) return "Bắt buộc";
@@ -151,6 +155,14 @@ export default function SupplyTransferPanel({ rooms = [] }) {
     setItemSearch("");
     setRoomSearch("");
   }, []);
+
+  const handleItemSearchChange = (e) => {
+    setItemSearch(filterSearchInput(e.target.value));
+  };
+
+  const handleRoomSearchChange = (e) => {
+    setRoomSearch(filterSearchInput(e.target.value));
+  };
 
   const filteredItems = useMemo(() => {
     const q = itemSearch.trim().toLowerCase();
@@ -313,7 +325,7 @@ export default function SupplyTransferPanel({ rooms = [] }) {
                 className="stp-input"
                 placeholder="Tìm theo tên, mã, công thức, nhà cung cấp..."
                 value={itemSearch}
-                onChange={(e) => setItemSearch(e.target.value)}
+                onChange={handleItemSearchChange}
               />
               {itemSearch && (
                 <button
@@ -388,7 +400,7 @@ export default function SupplyTransferPanel({ rooms = [] }) {
                 className="stp-input"
                 placeholder="Tìm phòng..."
                 value={roomSearch}
-                onChange={(e) => setRoomSearch(e.target.value)}
+                onChange={handleRoomSearchChange}
               />
               {roomSearch && (
                 <button
@@ -425,7 +437,6 @@ export default function SupplyTransferPanel({ rooms = [] }) {
                         <span className="stp-room-item__name">
                           {room.roomName}
                         </span>
-                        {/* staffCount từ RoomResponseDTO */}
                         {room.staffCount > 0 && (
                           <span className="stp-room-item__staff">
                             {room.staffCount} nhân viên
