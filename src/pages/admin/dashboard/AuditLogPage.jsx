@@ -3,18 +3,35 @@ import { toast } from 'react-toastify';
 import axiosInstance from '../../../api/axiosInstance';
 import './AuditLogPage.css';
 
+// FIX 1: Thêm ASSIGN vào ACTION_COLORS
 const ACTION_COLORS = {
-  CREATE: { bg: '#dcfce7', color: '#15803d' },
-  UPDATE: { bg: '#dbeafe', color: '#1d4ed8' },
-  DELETE: { bg: '#fee2e2', color: '#b91c1c' },
-  LOGIN: { bg: '#fef9c3', color: '#a16207' },
-  LOGOUT: { bg: '#f3e8ff', color: '#7e22ce' },
-  VIEW: { bg: '#e0f2fe', color: '#0369a1' },
+  CREATE:   { bg: '#dcfce7', color: '#15803d' },
+  UPDATE:   { bg: '#dbeafe', color: '#1d4ed8' },
+  DELETE:   { bg: '#fee2e2', color: '#b91c1c' },
+  LOGIN:    { bg: '#fef9c3', color: '#a16207' },
+  LOGOUT:   { bg: '#f3e8ff', color: '#7e22ce' },
+  VIEW:     { bg: '#e0f2fe', color: '#0369a1' },
+  REVOKE:   { bg: '#fee2e2', color: '#b91c1c' },
+  ALLOCATE: { bg: '#dcfce7', color: '#15803d' },
+  ASSIGN:   { bg: '#e0f2fe', color: '#0369a1' }, // FIX: thêm ASSIGN → xanh dương nhạt
 };
 
 const getActionStyle = (action = '') => {
   const key = Object.keys(ACTION_COLORS).find(k => action.toUpperCase().includes(k));
   return ACTION_COLORS[key] || { bg: '#f1f5f9', color: '#475569' };
+};
+
+const ROLE_COLORS = {
+  ADMIN:   { bg: '#fee2e2', color: '#b91c1c' },
+  TEACHER: { bg: '#dcfce7', color: '#15803d' },
+  STUDENT: { bg: '#dbeafe', color: '#1d4ed8' },
+  MANAGER: { bg: '#fef9c3', color: '#a16207' },
+  STAFF:   { bg: '#e0f2fe', color: '#0369a1' },
+};
+
+const getRoleStyle = (role = '') => {
+  const key = Object.keys(ROLE_COLORS).find(k => role.toUpperCase().includes(k));
+  return ROLE_COLORS[key] || { bg: '#f1f5f9', color: '#475569' };
 };
 
 function SkeletonRow() {
@@ -32,17 +49,23 @@ function parseSafe(jsonString) {
   try { return JSON.parse(jsonString); } catch { return null; }
 }
 
-function buildDiff(oldObj, newObj) {
-  const allKeys = Array.from(new Set([
-    ...Object.keys(oldObj || {}),
-    ...Object.keys(newObj || {}),
-  ]));
-  return allKeys.map(key => {
-    const oldVal = oldObj?.[key];
-    const newVal = newObj?.[key];
-    const changed = JSON.stringify(oldVal) !== JSON.stringify(newVal);
-    return { key, oldVal, newVal, changed };
-  });
+function renderJsonData(data, isOld = true) {
+  if (!data) {
+    return (
+      <div className="al-diff-empty">
+        {isOld ? 'Không có dữ liệu cũ' : 'Không có dữ liệu mới'}
+      </div>
+    );
+  }
+  try {
+    return (
+      <pre className="al-json-pre">
+        {JSON.stringify(data, null, 2)}
+      </pre>
+    );
+  } catch (e) {
+    return <pre className="al-json-pre">{String(data)}</pre>;
+  }
 }
 
 function AuditLogModal({ log, isOpen, onClose }) {
@@ -50,9 +73,6 @@ function AuditLogModal({ log, isOpen, onClose }) {
 
   const oldObj = parseSafe(log.oldData);
   const newObj = parseSafe(log.newData);
-  const hasDiff = oldObj || newObj;
-  const diffRows = hasDiff ? buildDiff(oldObj, newObj) : [];
-  const changedCount = diffRows.filter(r => r.changed).length;
   const actionStyle = getActionStyle(log.action);
 
   return (
@@ -83,7 +103,7 @@ function AuditLogModal({ log, isOpen, onClose }) {
           <button className="al-modal-close" onClick={onClose}>×</button>
         </div>
 
-        {/* Body */}
+        {/* FIX 2: Gộp meta-strip + diff-grid vào al-modal-body để có padding & gap */}
         <div className="al-modal-body">
 
           {/* Meta strip */}
@@ -94,16 +114,27 @@ function AuditLogModal({ log, isOpen, onClose }) {
               {
                 label: 'Hành động',
                 value: (
-                  <span
-                    className="al-badge"
-                    style={{ background: actionStyle.bg, color: actionStyle.color }}
-                  >
+                  <span className="al-badge" style={{ background: actionStyle.bg, color: actionStyle.color }}>
                     {log.action}
                   </span>
                 ),
               },
-              { label: 'Entity', value: log.entityName || '—' },
-              { label: 'Vai trò', value: log.actorRole || '—' },
+              {
+                label: 'Entity',
+                value: (
+                  <span className="al-badge" style={{ background: '#ede9fe', color: '#6d28d9' }}>
+                    {log.entityName || '—'}
+                  </span>
+                ),
+              },
+              {
+                label: 'Vai trò',
+                value: (
+                  <span className="al-badge" style={{ background: getRoleStyle(log.actorRole).bg, color: getRoleStyle(log.actorRole).color }}>
+                    {log.actorRole || '—'}
+                  </span>
+                ),
+              },
             ].map(({ label, value }) => (
               <div key={label} className="al-meta-cell">
                 <span className="al-meta-label">{label}</span>
@@ -113,56 +144,41 @@ function AuditLogModal({ log, isOpen, onClose }) {
           </div>
 
           {/* Diff panels */}
-          {hasDiff ? (
-            <div className="al-diff-grid">
-              {/* Old */}
-              <div className="al-diff-panel">
-                <div className="al-diff-panel-header al-diff-old">
-                  <span className="al-diff-icon">−</span>
-                  <span>Dữ liệu cũ</span>
-                </div>
-                <div className="al-diff-body">
-                  {diffRows.map(({ key, oldVal, changed }) => (
-                    <div key={key} className="al-diff-row">
-                      <span className="al-diff-key">{key}</span>
-                      <span className={`al-diff-val${changed ? ' al-diff-val--old' : ''}`}>
-                        {oldVal === undefined ? '—' : String(oldVal)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+          <div className="al-diff-grid">
+            <div className="al-diff-panel">
+              <div className="al-diff-panel-header al-diff-old">
+                <span className="al-diff-icon">−</span>
+                <span>Dữ liệu cũ</span>
               </div>
-
-              {/* New */}
-              <div className="al-diff-panel">
-                <div className="al-diff-panel-header al-diff-new">
-                  <span className="al-diff-icon">+</span>
-                  <span>Dữ liệu mới</span>
-                </div>
-                <div className="al-diff-body">
-                  {diffRows.map(({ key, newVal, changed }) => (
-                    <div key={key} className="al-diff-row">
-                      <span className="al-diff-key">{key}</span>
-                      <span className={`al-diff-val${changed ? ' al-diff-val--new' : ''}`}>
-                        {newVal === undefined ? '—' : String(newVal)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+              <div className="al-diff-body">
+                {renderJsonData(oldObj, true)}
               </div>
             </div>
-          ) : (
-            <div className="al-diff-empty">Không có dữ liệu thay đổi</div>
-          )}
+
+            <div className="al-diff-panel">
+              <div className="al-diff-panel-header al-diff-new">
+                <span className="al-diff-icon">+</span>
+                <span>Dữ liệu mới</span>
+              </div>
+              <div className="al-diff-body">
+                {renderJsonData(newObj, false)}
+              </div>
+            </div>
+          </div>
+
         </div>
+        {/* end al-modal-body */}
 
         {/* Footer */}
         <div className="al-modal-footer">
-          <span className="al-modal-footer-meta">
-            {changedCount > 0 ? `${changedCount} trường đã thay đổi` : 'Không có thay đổi'}
-          </span>
-          <button className="al-btn-secondary" onClick={onClose}>Đóng</button>
+          <button className="al-btn-close" onClick={onClose}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+            Đóng
+          </button>
         </div>
+
       </div>
     </div>
   );
@@ -240,7 +256,7 @@ export default function AuditLogPage() {
   const closeModal = () => setSelectedLog(null);
 
   const formatDate = (dateString) => {
-    if (!dateString) return '—';
+    if (!dateString) return { date: '—', time: '' };
     const d = new Date(dateString);
     return {
       date: d.toLocaleDateString('vi-VN'),
@@ -317,16 +333,15 @@ export default function AuditLogPage() {
           </div>
           <div className="al-filter-item">
             <label>Vai trò</label>
-            <div className="al-input-wrap">
-              <svg className="al-input-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
-              <input
-                type="text"
-                placeholder="Tìm theo role..."
-                value={filters.role}
-                onChange={e => handleFilterChange('role', e.target.value)}
-              />
+            <div className="al-select-wrap">
+              <select value={filters.role} onChange={e => handleFilterChange('role', e.target.value)}>
+                <option value="">Tất cả</option>
+                <option value="ADMIN">ADMIN</option>
+                <option value="TEACHER">TEACHER</option>
+                <option value="STUDENT">STUDENT</option>
+                <option value="MANAGER">MANAGER</option>
+                <option value="STAFF">STAFF</option>
+              </select>
             </div>
           </div>
           <div className="al-filter-item">
@@ -393,15 +408,13 @@ export default function AuditLogPage() {
                         </span>
                       </td>
                       <td><span className="al-module-tag">{log.entityName || '—'}</span></td>
-                      <td><span className="al-role">{log.actorRole || '—'}</span></td>
+                      <td>
+                        <span className="al-badge" style={{ background: getRoleStyle(log.actorRole).bg, color: getRoleStyle(log.actorRole).color }}>
+                          {log.actorRole || '—'}
+                        </span>
+                      </td>
                       <td className="al-desc" title={log.newData}>
-                        {log.newData ? (() => {
-                          try {
-                            const obj = JSON.parse(log.newData);
-                            const firstVal = Object.values(obj)[0];
-                            return String(firstVal).slice(0, 60);
-                          } catch { return log.newData.slice(0, 60); }
-                        })() : '—'}
+                        {log.newData ? log.newData.slice(0, 60) + '...' : '—'}
                       </td>
                     </tr>
                   );
@@ -436,4 +449,3 @@ export default function AuditLogPage() {
     </div>
   );
 }
-
