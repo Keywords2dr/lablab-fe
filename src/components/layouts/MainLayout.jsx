@@ -147,6 +147,18 @@ export default function MainLayout() {
         onClose={() => setAnchorEl(null)}
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
         transformOrigin={{ horizontal: "right", vertical: "top" }}
+        disableScrollLock
+        marginThreshold={0}
+        slotProps={{
+          paper: {
+            elevation: 2,
+            sx: {
+              mt: 1,
+              minWidth: 180,
+              borderRadius: "10px",
+            },
+          },
+        }}
       >
         <MenuItem
           onClick={() => {

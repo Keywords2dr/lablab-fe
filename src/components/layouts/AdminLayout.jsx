@@ -81,10 +81,23 @@ export default function AdminLayout() {
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const isActive = (path) => {
+  // ========================
+  // IS ACTIVE - PHIÊN BẢN MỚI (FIX TRIỆT ĐỂ)
+  // ========================
+  const isActive = (path, isChild = false) => {
     if (!path) return false;
-    if (path === "/admin") return location.pathname === "/admin";
-    return location.pathname.startsWith(path);
+    const currentPath = location.pathname;
+
+    if (isChild) {
+      // Item con: active nếu path khớp chính xác
+      return currentPath === path;
+    } else {
+      // Item cha: chỉ active khi đang ở chính path của nó
+      if (path === "/admin/rooms") {
+        return currentPath === "/admin/rooms";
+      }
+      return currentPath === path;
+    }
   };
 
   // ========================
@@ -108,14 +121,16 @@ export default function AdminLayout() {
 
                 return (
                   <li key={item.label}>
+                    {/* PARENT ITEM */}
                     <div
-                      className={`admin-nav-item 
-                        ${active ? "active" : ""} 
+                      className={`admin-nav-item ${active ? "active" : ""} 
                         ${!item.path && !item.children ? "disabled" : ""}`}
                       onClick={() => {
                         if (item.children) {
                           toggleExpand(item.groupKey);
-                          if (item.path) navigate(item.path);
+                          if (item.path && location.pathname !== item.path) {
+                            navigate(item.path);
+                          }
                         } else if (item.path) {
                           navigate(item.path);
                         }
@@ -131,13 +146,13 @@ export default function AdminLayout() {
                       )}
                     </div>
 
-                    {/* CHILDREN */}
+                    {/* SUB ITEMS */}
                     {item.children && expanded[item.groupKey] && (
                       <ul className="admin-nav-sub-list">
                         {item.children.map((child) => (
                           <li
                             key={child.path}
-                            className={`admin-nav-sub-item ${isActive(child.path) ? "active" : ""}`}
+                            className={`admin-nav-sub-item ${isActive(child.path, true) ? "active" : ""}`}
                             onClick={() => navigate(child.path)}
                           >
                             {child.icon}
@@ -154,7 +169,7 @@ export default function AdminLayout() {
         </ul>
       </aside>
 
-      {/* MAIN */}
+      {/* MAIN AREA */}
       <div className="admin-main-wrapper">
         {/* TOPBAR */}
         <header className="admin-topbar">
@@ -185,7 +200,7 @@ export default function AdminLayout() {
         </main>
       </div>
 
-      {/* MENU */}
+      {/* LOGOUT MENU */}
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
