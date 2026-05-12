@@ -58,15 +58,20 @@ export default function ChemicalTable({
       "End",
     ];
     if (navKeys.includes(e.key)) return;
-    if (e.ctrlKey && ["a", "c", "v", "x", "z"].includes(e.key.toLowerCase()))
+    if (
+      e.ctrlKey &&
+      ["a", "c", "v", "x", "y", "z"].includes(e.key.toLowerCase())
+    )
       return;
-    if (e.key === "Process" || e.key === "Unidentified") return;
-    if (/^[!@#$%^&*()+=[\]{};:'"\\|<>,/?`~]$/.test(e.key)) e.preventDefault();
+    if (e.key === "Process" || e.key === "Unidentified" || e.key === "Dead")
+      return;
+    if (/^[a-zA-ZÀ-ỹ0-9\s_\-()/.,]$/.test(e.key)) return;
+    e.preventDefault();
   };
 
   const handleSearchPaste = (e) => {
     const pasted = e.clipboardData.getData("text");
-    if (/[!@#$%^&*()+=[\]{};:'"\\|<>,/?`~]/.test(pasted)) {
+    if (/[!@#$%^&*+=[\]{};:'"\\|<>?`~]/.test(pasted)) {
       e.preventDefault();
       toast.warning("Từ khóa tìm kiếm không được chứa ký tự đặc biệt!");
     }
