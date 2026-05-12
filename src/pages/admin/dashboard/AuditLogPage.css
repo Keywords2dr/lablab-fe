@@ -570,6 +570,95 @@
   flex: 1;
   overflow: auto;
 }
+
+/* Plain text (string thuần) */
+.al-diff-text {
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.6;
+  margin: 0;
+  padding: 4px 0;
+}
+
+/* Không có dữ liệu */
+.al-diff-empty {
+  font-size: 14px;
+  color: #94a3b8;
+  font-style: italic;
+  padding: 4px 0;
+}
+
+/* ===== KEY-VALUE TABLE ===== */
+.al-kv-table {
+  width: 100%;
+}
+.al-kv-row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 8px;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+.al-kv-row:last-child {
+  border-bottom: none;
+}
+.al-kv-key {
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  word-break: break-all;
+}
+.al-kv-val {
+  font-size: 13.5px;
+  color: #1e293b;
+  word-break: break-all;
+}
+.al-kv-str  { color: #1e293b; }
+.al-kv-num  { color: #0369a1; font-weight: 500; }
+.al-kv-bool { color: #7e22ce; font-weight: 600; }
+.al-kv-null { color: #94a3b8; font-style: italic; }
+
+/* Nested object */
+.al-kv-nested {
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 4px;
+}
+
+/* Array */
+.al-kv-arr {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+.al-kv-arr-item {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+.al-kv-idx {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6366f1;
+  background: #ede9fe;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.al-kv-arr-val {
+  flex: 1;
+}
 /* JSON Pre */
 .al-json-pre {
   background: #f8fafc;

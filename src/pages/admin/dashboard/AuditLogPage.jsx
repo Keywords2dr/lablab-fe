@@ -3,17 +3,17 @@ import { toast } from 'react-toastify';
 import axiosInstance from '../../../api/axiosInstance';
 import './AuditLogPage.css';
 
-// FIX 1: Thêm ASSIGN vào ACTION_COLORS
+// ==================== COLOR CONFIG ====================
 const ACTION_COLORS = {
-  CREATE:   { bg: '#dcfce7', color: '#15803d' },
-  UPDATE:   { bg: '#dbeafe', color: '#1d4ed8' },
-  DELETE:   { bg: '#fee2e2', color: '#b91c1c' },
-  LOGIN:    { bg: '#fef9c3', color: '#a16207' },
-  LOGOUT:   { bg: '#f3e8ff', color: '#7e22ce' },
-  VIEW:     { bg: '#e0f2fe', color: '#0369a1' },
-  REVOKE:   { bg: '#fee2e2', color: '#b91c1c' },
+  CREATE: { bg: '#dcfce7', color: '#15803d' },
+  UPDATE: { bg: '#dbeafe', color: '#1d4ed8' },
+  DELETE: { bg: '#fee2e2', color: '#b91c1c' },
+  LOGIN: { bg: '#fef9c3', color: '#a16207' },
+  LOGOUT: { bg: '#f3e8ff', color: '#7e22ce' },
+  VIEW: { bg: '#e0f2fe', color: '#0369a1' },
+  REVOKE: { bg: '#fee2e2', color: '#b91c1c' },
   ALLOCATE: { bg: '#dcfce7', color: '#15803d' },
-  ASSIGN:   { bg: '#e0f2fe', color: '#0369a1' }, // FIX: thêm ASSIGN → xanh dương nhạt
+  ASSIGN: { bg: '#e0f2fe', color: '#0369a1' },
 };
 
 const getActionStyle = (action = '') => {
@@ -22,16 +22,48 @@ const getActionStyle = (action = '') => {
 };
 
 const ROLE_COLORS = {
-  ADMIN:   { bg: '#fee2e2', color: '#b91c1c' },
+  ADMIN: { bg: '#fee2e2', color: '#b91c1c' },
   TEACHER: { bg: '#dcfce7', color: '#15803d' },
   STUDENT: { bg: '#dbeafe', color: '#1d4ed8' },
   MANAGER: { bg: '#fef9c3', color: '#a16207' },
-  STAFF:   { bg: '#e0f2fe', color: '#0369a1' },
+  STAFF: { bg: '#e0f2fe', color: '#0369a1' },
 };
 
 const getRoleStyle = (role = '') => {
   const key = Object.keys(ROLE_COLORS).find(k => role.toUpperCase().includes(k));
   return ROLE_COLORS[key] || { bg: '#f1f5f9', color: '#475569' };
+};
+
+// ==================== KEY TRANSLATIONS ====================
+const KEY_TRANSLATIONS = {
+  // Inventory
+  ITEMID: 'Công thức',
+  FORMULA: 'Công thức',
+  QUANTITY: 'Số lượng',
+  PACKAGECOUNT: 'Đóng gói',
+
+  // Room
+  ROOMID: 'Room ID',
+  ROOMNAME: 'Tên Phòng',
+  ISACTIVE: 'Đang hoạt động',
+  STAFFCOUNT: 'Số lượng Quản lý',
+  DESCRIPTION: 'Mô tả',
+
+  // Staff Assignment
+  ROLE: 'Vai trò',
+  FULLNAME: 'Họ và tên',
+  USERNAME: 'Username',
+
+  // Lowercase
+  roomId: 'Room ID',
+  roomName: 'Tên Phòng',
+  isActive: 'Đang hoạt động',
+  staffCount: 'Số lượng Quản lý',
+  description: 'Mô tả',
+  fullName: 'Họ và tên',
+  username: 'Username',
+  role: 'Vai trò',
+  id: 'ID',
 };
 
 function SkeletonRow() {
@@ -46,28 +78,110 @@ function SkeletonRow() {
 
 function parseSafe(jsonString) {
   if (!jsonString) return null;
-  try { return JSON.parse(jsonString); } catch { return null; }
+  try {
+    return JSON.parse(jsonString);
+  } catch {
+    return jsonString;
+  }
 }
 
-function renderJsonData(data, isOld = true) {
-  if (!data) {
+// ==================== RENDER KV ====================
+function renderKV(data, depth = 0) {
+  if (data === null || data === undefined) {
+    return <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>—</span>;
+  }
+
+  if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') {
+    return <span style={{ color: '#1e293b' }}>{String(data)}</span>;
+  }
+
+  if (Array.isArray(data)) {
     return (
-      <div className="al-diff-empty">
-        {isOld ? 'Không có dữ liệu cũ' : 'Không có dữ liệu mới'}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {data.map((item, i) => (
+          <div key={i} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '12px 14px' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#6366f1', marginBottom: 8 }}>MỤC {i + 1}</div>
+            {renderKV(item, depth + 1)}
+          </div>
+        ))}
       </div>
     );
   }
-  try {
+
+  if (typeof data === 'object' && data !== null) {
     return (
-      <pre className="al-json-pre">
-        {JSON.stringify(data, null, 2)}
-      </pre>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+        {Object.entries(data).map(([key, val]) => {
+          // Bỏ qua userId
+          if (['userid', 'userId', 'USERID'].some(k => key.toLowerCase() === k)) {
+            return null;
+          }
+
+          let displayKey = KEY_TRANSLATIONS[key] || KEY_TRANSLATIONS[key.toUpperCase()] || key;
+          let displayValue = val;
+
+          // Công thức
+          if (['itemId', 'ITEMID', 'formula', 'FORMULA'].some(k => key.toLowerCase().includes(k))) {
+            displayKey = 'Công thức';
+          }
+
+          // Số lượng
+          if (['quantity', 'QUANTITY'].some(k => key.toLowerCase().includes(k))) {
+            displayKey = 'Số lượng';
+            displayValue = (val === 0 || val === null) ? 1 : val;
+          }
+
+          // Số lượng Quản lý
+          if (['staffCount', 'STAFFCOUNT'].some(k => key.toLowerCase() === k)) {
+            displayKey = 'Số lượng Quản lý';
+            displayValue = (val === 0 || val === null) ? 1 : val;
+          }
+
+          // Đang hoạt động
+          if (['isActive', 'ISACTIVE'].some(k => key.toLowerCase() === k)) {
+            displayKey = 'Đang hoạt động';
+            displayValue = val === true || val === 'true' ? 'Có' : 'Không';
+          }
+
+          // Đóng gói
+          if (['packageCount', 'PACKAGECOUNT', 'packaging', 'packageType'].some(k => key.toLowerCase().includes(k))) {
+            displayKey = 'Đóng gói';
+          }
+
+          return (
+            <div key={key} style={{ 
+              display: 'grid', 
+              gridTemplateColumns: '160px 1fr', 
+              gap: 12, 
+              padding: '10px 0', 
+              borderBottom: '1px solid #f1f5f9', 
+              alignItems: 'flex-start' 
+            }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#64748b' }}>
+                {displayKey}
+              </span>
+              <div style={{ fontSize: 14, color: '#1e293b', wordBreak: 'break-all' }}>
+                {renderKV(displayValue, depth + 1)}
+              </div>
+            </div>
+          );
+        }).filter(Boolean)}
+      </div>
     );
-  } catch (e) {
-    return <pre className="al-json-pre">{String(data)}</pre>;
   }
+
+  return <span>{String(data)}</span>;
 }
 
+function renderJsonData(data, isOld) {
+  if (data === null || data === undefined) {
+    return <p style={{ fontSize: 14, color: '#94a3b8', fontStyle: 'italic' }}>{isOld ? 'Không có dữ liệu cũ' : 'Không có dữ liệu mới'}</p>;
+  }
+  if (typeof data === 'string') return <p style={{ fontSize: 14, color: '#334155' }}>{data}</p>;
+  return <div style={{ width: '100%' }}>{renderKV(data, 0)}</div>;
+}
+
+// ==================== MODAL ====================
 function AuditLogModal({ log, isOpen, onClose }) {
   if (!isOpen || !log) return null;
 
@@ -78,8 +192,6 @@ function AuditLogModal({ log, isOpen, onClose }) {
   return (
     <div className="al-modal-overlay" onClick={onClose}>
       <div className="al-modal-content" onClick={e => e.stopPropagation()}>
-
-        {/* Header */}
         <div className="al-modal-header">
           <div className="al-modal-header-left">
             <div className="al-modal-header-icon">
@@ -93,48 +205,20 @@ function AuditLogModal({ log, isOpen, onClose }) {
             </div>
             <div>
               <h2>Chi tiết nhật ký hệ thống</h2>
-              {log.logId && (
-                <p className="al-modal-subid">
-                  ID &nbsp;<span className="al-mono">{log.logId}</span>
-                </p>
-              )}
+              {log.logId && <p className="al-modal-subid">ID &nbsp;<span className="al-mono">{log.logId}</span></p>}
             </div>
           </div>
           <button className="al-modal-close" onClick={onClose}>×</button>
         </div>
 
-        {/* FIX 2: Gộp meta-strip + diff-grid vào al-modal-body để có padding & gap */}
         <div className="al-modal-body">
-
-          {/* Meta strip */}
           <div className="al-meta-strip">
             {[
               { label: 'Thời gian', value: log.createdAt ? new Date(log.createdAt).toLocaleString('vi-VN') : '—' },
               { label: 'Người thực hiện', value: log.actorUsername || '—' },
-              {
-                label: 'Hành động',
-                value: (
-                  <span className="al-badge" style={{ background: actionStyle.bg, color: actionStyle.color }}>
-                    {log.action}
-                  </span>
-                ),
-              },
-              {
-                label: 'Entity',
-                value: (
-                  <span className="al-badge" style={{ background: '#ede9fe', color: '#6d28d9' }}>
-                    {log.entityName || '—'}
-                  </span>
-                ),
-              },
-              {
-                label: 'Vai trò',
-                value: (
-                  <span className="al-badge" style={{ background: getRoleStyle(log.actorRole).bg, color: getRoleStyle(log.actorRole).color }}>
-                    {log.actorRole || '—'}
-                  </span>
-                ),
-              },
+              { label: 'Hành động', value: <span className="al-badge" style={{ background: actionStyle.bg, color: actionStyle.color }}>{log.action}</span> },
+              { label: 'Entity', value: <span className="al-badge" style={{ background: '#ede9fe', color: '#6d28d9' }}>{log.entityName || '—'}</span> },
+              { label: 'Vai trò', value: <span className="al-badge" style={{ background: getRoleStyle(log.actorRole).bg, color: getRoleStyle(log.actorRole).color }}>{log.actorRole || '—'}</span> },
             ].map(({ label, value }) => (
               <div key={label} className="al-meta-cell">
                 <span className="al-meta-label">{label}</span>
@@ -143,47 +227,32 @@ function AuditLogModal({ log, isOpen, onClose }) {
             ))}
           </div>
 
-          {/* Diff panels */}
           <div className="al-diff-grid">
             <div className="al-diff-panel">
               <div className="al-diff-panel-header al-diff-old">
-                <span className="al-diff-icon">−</span>
-                <span>Dữ liệu cũ</span>
+                <span className="al-diff-icon">−</span><span>Dữ liệu cũ</span>
               </div>
-              <div className="al-diff-body">
-                {renderJsonData(oldObj, true)}
-              </div>
+              <div className="al-diff-body">{renderJsonData(oldObj, true)}</div>
             </div>
 
             <div className="al-diff-panel">
               <div className="al-diff-panel-header al-diff-new">
-                <span className="al-diff-icon">+</span>
-                <span>Dữ liệu mới</span>
+                <span className="al-diff-icon">+</span><span>Dữ liệu mới</span>
               </div>
-              <div className="al-diff-body">
-                {renderJsonData(newObj, false)}
-              </div>
+              <div className="al-diff-body">{renderJsonData(newObj, false)}</div>
             </div>
           </div>
-
         </div>
-        {/* end al-modal-body */}
 
-        {/* Footer */}
         <div className="al-modal-footer">
-          <button className="al-btn-close" onClick={onClose}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-            Đóng
-          </button>
+          <button className="al-btn-close" onClick={onClose}>Đóng</button>
         </div>
-
       </div>
     </div>
   );
 }
 
+// ==================== MAIN COMPONENT ====================
 export default function AuditLogPage() {
   const [logs, setLogs] = useState([]);
   const [modules, setModules] = useState([]);
@@ -235,7 +304,6 @@ export default function AuditLogPage() {
       });
     } catch (err) {
       toast.error('Lỗi khi tải nhật ký hệ thống');
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -244,14 +312,8 @@ export default function AuditLogPage() {
   useEffect(() => { fetchModules(); }, [fetchModules]);
   useEffect(() => { fetchLogs(); }, [fetchLogs]);
 
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value, page: 0 }));
-  };
-
-  const handlePageChange = (newPage) => {
-    setFilters(prev => ({ ...prev, page: newPage }));
-  };
-
+  const handleFilterChange = (key, value) => setFilters(prev => ({ ...prev, [key]: value, page: 0 }));
+  const handlePageChange = (newPage) => setFilters(prev => ({ ...prev, page: newPage }));
   const openDetail = (log) => setSelectedLog(log);
   const closeModal = () => setSelectedLog(null);
 
@@ -296,6 +358,7 @@ export default function AuditLogPage() {
             <p className="al-subtitle">Theo dõi toàn bộ hoạt động người dùng trong hệ thống</p>
           </div>
         </div>
+
         <div className="al-stats-row">
           <div className="al-stat-pill">
             <span className="al-stat-dot green" />
@@ -326,11 +389,12 @@ export default function AuditLogPage() {
             <label>Module</label>
             <div className="al-select-wrap">
               <select value={filters.module} onChange={e => handleFilterChange('module', e.target.value)}>
-                <option value="">Tất cả </option>
+                <option value="">Tất cả</option>
                 {modules.map((mod, i) => <option key={i} value={mod}>{mod}</option>)}
               </select>
             </div>
           </div>
+
           <div className="al-filter-item">
             <label>Vai trò</label>
             <div className="al-select-wrap">
@@ -344,6 +408,7 @@ export default function AuditLogPage() {
               </select>
             </div>
           </div>
+
           <div className="al-filter-item">
             <label>Sắp xếp</label>
             <div className="al-select-wrap">
@@ -378,48 +443,47 @@ export default function AuditLogPage() {
                   <td colSpan="6">
                     <div className="al-empty">
                       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5">
-                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                       </svg>
                       <p>Không tìm thấy dữ liệu phù hợp</p>
                     </div>
                   </td>
                 </tr>
-              ) : (
-                logs.map((log) => {
-                  const dt = formatDate(log.createdAt);
-                  const actionStyle = getActionStyle(log.action);
-                  return (
-                    <tr key={log.logId} className="al-row" onClick={() => openDetail(log)} style={{ cursor: 'pointer' }}>
-                      <td>
-                        <div className="al-datetime">
-                          <span className="al-date">{dt.date}</span>
-                          <span className="al-time">{dt.time}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="al-user">
-                          <div className="al-avatar">{(log.actorUsername || '?')[0].toUpperCase()}</div>
-                          <span>{log.actorUsername || '—'}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="al-badge" style={{ background: actionStyle.bg, color: actionStyle.color }}>
-                          {log.action}
-                        </span>
-                      </td>
-                      <td><span className="al-module-tag">{log.entityName || '—'}</span></td>
-                      <td>
-                        <span className="al-badge" style={{ background: getRoleStyle(log.actorRole).bg, color: getRoleStyle(log.actorRole).color }}>
-                          {log.actorRole || '—'}
-                        </span>
-                      </td>
-                      <td className="al-desc" title={log.newData}>
-                        {log.newData ? log.newData.slice(0, 60) + '...' : '—'}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
+              ) : logs.map((log) => {
+                const dt = formatDate(log.createdAt);
+                const actionStyle = getActionStyle(log.action);
+                return (
+                  <tr key={log.logId} className="al-row" onClick={() => openDetail(log)} style={{ cursor: 'pointer' }}>
+                    <td>
+                      <div className="al-datetime">
+                        <span className="al-date">{dt.date}</span>
+                        <span className="al-time">{dt.time}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="al-user">
+                        <div className="al-avatar">{(log.actorUsername || '?')[0]?.toUpperCase() || '?'}</div>
+                        <span>{log.actorUsername || '—'}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span className="al-badge" style={{ background: actionStyle.bg, color: actionStyle.color }}>
+                        {log.action}
+                      </span>
+                    </td>
+                    <td><span className="al-module-tag">{log.entityName || '—'}</span></td>
+                    <td>
+                      <span className="al-badge" style={{ background: getRoleStyle(log.actorRole).bg, color: getRoleStyle(log.actorRole).color }}>
+                        {log.actorRole || '—'}
+                      </span>
+                    </td>
+                    <td className="al-desc" title={log.newData}>
+                      {log.newData ? (log.newData.length > 60 ? log.newData.slice(0, 60) + '...' : log.newData) : '—'}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -427,20 +491,18 @@ export default function AuditLogPage() {
         {/* Pagination */}
         <div className="al-pagination">
           <span className="al-page-info">
-            {pagination.totalElements === 0
-              ? 'Không có dữ liệu'
-              : `Hiển thị ${from}–${to} / ${pagination.totalElements.toLocaleString()} bản ghi`}
+            {pagination.totalElements === 0 ? 'Không có dữ liệu' : `Hiển thị ${from}–${to} / ${pagination.totalElements.toLocaleString()} bản ghi`}
           </span>
           <div className="al-page-buttons">
-            <button className="al-page-btn" onClick={() => handlePageChange(0)} disabled={filters.page === 0} title="Trang đầu">«</button>
-            <button className="al-page-btn" onClick={() => handlePageChange(filters.page - 1)} disabled={filters.page === 0} title="Trang trước">‹</button>
+            <button className="al-page-btn" onClick={() => handlePageChange(0)} disabled={filters.page === 0}>«</button>
+            <button className="al-page-btn" onClick={() => handlePageChange(filters.page - 1)} disabled={filters.page === 0}>‹</button>
             {pageNumbers().map(p => (
               <button key={p} className={`al-page-btn ${p === filters.page ? 'active' : ''}`} onClick={() => handlePageChange(p)}>
                 {p + 1}
               </button>
             ))}
-            <button className="al-page-btn" onClick={() => handlePageChange(filters.page + 1)} disabled={filters.page >= pagination.totalPages - 1} title="Trang sau">›</button>
-            <button className="al-page-btn" onClick={() => handlePageChange(pagination.totalPages - 1)} disabled={filters.page >= pagination.totalPages - 1} title="Trang cuối">»</button>
+            <button className="al-page-btn" onClick={() => handlePageChange(filters.page + 1)} disabled={filters.page >= pagination.totalPages - 1}>›</button>
+            <button className="al-page-btn" onClick={() => handlePageChange(pagination.totalPages - 1)} disabled={filters.page >= pagination.totalPages - 1}>»</button>
           </div>
         </div>
       </div>

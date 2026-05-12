@@ -38,7 +38,7 @@ export default function UserDashboard() {
           </p>
           <button
             className="ud-hero-btn"
-            onClick={() => navigate("/wiki")}   // ← Đã sửa ở đây
+            onClick={() => navigate("/wiki")}
           >
             <MenuBook fontSize="small" /> Truy cập Wiki
           </button>
@@ -83,7 +83,6 @@ export default function UserDashboard() {
           </div>
         </Grid>
 
-        {/* NẾU LÀ TEACHER -> HIỆN THÊM Ô QUẢN LÝ PHÒNG */}
         {isTeacher && (
           <Grid item xs={12} sm={6} md={gridCol}>
             <div
@@ -196,7 +195,6 @@ export default function UserDashboard() {
             </tr>
           </thead>
           <tbody>
-            {/* Dòng 1: Đang mượn */}
             <tr>
               <td>
                 <span className="ud-item-name">Phòng Thực Hành Hóa 01</span>
@@ -228,7 +226,6 @@ export default function UserDashboard() {
               </td>
             </tr>
 
-            {/* Dòng 2: Chờ duyệt */}
             <tr>
               <td>
                 <span className="ud-item-name">Ống nghiệm thủy tinh x10</span>
