@@ -19,7 +19,9 @@ import {
   ExpandLess,
 } from "@mui/icons-material";
 
+
 import NotificationBell from "../../components/common/NotificationBell";
+import NotificationsPage from "../../components/common/NotificationsPage";
 import "./AdminLayout.css";
 
 const NAV_ITEMS = [

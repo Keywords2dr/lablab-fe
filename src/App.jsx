@@ -17,6 +17,9 @@ import MainLayout from "./components/layouts/MainLayout";
 import AdminLayout from "./components/layouts/AdminLayout";
 import WikiPage from "./pages/wiki/ChemicalWiki";
 
+// Import trang thông báo
+import NotificationsPage from "./components/common/NotificationsPage";
+
 const theme = createTheme({
   palette: {
     primary: { main: "#1976d2" },
@@ -39,6 +42,7 @@ function App() {
               <Route path="/" element={<DashboardPage />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/wiki" element={<WikiPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
             </Route>
           </Route>
 
