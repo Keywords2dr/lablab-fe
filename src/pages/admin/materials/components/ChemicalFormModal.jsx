@@ -29,19 +29,19 @@ const NAV_KEYS = [
 ];
 const isNavKey = (e) =>
   NAV_KEYS.includes(e.key) ||
-  (e.ctrlKey && ["a", "c", "v", "x", "z"].includes(e.key.toLowerCase()));
+  (e.ctrlKey && ["a", "c", "v", "x", "y", "z"].includes(e.key.toLowerCase()));
 
-// FIX: removed unnecessary escapes \-, \[, \.
 const handleCodeKeyDown = (e) => {
   if (isNavKey(e)) return;
   if (!/^[a-zA-Z0-9_-]$/.test(e.key)) e.preventDefault();
 };
 
-// Cho phép số vì tên hóa chất có thể chứa số, VD: "3-Aminopropyl", "2-Propanol"
 const handleTextKeyDown = (e) => {
   if (isNavKey(e)) return;
-  if (e.key === "Process" || e.key === "Unidentified") return;
-  if (/^[!@#$%^&*+=[\]{};:"\\|<>?`~]$/.test(e.key)) e.preventDefault();
+  if (e.key === "Process" || e.key === "Unidentified" || e.key === "Dead")
+    return;
+  if (/^[a-zA-ZÀ-ỹ0-9\s\-()/.,;'%+#]$/.test(e.key)) return;
+  e.preventDefault();
 };
 
 const handleFormulaKeyDown = (e) => {
@@ -253,7 +253,7 @@ export default function ChemicalFormModal({
               </label>
               <input
                 name="name"
-                placeholder="VD: Axit iodic"
+                placeholder="VD: 1-(2-Pyridylazo)-2-naphthol (PAN)"
                 value={formData.name}
                 onChange={handleChange}
                 onKeyDown={handleTextKeyDown}

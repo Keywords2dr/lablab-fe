@@ -54,28 +54,30 @@ export default function LoginPage() {
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!username || !password) {
-      toast.warning('Vui lòng nhập đầy đủ thông tin!');
+      toast.warning("Vui lòng nhập đầy đủ thông tin!");
       return;
     }
-    
+
     setIsLoading(true);
     try {
       const response = await authApi.login({ username, password });
-  
-      const { accessToken, username: responseUsername, role } = response.data; 
+
+      const { accessToken, username: responseUsername, role } = response.data;
 
       const userData = {
         username: responseUsername,
-        role: role
+        role: role,
       };
-      
+
       // Lưu vào Zustand Store
       loginAction(userData, accessToken);
-      
-      toast.success('Đăng nhập thành công!');
-      navigate('/');
+
+      toast.success("Đăng nhập thành công!");
+      navigate("/");
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Sai tài khoản hoặc mật khẩu!');
+      toast.error(
+        error.response?.data?.message || "Sai tài khoản hoặc mật khẩu!",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -213,12 +215,14 @@ export default function LoginPage() {
                 margin="normal"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Person color="action" />
-                    </InputAdornment>
-                  ),
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Person color="action" />
+                      </InputAdornment>
+                    ),
+                  },
                 }}
               />
               <TextField
@@ -228,26 +232,28 @@ export default function LoginPage() {
                 margin="normal"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Lock color="action" />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Lock color="action" />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
                 }}
               />
 
-              <Box display="flex" justifyContent="flex-end" mt={1}>
+              <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
                 <Link
                   component="button"
                   type="button"
@@ -298,12 +304,14 @@ export default function LoginPage() {
                 margin="normal"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Email color="action" />
-                    </InputAdornment>
-                  ),
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Email color="action" />
+                      </InputAdornment>
+                    ),
+                  },
                 }}
               />
 
@@ -357,21 +365,23 @@ export default function LoginPage() {
                 margin="normal"
                 value={code}
                 onChange={handleCodeChange}
-                inputProps={{
-                  maxLength: 6,
-                  style: {
-                    textAlign: "center",
-                    fontSize: "2rem",
-                    letterSpacing: "0.5rem",
-                    fontWeight: "bold",
+                slotProps={{
+                  htmlInput: {
+                    maxLength: 6,
+                    style: {
+                      textAlign: "center",
+                      fontSize: "2rem",
+                      letterSpacing: "0.5rem",
+                      fontWeight: "bold",
+                    },
                   },
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <VpnKey color="action" />
-                    </InputAdornment>
-                  ),
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <VpnKey color="action" />
+                      </InputAdornment>
+                    ),
+                  },
                 }}
               />
 
@@ -428,22 +438,24 @@ export default function LoginPage() {
                 margin="normal"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Lock color="action" />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Lock color="action" />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
                 }}
               />
 
@@ -464,12 +476,14 @@ export default function LoginPage() {
                     ? "Mật khẩu không khớp!"
                     : ""
                 }
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Lock color="action" />
-                    </InputAdornment>
-                  ),
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Lock color="action" />
+                      </InputAdornment>
+                    ),
+                  },
                 }}
               />
 
