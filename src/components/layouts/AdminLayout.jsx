@@ -19,9 +19,7 @@ import {
   ExpandLess,
 } from "@mui/icons-material";
 
-
 import NotificationBell from "../../components/common/NotificationBell";
-import NotificationsPage from "../../components/common/NotificationsPage";
 import "./AdminLayout.css";
 
 const NAV_ITEMS = [
@@ -42,7 +40,11 @@ const NAV_ITEMS = [
           { label: "Phân phối Vật tư", icon: <LocalShipping fontSize="small" />, path: "/admin/rooms/supplies" },
         ],
       },
-      { label: "Quản lý Người dùng", icon: <PeopleAlt fontSize="small" />, path: null },
+      { 
+        label: "Quản lý Người dùng", 
+        icon: <PeopleAlt fontSize="small" />, 
+        path: "/admin/users" 
+      },   // ← ĐÃ SỬA
     ],
   },
   {
@@ -70,9 +72,6 @@ export default function AdminLayout() {
     rooms: location.pathname.startsWith("/admin/rooms"),
   });
 
-  // ========================
-  // HANDLERS
-  // ========================
   const handleLogout = () => {
     setAnchorEl(null);
     logout();
@@ -83,28 +82,25 @@ export default function AdminLayout() {
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // ========================
-  // IS ACTIVE - PHIÊN BẢN MỚI (FIX TRIỆT ĐỂ)
-  // ========================
+  // Kiểm tra active (cải tiến để hỗ trợ tốt hơn)
   const isActive = (path, isChild = false) => {
     if (!path) return false;
     const currentPath = location.pathname;
 
     if (isChild) {
-      // Item con: active nếu path khớp chính xác
       return currentPath === path;
     } else {
-      // Item cha: chỉ active khi đang ở chính path của nó
+      // Với các route chính (như /admin/users)
+      if (path === "/admin/users") {
+        return currentPath.startsWith("/admin/users");
+      }
       if (path === "/admin/rooms") {
-        return currentPath === "/admin/rooms";
+        return currentPath === "/admin/rooms" || currentPath.startsWith("/admin/rooms/");
       }
       return currentPath === path;
     }
   };
 
-  // ========================
-  // RENDER
-  // ========================
   return (
     <div className="admin-layout-root">
       {/* SIDEBAR */}

@@ -13,11 +13,13 @@ import AuditLogPage from "./pages/admin/dashboard/AuditLogPage";
 import RoomManagement from "./pages/admin/rooms/RoomManagement";
 import RoomManagerAssignment from "./pages/admin/rooms/RoomManagerAssignment";
 import RoomSupplyDistribution from "./pages/admin/rooms/RoomSupplyDistribution";
+
+// ==================== IMPORT MỚI ====================
+import UserManagementPage from "./pages/admin/users/UserManagementPage";
+
 import MainLayout from "./components/layouts/MainLayout";
 import AdminLayout from "./components/layouts/AdminLayout";
 import WikiPage from "./pages/wiki/ChemicalWiki";
-
-// Import trang thông báo
 import NotificationsPage from "./components/common/NotificationsPage";
 
 const theme = createTheme({
@@ -46,6 +48,7 @@ function App() {
             </Route>
           </Route>
 
+          {/* ==================== ADMIN ROUTES ==================== */}
           <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
             <Route element={<AdminLayout />}>
               <Route path="/admin" element={<AdminDashboard />} />
@@ -60,6 +63,9 @@ function App() {
                 path="/admin/rooms/supplies"
                 element={<RoomSupplyDistribution />}
               />
+
+              {/* ==================== ROUTE MỚI ==================== */}
+              <Route path="/admin/users" element={<UserManagementPage />} />
             </Route>
           </Route>
         </Routes>
