@@ -12,7 +12,6 @@ import {
     MenuItem,
     Box,
     Typography,
-    Alert,
     Grid, 
 } from '@mui/material';
 import { useUsers } from '../hooks/useUsers';
@@ -96,7 +95,13 @@ const UserFormModal = ({ open, onClose, user }) => {
     };
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+        <Dialog 
+            open={open} 
+            onClose={onClose} 
+            maxWidth="md" 
+            fullWidth
+            disableRestoreFocus // Fix lỗi Blocked aria-hidden
+        >
             <DialogTitle sx={{ fontWeight: 'bold', bgcolor: '#f8fafc', color: '#1e293b' }}>
                 {isEditMode ? "Chỉnh sửa người dùng" : "Tạo tài khoản mới"}
             </DialogTitle>
@@ -108,8 +113,10 @@ const UserFormModal = ({ open, onClose, user }) => {
                     </Typography>
                     
                     <Grid container spacing={3}>
-                        <Grid item xs={12} sm={isEditMode ? 12 : 6}>
+                        {/* Đã xóa thuộc tính 'item' để tránh lỗi DOM warning */}
+                        <Grid xs={12} sm={isEditMode ? 12 : 6} p={1.5}>
                             <TextField
+                                autoFocus={!isEditMode} // Tự động lấy focus để tránh lỗi ARIA
                                 label="Username"
                                 name="username"
                                 value={formData.username}
@@ -121,8 +128,9 @@ const UserFormModal = ({ open, onClose, user }) => {
                                 disabled={isEditMode}
                             />
                         </Grid>
+
                         {!isEditMode && (
-                            <Grid item xs={12} sm={6}>
+                            <Grid xs={12} sm={6} p={1.5}>
                                 <TextField
                                     label="Mật khẩu"
                                     name="password"
@@ -137,12 +145,8 @@ const UserFormModal = ({ open, onClose, user }) => {
                             </Grid>
                         )}
 
-                        <Grid item xs={12} sm={8}> 
-                            <FormControl 
-                                fullWidth 
-                                required 
-                                error={!!errors.role}
-                            >
+                        <Grid xs={12} sm={8} p={1.5}> 
+                            <FormControl fullWidth required error={!!errors.role}>
                                 <InputLabel id="role-label" shrink>Quyền hạn (Role)</InputLabel>
                                 <Select
                                     labelId="role-label"
@@ -152,15 +156,9 @@ const UserFormModal = ({ open, onClose, user }) => {
                                     onChange={handleChange}
                                     displayEmpty
                                     notched 
-                                    sx={{ 
-                                        minWidth: '100%',
-                                        bgcolor: 'white'
-                                    }}
+                                    sx={{ bgcolor: 'white' }}
                                 >
-                                    {/* Loại bỏ thẻ em in nghiêng và đổi Staff thành Teacher */}
-                                    <MenuItem value="" disabled>
-                                        -- Chọn quyền hạn --
-                                    </MenuItem>
+                                    <MenuItem value="" disabled>-- Chọn quyền hạn --</MenuItem>
                                     <MenuItem value="ADMIN">ADMIN (Quản trị viên)</MenuItem>
                                     <MenuItem value="TEACHER">TEACHER (Giảng viên)</MenuItem>
                                     <MenuItem value="STUDENT">STUDENT (Sinh viên)</MenuItem>
@@ -173,7 +171,7 @@ const UserFormModal = ({ open, onClose, user }) => {
                             </FormControl>
                         </Grid>
 
-                        <Grid item xs={12} sm={4}>
+                        <Grid xs={12} sm={4} p={1.5}>
                             <FormControl fullWidth>
                                 <InputLabel shrink>Trạng thái</InputLabel>
                                 <Select
@@ -194,8 +192,9 @@ const UserFormModal = ({ open, onClose, user }) => {
                         Thông tin cá nhân & Chuyên môn
                     </Typography>
                     <Grid container spacing={3}>
-                        <Grid item xs={12} sm={isEditMode ? 6 : 12}>
+                        <Grid xs={12} sm={isEditMode ? 6 : 12} p={1.5}>
                             <TextField
+                                autoFocus={isEditMode} // Focus vào tên khi chỉnh sửa
                                 label="Họ và tên"
                                 name="fullName"
                                 value={formData.fullName}
@@ -208,7 +207,7 @@ const UserFormModal = ({ open, onClose, user }) => {
                         </Grid>
                         
                         {isEditMode && (
-                            <Grid item xs={12} sm={6}>
+                            <Grid xs={12} sm={6} p={1.5}>
                                 <TextField
                                     label="Email (Hệ thống)"
                                     name="email"
@@ -220,13 +219,13 @@ const UserFormModal = ({ open, onClose, user }) => {
                             </Grid>
                         )}
 
-                        <Grid item xs={12} sm={4}>
+                        <Grid xs={12} sm={4} p={1.5}>
                             <TextField label="Khoa" name="faculty" value={formData.faculty} onChange={handleChange} fullWidth />
                         </Grid>
-                        <Grid item xs={12} sm={4}>
+                        <Grid xs={12} sm={4} p={1.5}>
                             <TextField label="Bộ môn" name="department" value={formData.department} onChange={handleChange} fullWidth />
                         </Grid>
-                        <Grid item xs={12} sm={4}>
+                        <Grid xs={12} sm={4} p={1.5}>
                             <TextField label="Chuyên ngành" name="major" value={formData.major} onChange={handleChange} fullWidth />
                         </Grid>
                     </Grid>

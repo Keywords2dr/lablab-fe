@@ -12,21 +12,18 @@ import { useUsers } from '../hooks/useUsers';
 import './UserTable.css'; 
 
 const UserTable = ({ filters, onEdit }) => {
-    // Lấy các state và function từ hook useUsers
     const {
         users, loading, total, page, rowsPerPage,
         setPage, fetchUsers, toggleActive, resetPassword
     } = useUsers();
 
-    // Gọi lại dữ liệu khi filter hoặc trang thay đổi
     useEffect(() => {
         fetchUsers(filters);
-    }, [fetchUsers, filters, page]); // Thêm page vào dependency để tự load khi chuyển trang
+    }, [fetchUsers, filters, page]);
 
     const totalPages = Math.ceil(total / rowsPerPage) || 1;
 
     const handlePageChange = (event, newPage) => {
-        // MUI Pagination dùng base 1 (trang 1, 2, 3), hook dùng base 0 (index 0, 1, 2)
         setPage(newPage - 1); 
     };
 
@@ -34,13 +31,12 @@ const UserTable = ({ filters, onEdit }) => {
         const r = role?.toLowerCase();
         if (r === 'admin') return 'role-badge admin';
         if (r === 'student') return 'role-badge student';
-        if (r === 'staff') return 'role-badge staff';
+        if (r === 'teacher') return 'role-badge staff'; // Map 'teacher' vào style staff
         return 'role-badge';
     };
 
     return (
         <div className="user-table-wrapper">
-            {/* PHẦN BẢNG DỮ LIỆU */}
             <Paper className="user-table-paper" elevation={0}>
                 <TableContainer className="user-table-container">
                     <Table stickyHeader>
@@ -103,7 +99,6 @@ const UserTable = ({ filters, onEdit }) => {
                                                 user={user}
                                                 onEdit={onEdit}
                                                 onToggleActive={toggleActive}
-                                                // Function resetPassword này đã có logic window.prompt trong hook useUsers.js
                                                 onResetPassword={(id) => resetPassword(id)}
                                             />
                                         </TableCell>
@@ -115,7 +110,6 @@ const UserTable = ({ filters, onEdit }) => {
                 </TableContainer>
             </Paper>
 
-            {/* PHẦN PHÂN TRANG */}
             <div className="separate-pagination-card">
                 <div className="pagination-left-info">
                     Trang <b>{page + 1}</b> / {totalPages} (Tổng {total} người dùng)
@@ -129,12 +123,16 @@ const UserTable = ({ filters, onEdit }) => {
                     shape="rounded"
                     color="primary"
                     className="custom-pagination-buttons"
-                    renderItem={(item) => (
-                        <PaginationItem
-                            slots={{ previous: ArrowBackIcon, next: ArrowForwardIcon }}
-                            {...item}
-                        />
-                    )}
+                    renderItem={(itemProps) => {
+                        // FIX: Tách bỏ thuộc tính 'item' (boolean) để không truyền xuống DOM
+                        const { item, ...rest } = itemProps;
+                        return (
+                            <PaginationItem
+                                slots={{ previous: ArrowBackIcon, next: ArrowForwardIcon }}
+                                {...rest}
+                            />
+                        );
+                    }}
                 />
             </div>
         </div>
