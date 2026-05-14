@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { Close, Delete } from "@mui/icons-material";
 import { chemicalApi } from "../../../../api/chemicalApi";
-import "./DeleteConfirmModal.css";
+import "../styles/DeleteConfirmModal.css";
 
 export default function DeleteConfirmModal({ target, onClose, onConfirm }) {
   const [deleting, setDeleting] = useState(false);

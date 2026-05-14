@@ -13,9 +13,9 @@ import AuditLogPage from "./pages/admin/dashboard/AuditLogPage";
 import RoomManagement from "./pages/admin/rooms/RoomManagement";
 import RoomManagerAssignment from "./pages/admin/rooms/RoomManagerAssignment";
 import RoomSupplyDistribution from "./pages/admin/rooms/RoomSupplyDistribution";
-
-// ==================== IMPORT MỚI ====================
 import UserManagementPage from "./pages/admin/users/UserManagementPage";
+import RoomRentPage from "./pages/rentticket/RoomRentPage";
+import ChemicalRentPage from "./pages/rentticket/ChemicalRentPage";
 
 import MainLayout from "./components/layouts/MainLayout";
 import AdminLayout from "./components/layouts/AdminLayout";
@@ -45,10 +45,11 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/wiki" element={<WikiPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/borrow/room" element={<RoomRentPage />} />
+              <Route path="/borrow/chemical" element={<ChemicalRentPage />} />
             </Route>
           </Route>
 
-          {/* ==================== ADMIN ROUTES ==================== */}
           <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
             <Route element={<AdminLayout />}>
               <Route path="/admin" element={<AdminDashboard />} />
@@ -63,8 +64,6 @@ function App() {
                 path="/admin/rooms/supplies"
                 element={<RoomSupplyDistribution />}
               />
-
-              {/* ==================== ROUTE MỚI ==================== */}
               <Route path="/admin/users" element={<UserManagementPage />} />
             </Route>
           </Route>

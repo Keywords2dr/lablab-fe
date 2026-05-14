@@ -4,7 +4,6 @@ import {
   Science,
   MeetingRoom,
   MenuBook,
-  ArrowForward,
   Inventory,
   History,
   CheckCircle,
@@ -22,12 +21,10 @@ export default function UserDashboard() {
   const user = useAuthStore((state) => state.user);
 
   const isTeacher = user?.role === "TEACHER";
-
   const gridCol = isTeacher ? 3 : 4;
 
   return (
     <div className="ud-wrapper">
-      {/* ── 1. HERO BANNER ───────────────────────────────── */}
       <div className="ud-hero-banner">
         <div className="ud-hero-content">
           <div className="ud-hero-eyebrow">Hệ thống đang hoạt động</div>
@@ -42,30 +39,14 @@ export default function UserDashboard() {
         </div>
       </div>
 
-      {/* ── 2. PHÍM TẮT THAO TÁC ─────────────────────────── */}
       <div className="ud-section-header">
         <span className="ud-section-number">01</span>
-        <h2 className="ud-section-title">Phím tắt thao tác</h2>
+        <h2 className="ud-section-title">Đăng ký mượn mới</h2>
         <div className="ud-section-line" />
       </div>
 
       <Grid container spacing={3} mb={6}>
-        <Grid xs={12} sm={6} md={gridCol}>
-          <div
-            className="ud-action-card chemical"
-            onClick={() => navigate("/borrow/chemical")}
-          >
-            <div className="ud-icon-wrapper chemical">
-              <Science fontSize="large" />
-            </div>
-            <div className="ud-action-info">
-              <h3>Mượn Hóa Chất</h3>
-              <p>Đăng ký vật tư theo ca</p>
-            </div>
-          </div>
-        </Grid>
-
-        <Grid xs={12} sm={6} md={gridCol}>
+        <Grid size={{ xs: 12, sm: 6, md: gridCol }}>
           <div
             className="ud-action-card room"
             onClick={() => navigate("/borrow/room")}
@@ -75,14 +56,28 @@ export default function UserDashboard() {
             </div>
             <div className="ud-action-info">
               <h3>Đăng Ký Phòng</h3>
-              <p>Đặt lịch sử dụng phòng</p>
+              <p>Đặt lịch sử dụng phòng Lab</p>
             </div>
           </div>
         </Grid>
 
-        {/* NẾU LÀ TEACHER -> HIỆN THÊM Ô QUẢN LÝ PHÒNG */}
+        <Grid size={{ xs: 12, sm: 6, md: gridCol }}>
+          <div
+            className="ud-action-card chemical"
+            onClick={() => navigate("/borrow/chemical")}
+          >
+            <div className="ud-icon-wrapper chemical">
+              <Science fontSize="large" />
+            </div>
+            <div className="ud-action-info">
+              <h3>Mượn Hóa Chất</h3>
+              <p>Đăng ký vật tư & dụng cụ</p>
+            </div>
+          </div>
+        </Grid>
+
         {isTeacher && (
-          <Grid xs={12} sm={6} md={gridCol}>
+          <Grid size={{ xs: 12, sm: 6, md: gridCol }}>
             <div
               className="ud-action-card manage"
               onClick={() => navigate("/manage/assigned-rooms")}
@@ -98,7 +93,7 @@ export default function UserDashboard() {
           </Grid>
         )}
 
-        <Grid xs={12} sm={6} md={gridCol}>
+        <Grid size={{ xs: 12, sm: 6, md: gridCol }}>
           <div
             className="ud-action-card report"
             onClick={() => navigate("/report")}
@@ -114,7 +109,6 @@ export default function UserDashboard() {
         </Grid>
       </Grid>
 
-      {/* ── 3. THỐNG KÊ CHI TIẾT ─────────────────────────── */}
       <div className="ud-section-header">
         <span className="ud-section-number">02</span>
         <h2 className="ud-section-title">Tổng quan cá nhân</h2>
@@ -122,7 +116,7 @@ export default function UserDashboard() {
       </div>
 
       <Grid container spacing={3} mb={6}>
-        <Grid xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <div className="ud-stat-card">
             <div className="ud-stat-top">
               <span className="ud-stat-label">Đang mượn</span>
@@ -134,7 +128,7 @@ export default function UserDashboard() {
             <div className="ud-stat-trend">Ca mượn đang diễn ra</div>
           </div>
         </Grid>
-        <Grid xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <div className="ud-stat-card">
             <div className="ud-stat-top">
               <span className="ud-stat-label">Chờ duyệt</span>
@@ -146,7 +140,7 @@ export default function UserDashboard() {
             <div className="ud-stat-trend">Yêu cầu đang chờ duyệt</div>
           </div>
         </Grid>
-        <Grid xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <div className="ud-stat-card">
             <div className="ud-stat-top">
               <span className="ud-stat-label">Cảnh báo trả</span>
@@ -160,7 +154,7 @@ export default function UserDashboard() {
             </div>
           </div>
         </Grid>
-        <Grid xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <div className="ud-stat-card">
             <div className="ud-stat-top">
               <span className="ud-stat-label">Hoàn tất</span>
@@ -174,7 +168,6 @@ export default function UserDashboard() {
         </Grid>
       </Grid>
 
-      {/* ── 4. BẢNG LỊCH SỬ THỰC TẾ (THEO CA) ─────────────── */}
       <div className="ud-section-header">
         <span className="ud-section-number">03</span>
         <h2 className="ud-section-title">Lịch trình mượn hiện tại</h2>
@@ -185,19 +178,22 @@ export default function UserDashboard() {
         <table className="ud-table">
           <thead>
             <tr>
+              <th>Loại phiếu</th>
               <th>Vật tư / Phòng Lab</th>
               <th>Ngày Đăng Ký</th>
-              <th>Khung giờ (Ca mượn)</th>
+              <th>Khung giờ</th>
               <th>Trạng Thái</th>
               <th>Thao tác</th>
             </tr>
           </thead>
           <tbody>
-            {/* Dòng 1: Đang mượn */}
             <tr>
               <td>
+                <span className="ud-type-badge room">PHÒNG</span>
+              </td>
+              <td>
                 <span className="ud-item-name">Phòng Thực Hành Hóa 01</span>
-                <span className="ud-item-desc">Mã phiếu: RL022</span>
+                <span className="ud-item-desc">Mã: RL022</span>
               </td>
               <td>
                 <div className="ud-date-item">
@@ -205,11 +201,8 @@ export default function UserDashboard() {
                 </div>
               </td>
               <td>
-                <div className="ud-date-group">
-                  <div className="ud-date-item danger">
-                    <AccessTime fontSize="small" />{" "}
-                    <strong>18:30 - 22:30 (Ca Tối)</strong>
-                  </div>
+                <div className="ud-date-item danger">
+                   <AccessTime fontSize="small" /> <strong>Ca Tối</strong>
                 </div>
               </td>
               <td>
@@ -217,19 +210,18 @@ export default function UserDashboard() {
               </td>
               <td>
                 <div className="ud-action-btns">
-                  <button className="ud-btn-small primary">
-                    Bàn giao & Trả
-                  </button>
+                  <button className="ud-btn-small primary">Trả phòng</button>
                   <button className="ud-btn-small">Báo sự cố</button>
                 </div>
               </td>
             </tr>
-
-            {/* Dòng 2: Chờ duyệt */}
             <tr>
               <td>
+                <span className="ud-type-badge chemical">VẬT TƯ</span>
+              </td>
+              <td>
                 <span className="ud-item-name">Ống nghiệm thủy tinh x10</span>
-                <span className="ud-item-desc">Mã phiếu: PM045</span>
+                <span className="ud-item-desc">Mã: PM045</span>
               </td>
               <td>
                 <div className="ud-date-item">
@@ -237,11 +229,8 @@ export default function UserDashboard() {
                 </div>
               </td>
               <td>
-                <div className="ud-date-group">
-                  <div className="ud-date-item">
-                    <AccessTime fontSize="small" />{" "}
-                    <strong>07:30 - 11:30 (Ca Sáng)</strong>
-                  </div>
+                <div className="ud-date-item">
+                   <AccessTime fontSize="small" /> <strong>Ca Sáng</strong>
                 </div>
               </td>
               <td>
@@ -249,7 +238,7 @@ export default function UserDashboard() {
               </td>
               <td>
                 <div className="ud-action-btns">
-                  <button className="ud-btn-small">Hủy yêu cầu</button>
+                  <button className="ud-btn-small">Hủy</button>
                 </div>
               </td>
             </tr>

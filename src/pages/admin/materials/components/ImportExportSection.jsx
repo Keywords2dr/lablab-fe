@@ -13,7 +13,7 @@ import {
   ExpandMore,
 } from "@mui/icons-material";
 import { chemicalApi } from "../../../../api/chemicalApi";
-import "./ImportExportSection.css";
+import "../styles/ImportExportSection.css";
 
 const MAX_SIZE_MB = 10;
 

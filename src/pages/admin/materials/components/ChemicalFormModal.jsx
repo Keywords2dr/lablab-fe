@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { Close, Save } from "@mui/icons-material";
 import { chemicalApi } from "../../../../api/chemicalApi";
-import "./ChemicalFormModal.css";
+import "../styles/ChemicalFormModal.css";
 
 const emptyForm = {
   itemCode: "",
