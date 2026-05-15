@@ -27,7 +27,8 @@ const NAV_ITEMS = [
     group: "CHỨC NĂNG CHÍNH",
     items: [
       { label: "Tổng Quan", icon: <Dashboard fontSize="small" />, path: "/admin" },
-      { label: "Duyệt Phiếu Mượn", icon: <Receipt fontSize="small" />, path: null },
+      // --- ĐÃ FIX: Cập nhật path cho Duyệt Phiếu Mượn ---
+      { label: "Duyệt Phiếu Mượn", icon: <Receipt fontSize="small" />, path: "/admin/tickets" },
       { label: "Quản lý Vật tư", icon: <Inventory fontSize="small" />, path: "/admin/materials" },
       {
         label: "Quản lý Phòng Lab",
@@ -44,7 +45,7 @@ const NAV_ITEMS = [
         label: "Quản lý Người dùng", 
         icon: <PeopleAlt fontSize="small" />, 
         path: "/admin/users" 
-      },   // ← ĐÃ SỬA
+      },
     ],
   },
   {
@@ -90,6 +91,10 @@ export default function AdminLayout() {
     if (isChild) {
       return currentPath === path;
     } else {
+      // Logic cho trang Duyệt Phiếu (Active cả khi ở trang chi tiết /admin/tickets/:id)
+      if (path === "/admin/tickets") {
+        return currentPath.startsWith("/admin/tickets");
+      }
       // Với các route chính (như /admin/users)
       if (path === "/admin/users") {
         return currentPath.startsWith("/admin/users");
@@ -119,7 +124,6 @@ export default function AdminLayout() {
 
                 return (
                   <li key={item.label}>
-                    {/* PARENT ITEM */}
                     <div
                       className={`admin-nav-item ${active ? "active" : ""} 
                         ${!item.path && !item.children ? "disabled" : ""}`}
@@ -144,7 +148,6 @@ export default function AdminLayout() {
                       )}
                     </div>
 
-                    {/* SUB ITEMS */}
                     {item.children && expanded[item.groupKey] && (
                       <ul className="admin-nav-sub-list">
                         {item.children.map((child) => (
@@ -169,7 +172,6 @@ export default function AdminLayout() {
 
       {/* MAIN AREA */}
       <div className="admin-main-wrapper">
-        {/* TOPBAR */}
         <header className="admin-topbar">
           <div className="admin-topbar-title">Khu vực Quản Trị Viên</div>
 
@@ -192,13 +194,11 @@ export default function AdminLayout() {
           </div>
         </header>
 
-        {/* CONTENT */}
         <main className="admin-content-area">
           <Outlet />
         </main>
       </div>
 
-      {/* LOGOUT MENU */}
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}

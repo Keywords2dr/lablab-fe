@@ -139,8 +139,10 @@
 
 .al-filter-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  /* Chỉnh lại tỉ lệ 3 cột để cân đối ô Search */
+  grid-template-columns: 1.5fr 1fr 1fr;
   gap: 16px;
+  align-items: flex-end;
 }
 
 .al-filter-item label {
@@ -153,14 +155,18 @@
   letter-spacing: 0.04em;
 }
 
-.al-select-wrap,
-.al-input-wrap {
+/* ĐỒNG BỘ SEARCH BOX VÀ SELECT BOX */
+.al-search-box,
+.al-select-wrap {
   position: relative;
+  width: 100%;
 }
 
-.al-select-wrap select,
-.al-input-wrap input {
+/* Đồng bộ input và select về chiều cao và style */
+.al-search-box .al-input,
+.al-select-wrap select {
   width: 100%;
+  height: 42px; /* Chiều cao cố định đồng nhất */
   padding: 9px 14px;
   border: 1.5px solid #e2e8f0;
   border-radius: 9px;
@@ -168,26 +174,49 @@
   color: #1e293b;
   background: #f8fafc;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-  appearance: none;
+  transition: all 0.2s ease;
   box-sizing: border-box;
 }
 
-.al-input-wrap input {
-  padding-left: 36px;
+/* Riêng ô Search có padding trái cho icon */
+.al-search-box .al-input {
+  padding-left: 38px;
 }
 
-.al-input-icon {
+/* Thêm icon kính lúp vào trước input */
+.al-search-box::before {
+  content: "🔍";
   position: absolute;
-  left: 11px;
+  left: 12px;
   top: 50%;
   transform: translateY(-50%);
+  font-size: 14px;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Select cần ẩn mũi tên mặc định để dùng mũi tên custom */
+.al-select-wrap select {
+  appearance: none;
+  padding-right: 34px;
+  cursor: pointer;
+}
+
+.al-select-wrap::after {
+  content: "▼";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%) scale(0.8);
+  font-size: 10px;
   color: #94a3b8;
   pointer-events: none;
 }
 
-.al-select-wrap select:focus,
-.al-input-wrap input:focus {
+/* Hiệu ứng Focus đồng bộ */
+.al-search-box .al-input:focus,
+.al-select-wrap select:focus {
   border-color: #6366f1;
   box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
   background: white;
@@ -623,7 +652,6 @@
 
 .al-kv-row {
   display: grid;
-  /* FIX: Tăng lên 160px để "SỐ LƯỢNG MỖI GÓI" nằm trên 1 dòng */
   grid-template-columns: 160px 1fr; 
   gap: 14px;
   align-items: baseline;
@@ -636,12 +664,12 @@
 }
 
 .al-kv-key {
-  font-size: 11.5px; /* Giảm nhẹ font size để label dài dễ thở hơn */
+  font-size: 11.5px;
   font-weight: 600;
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  word-break: keep-all; /* Ngăn chặn rớt dòng giữa chữ */
+  word-break: keep-all;
   text-align: left;
   line-height: 1.4;
 }
