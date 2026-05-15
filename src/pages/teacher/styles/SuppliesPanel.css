@@ -1,0 +1,86 @@
+.trm-panel-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.trm-supply-count {
+  font-size: 14px;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 6px 14px;
+  border-radius: 8px;
+}
+
+.trm-col-code code {
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #0ea5e9;
+  font-weight: 700;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+}
+
+.trm-item-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trm-col-formula {
+  font-family: "serif";
+  font-style: italic;
+  color: #334155;
+  letter-spacing: 0.5px;
+}
+
+.trm-cat-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.trm-cat-badge.chemical {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+.trm-cat-badge.equipment {
+  background: #fef9c3;
+  color: #92400e;
+}
+
+.trm-qty-avail {
+  font-size: 16px;
+  font-weight: 800;
+  color: #059669;
+}
+
+.trm-qty-avail.out {
+  color: #ef4444;
+}
+
+.trm-qty-locked {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.trm-note-cell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.trm-table tbody tr:hover .trm-col-code code {
+  background: #0ea5e9;
+  color: #fff;
+}

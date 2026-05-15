@@ -1,7 +1,6 @@
 import axiosInstance from "./axiosInstance";
 
 export const roomApi = {
-  // ── Rooms ──────────────────────────────────────────────────────────────
   getRooms: async (params = {}, signal) => {
     const { keyword, status, page = 0, size = 10 } = params;
     let isActive;
@@ -15,6 +14,8 @@ export const roomApi = {
 
   createRoom: async (data) => axiosInstance.post("/rooms", data),
   updateRoom: async (id, data) => axiosInstance.put(`/rooms/${id}`, data),
+  getMyManagedRooms: async () => axiosInstance.get("/rooms/my-rooms"),
+  getRoomById: async (id) => axiosInstance.get(`/rooms/${id}`),
 
   deactivateRoom: async (id) =>
     axiosInstance.patch(`/rooms/${id}/status`, null, {
@@ -28,7 +29,6 @@ export const roomApi = {
 
   getRoomStats: async () => axiosInstance.get("/rooms/stats"),
 
-  // ── Staff ──────────────────────────────────────────────────────────────
   getRoomStaff: async (roomId) => axiosInstance.get(`/rooms/${roomId}/staff`),
 
   getAssignableTeachers: async (roomId, keyword) => {
@@ -43,9 +43,8 @@ export const roomApi = {
   removeStaff: async (roomId, userId) =>
     axiosInstance.delete(`/rooms/${roomId}/staff/${userId}`),
 
-  // ── Inventory ─────────────────────────────────────────────────────────
-  getRoomInventory: async (roomId) =>
-    axiosInstance.get(`/inventory/rooms/${roomId}`),
+  getRoomInventory: async (roomId, page = 0, size = 10) =>
+    axiosInstance.get(`/inventory/rooms/${roomId}`, { params: { page, size } }),
 
   getChemicalGlobalInventory: async () =>
     axiosInstance.get("/inventory/chemicals/global"),

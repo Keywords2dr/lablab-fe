@@ -29,6 +29,7 @@ import AdminTicketDetail from "./pages/admin/Tickets/AdminTicketDetail";
 // --- USER BORROW (Phiếu mượn của người dùng) ---
 import RoomRentPage from "./pages/rentticket/RoomRentPage";
 import ChemicalRentPage from "./pages/rentticket/ChemicalRentPage";
+import TeacherRoomManagePage from "./pages/teacher/TeacherRoomManagePage";
 
 // --- LAYOUTS ---
 import MainLayout from "./components/layouts/MainLayout";
@@ -63,6 +64,7 @@ function App() {
               {/* Phiếu mượn */}
               <Route path="/borrow/room" element={<RoomRentPage />} />
               <Route path="/borrow/chemical" element={<ChemicalRentPage />} />
+              <Route path="/manage/assigned-rooms" element={<TeacherRoomManagePage />} />
             </Route>
           </Route>
 
