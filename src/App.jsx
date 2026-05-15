@@ -9,7 +9,7 @@ import DashboardPage from "./pages/dashboard/DashboardPage";
 import Profile from "./pages/profile/Profile";
 import AdminDashboard from "./pages/admin/dashboard/AdminDashboard";
 import MaterialManagement from "./pages/admin/materials/MaterialManagement";
-import AuditLogPage from "./pages/admin/dashboard/AuditLogPage";
+import AuditLogPage from "./pages/admin/AuditLog/AuditLogPage";
 import RoomManagement from "./pages/admin/rooms/RoomManagement";
 import RoomManagerAssignment from "./pages/admin/rooms/RoomManagerAssignment";
 import RoomSupplyDistribution from "./pages/admin/rooms/RoomSupplyDistribution";
