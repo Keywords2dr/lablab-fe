@@ -50,7 +50,7 @@ const ENTITY_DISPLAY_CONFIG = {
       quantityBorrowed: 'Số lượng đã mượn',
       quantityReturned: 'Số lượng đã trả',
       returnStatus: 'Trạng thái',
-      classCode: 'Mã phòng',
+      classCode: 'Mã lớp',
       subjectName: 'Tên chủ đề',
       ticketType: 'Loại phiếu',
       requesterName: 'Tên người yêu cầu',
