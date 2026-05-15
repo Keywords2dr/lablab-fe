@@ -176,7 +176,7 @@ export default function AdminLayout() {
           <div className="admin-topbar-title">Khu vực Quản Trị Viên</div>
 
           <div className="admin-topbar-actions">
-            <NotificationBell />
+            <NotificationBell onViewAll={() => navigate("/notifications")} />
 
             <div
               className="admin-profile-section"

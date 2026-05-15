@@ -50,7 +50,7 @@ const ENTITY_DISPLAY_CONFIG = {
       quantityBorrowed: 'Số lượng đã mượn',
       quantityReturned: 'Số lượng đã trả',
       returnStatus: 'Trạng thái',
-      classCode: 'Mã phòng',
+      classCode: 'Mã lớp',
       subjectName: 'Tên chủ đề',
       ticketType: 'Loại phiếu',
       requesterName: 'Tên người yêu cầu',
@@ -61,6 +61,7 @@ const ENTITY_DISPLAY_CONFIG = {
       ownerApprovedAt: 'Chủ sở hữu đã phê duyệt lúc',
       adminApprovedByName: 'Tên Quản trị viên đã phê duyệt',
       ownerApprovedByName: 'Tên chủ sở hữu đã phê duyệt',
+      createdAt: 'Được tạo lúc',
     }
   },
   ROOM_STAFF: {

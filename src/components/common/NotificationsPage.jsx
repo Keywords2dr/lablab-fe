@@ -2,13 +2,25 @@ import { useState, useEffect, useCallback } from "react";
 import "./NotificationsPage.css";
 
 const TYPE_CONFIG = {
-  ROOM_ASSIGN: { bg: "linear-gradient(135deg,#43e97b,#38f9d7)", icon: "🔑" },
-  ROOM_REMOVE: { bg: "linear-gradient(135deg,#f857a6,#ff5858)", icon: "🚫" },
-  BORROW:      { bg: "linear-gradient(135deg,#4facfe,#00f2fe)", icon: "🧪" },
-  default:     { bg: "linear-gradient(135deg,#a18cd1,#fbc2eb)", icon: "🔔" },
+  ROOM_ASSIGN:              { bg: "linear-gradient(135deg,#43e97b,#38f9d7)", icon: "🔑" },
+  ROOM_REMOVE:              { bg: "linear-gradient(135deg,#f857a6,#ff5858)", icon: "🚫" },
+  BORROW:                   { bg: "linear-gradient(135deg,#4facfe,#00f2fe)", icon: "🧪" },
+  TICKET_PENDING_ADMIN_ALERT: { bg: "linear-gradient(135deg,#f7971e,#ffd200)", icon: "📋" },
+  default:                  { bg: "linear-gradient(135deg,#a18cd1,#fbc2eb)", icon: "🔔" },
 };
 
 const BASE_URL = "http://localhost:8080/api/notifications";
+
+function getUserRole() {
+  try {
+    const raw = localStorage.getItem("auth-storage");
+    if (raw) {
+      const p = JSON.parse(raw);
+      return p.state?.user?.role || null;
+    }
+  } catch {}
+  return null;
+}
 
 function authHeaders() {
   let token = null;
@@ -64,6 +76,17 @@ function timeAgo(dateStr) {
   return new Date(dateStr).toLocaleDateString("vi-VN");
 }
 
+function getRedirectUrl(type) {
+  const role = getUserRole();
+  if (type === "TICKET_PENDING_ADMIN_ALERT" || type === "BORROW") {
+    return role === "ADMIN"
+      ? "http://localhost:5173/admin/tickets"
+      : "/borrow/chemical";
+  }
+  // ROOM_ASSIGN, ROOM_REMOVE
+  return "/manage/assigned-rooms";
+}
+
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -95,11 +118,14 @@ export default function NotificationsPage() {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
 
-  const markRead = async (id) => {
-    await apiFetch(`/${id}/read`, { method: "PATCH" });
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
+  const handleNotiClick = async (n) => {
+    if (!n.read) {
+      await apiFetch(`/${n.id}/read`, { method: "PATCH" });
+      setNotifications((prev) =>
+        prev.map((item) => (item.id === n.id ? { ...item, read: true } : item))
+      );
+    }
+    window.location.href = getRedirectUrl(n.type);
   };
 
   const filtered = filter === "unread"
@@ -139,7 +165,7 @@ export default function NotificationsPage() {
                 <div
                   key={n.id}
                   className={`noti-item ${!n.read ? "unread" : ""}`}
-                  onClick={() => !n.read && markRead(n.id)}
+                  onClick={() => handleNotiClick(n)}
                 >
                   <div className="noti-icon" style={{ background: cfg.bg }}>
                     {cfg.icon}

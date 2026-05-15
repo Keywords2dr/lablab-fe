@@ -13,13 +13,13 @@ import './AdminTicketManager.css';
 
 const { Text } = Typography;
 
-// Định nghĩa mức độ ưu tiên: Số càng nhỏ càng hiện lên đầu
+// Định nghĩa mức độ ưu tiên
 const STATUS_PRIORITY = {
-    PENDING_ADMIN: 1,  // Ưu tiên cao nhất
-    PENDING_OWNER: 2,  // Ưu tiên thứ hai
+    PENDING_ADMIN: 1,
+    PENDING_OWNER: 2,
     PENDING_RETURN: 3,
     BORROWED: 4,
-    APPROVED: 10,      // Nhóm hoàn thành đẩy xuống cuối
+    APPROVED: 10,
     REJECTED: 11,
     RETURNED: 12,
     CANCELLED: 13,
@@ -56,21 +56,22 @@ const AdminTicketManager = () => {
     const fetchTickets = useCallback(async (page = 1, size = 10, filters = {}) => {
         setLoading(true);
         try {
-            const params = { page: page - 1, size, ...filters };
+            const finalFilters = {
+                ...filters,
+                status: filters.status || 'PENDING_ADMIN'
+            };
+
+            const params = { page: page - 1, size, ...finalFilters };
             const res = await ticketApi.getAllForAdmin(params);
 
             const actualData = res?.content || res?.data?.content || [];
             const total = res?.totalElements || res?.data?.totalElements || 0;
 
-            // --- PHẦN FIX SẮP XẾP ƯU TIÊN ---
             const sortedData = [...actualData].sort((a, b) => {
                 const priorityA = STATUS_PRIORITY[a.status] || 99;
                 const priorityB = STATUS_PRIORITY[b.status] || 99;
 
-                if (priorityA !== priorityB) {
-                    return priorityA - priorityB;
-                }
-                // Nếu cùng trạng thái, phiếu nào mới hơn (ID lớn hơn) hiện lên trước
+                if (priorityA !== priorityB) return priorityA - priorityB;
                 return b.ticketId - a.ticketId;
             });
 
@@ -85,8 +86,9 @@ const AdminTicketManager = () => {
     }, []);
 
     useEffect(() => {
-        fetchTickets();
-    }, [fetchTickets]);
+        form.setFieldsValue({ status: 'PENDING_ADMIN' });
+        fetchTickets(1, 10, { status: 'PENDING_ADMIN' });
+    }, [fetchTickets, form]);
 
     const columns = [
         {
@@ -104,9 +106,7 @@ const AdminTicketManager = () => {
             title: 'Phòng Lab',
             dataIndex: 'roomName',
             key: 'roomName',
-            render: (text) => (
-                <span className="atm-room-chip">{text || '—'}</span>
-            ),
+            render: (text) => <span className="atm-room-chip">{text || '—'}</span>,
         },
         {
             title: 'Loại phiếu',
@@ -146,8 +146,7 @@ const AdminTicketManager = () => {
 
     return (
         <div className="atm-page">
-
-            {/* ── Banner ── */}
+            {/* Banner */}
             <div className="atm-banner">
                 <div className="atm-banner-icon">
                     <AuditOutlined />
@@ -158,7 +157,7 @@ const AdminTicketManager = () => {
                 </div>
             </div>
 
-            {/* ── Filter card ── */}
+            {/* Filter */}
             <div className="atm-card">
                 <Form
                     form={form}
@@ -168,13 +167,15 @@ const AdminTicketManager = () => {
                     <div className="atm-filter-bar">
                         <Form.Item name="status">
                             <Select
-                                placeholder="Trạng thái"
-                                style={{ width: 160 }}
+                                placeholder="Tất cả trạng thái"
+                                style={{ width: 180 }}
                                 allowClear
-                                popupClassName="atm-select-dropdown"
+                                classNames={{ popup: 'atm-select-dropdown' }}   // ← Sửa ở đây
                             >
                                 {Object.entries(TICKET_STATUS).map(([key, val]) => (
-                                    <Select.Option key={key} value={key}>{val.label}</Select.Option>
+                                    <Select.Option key={key} value={key}>
+                                        {val.label}
+                                    </Select.Option>
                                 ))}
                             </Select>
                         </Form.Item>
@@ -184,10 +185,12 @@ const AdminTicketManager = () => {
                                 placeholder="Loại phiếu"
                                 style={{ width: 170 }}
                                 allowClear
-                                popupClassName="atm-select-dropdown"
+                                classNames={{ popup: 'atm-select-dropdown' }}   // ← Sửa ở đây
                             >
                                 {Object.entries(TICKET_TYPE).map(([key, val]) => (
-                                    <Select.Option key={key} value={key}>{val.label}</Select.Option>
+                                    <Select.Option key={key} value={key}>
+                                        {val.label}
+                                    </Select.Option>
                                 ))}
                             </Select>
                         </Form.Item>
@@ -206,7 +209,8 @@ const AdminTicketManager = () => {
                                     icon={<ReloadOutlined />}
                                     onClick={() => {
                                         form.resetFields();
-                                        fetchTickets(1, 10, {});
+                                        form.setFieldsValue({ status: 'PENDING_ADMIN' });
+                                        fetchTickets(1, 10, { status: 'PENDING_ADMIN' });
                                     }}
                                 >
                                     Làm mới
@@ -217,7 +221,7 @@ const AdminTicketManager = () => {
                 </Form>
             </div>
 
-            {/* ── Table card ── */}
+            {/* Table */}
             <div className="atm-card atm-table-wrapper">
                 <Table
                     columns={columns}
@@ -229,9 +233,10 @@ const AdminTicketManager = () => {
                         showSizeChanger: true,
                         showTotal: (total) => `Tổng cộng ${total} phiếu`,
                     }}
-                    onChange={(p) =>
-                        fetchTickets(p.current, p.pageSize, form.getFieldsValue())
-                    }
+                    onChange={(p) => {
+                        const currentFilters = form.getFieldsValue();
+                        fetchTickets(p.current, p.pageSize, currentFilters);
+                    }}
                     scroll={{ x: 800 }}
                 />
 
@@ -239,7 +244,7 @@ const AdminTicketManager = () => {
                     <div className="atm-empty">
                         <ExclamationCircleOutlined className="atm-empty-icon" />
                         <span className="atm-empty-text">
-                            Không tìm thấy phiếu mượn nào — hãy thử "Làm mới" hoặc kiểm tra quyền Admin.
+                            Không tìm thấy phiếu mượn nào.
                         </span>
                     </div>
                 )}

@@ -9,7 +9,7 @@ import {
     ArrowLeftOutlined, AuditOutlined,
     UserOutlined, HomeOutlined, ExperimentOutlined,
     CalendarOutlined, BookOutlined, CloseCircleOutlined,
-    CheckCircleOutlined
+    CheckCircleOutlined, UserSwitchOutlined
 } from '@ant-design/icons';
 import ticketApi from '../../../api/ticketApi';
 import './AdminTicketDetail.css';
@@ -114,6 +114,8 @@ const AdminTicketDetail = () => {
     const statusCfg = TICKET_STATUS[ticket.status] || { label: ticket.status, color: 'default' };
     const typeCfg   = TICKET_TYPE[ticket.ticketType] || { label: ticket.ticketType, color: 'default' };
 
+    const roomManagerName = ticket.ownerApprovedByName || '—';
+
     /* ── Columns cho bảng vật tư ── */
     const itemColumns = [
         {
@@ -149,7 +151,7 @@ const AdminTicketDetail = () => {
 
             {/* ── Main card ── */}
             <div className="atd-main-card ant-card">
-                {/* Card header giả (thay ant Card title để kiểm soát style tốt hơn) */}
+                {/* Card header */}
                 <div style={{
                     background: 'var(--bg-elevated)',
                     borderBottom: '1.5px solid var(--border)',
@@ -201,6 +203,15 @@ const AdminTicketDetail = () => {
                                 )}
                             </span>
                         </div>
+
+                        <div className="atd-info-item">
+                            <span className="atd-info-label">GV Quản lý phòng</span>
+                            <span className="atd-info-value">
+                                <UserSwitchOutlined style={{ color: 'var(--accent)', marginRight: 6 }} />
+                                <strong>{roomManagerName}</strong>
+                            </span>
+                        </div>
+
                         <div className="atd-info-item">
                             <span className="atd-info-label">Phòng Lab</span>
                             <span className="atd-info-value">
@@ -222,6 +233,16 @@ const AdminTicketDetail = () => {
                             </span>
                         </div>
                         <div className="atd-info-item">
+                            <span className="atd-info-label">Mã lớp</span>
+                            <span className="atd-info-value">{ticket.classCode || '—'}</span>
+                        </div>
+                        <div className="atd-info-item">
+                            <span className="atd-info-label">Chi tiết bài học</span>
+                            <span className="atd-info-value">
+                                {ticket.lessonDetail && ticket.lessonDetail.trim() !== '' ? ticket.lessonDetail : '—'}
+                            </span>
+                        </div>
+                        <div className="atd-info-item">
                             <span className="atd-info-label">Mục đích</span>
                             <span className="atd-info-value">{ticket.purposeType || '—'}</span>
                         </div>
@@ -230,10 +251,14 @@ const AdminTicketDetail = () => {
                     {/* ── Section: Thời gian ── */}
                     <div className="atd-section-title" style={{ marginTop: 24 }}>
                         <div className="atd-section-title-icon"><CalendarOutlined /></div>
-                        Thời gian mượn
+                        Thời gian
                     </div>
 
                     <div className="atd-info-grid">
+                        <div className="atd-info-item">
+                            <span className="atd-info-label">Ngày tạo phiếu</span>
+                            <span className="atd-info-value">{fmtDate(ticket.createdAt)}</span>
+                        </div>
                         <div className="atd-info-item">
                             <span className="atd-info-label">Ngày mượn</span>
                             <span className="atd-info-value">{fmtDate(ticket.borrowDate)}</span>
@@ -242,6 +267,12 @@ const AdminTicketDetail = () => {
                             <span className="atd-info-label">Hạn trả dự kiến</span>
                             <span className="atd-info-value">{fmtDate(ticket.expectedReturnDate)}</span>
                         </div>
+                        {ticket.ownerApprovedAt && (
+                            <div className="atd-info-item">
+                                <span className="atd-info-label">GV Duyệt lúc</span>
+                                <span className="atd-info-value">{fmtDate(ticket.ownerApprovedAt)}</span>
+                            </div>
+                        )}
                     </div>
 
                     {/* ── Lý do từ chối (nếu có) ── */}

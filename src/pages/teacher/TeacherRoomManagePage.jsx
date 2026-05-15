@@ -128,7 +128,7 @@ export default function TeacherRoomManagePage() {
         setDetailItem={setDetailItem}
         setRejectTarget={setRejectTarget}
         refreshData={refreshData}
-        chemicalDict={chemicalDict} // Truyền từ điển vào modal
+        chemicalDict={chemicalDict}
       />
       <RejectModal
         rejectTarget={rejectTarget}
