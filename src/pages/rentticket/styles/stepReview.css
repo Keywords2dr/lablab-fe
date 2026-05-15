@@ -1,6 +1,116 @@
-.rr-summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.rr-summary-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; }
-.rr-summary-item.span-2 { grid-column: span 2; }
-.rr-summary-label { font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; }
-.rr-summary-value { font-size: 0.95rem; font-weight: 600; color: #0f172a; line-height: 1.5; }
-.rr-summary-badge { font-size: 0.75rem; background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 10px; margin-left: 8px; }
+/* ── Summary grid ────────────────────────────────────────── */
+.rr-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.rr-summary-item {
+  background: #fafafa;
+  border: 1.5px solid #f0f0f0;
+  border-radius: 14px;
+  padding: 14px 18px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+.rr-summary-item::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #a5b4fc, #818cf8);
+  border-radius: 0 2px 2px 0;
+  opacity: 0;
+  transition: opacity 0.18s;
+}
+.rr-summary-item:hover {
+  border-color: #e0e7ff;
+  box-shadow: 0 3px 12px rgba(99, 102, 241, 0.07);
+}
+.rr-summary-item:hover::before {
+  opacity: 1;
+}
+
+.rr-summary-item.span-2 {
+  grid-column: span 2;
+}
+
+/* ── Highlight item: phòng được chọn ────────────────────── */
+.rr-summary-item.span-2:first-child {
+  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+  border-color: #c4b5fd;
+}
+.rr-summary-item.span-2:first-child::before {
+  background: linear-gradient(180deg, #7c3aed, #6d28d9);
+  opacity: 1;
+  width: 4px;
+}
+
+/* ── Label ───────────────────────────────────────────────── */
+.rr-summary-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.71rem;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
+}
+.rr-summary-label svg {
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+/* ── Value ───────────────────────────────────────────────── */
+.rr-summary-value {
+  font-size: 0.925rem;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+/* ── Valid badge (Hợp lệ) ────────────────────────────────── */
+.rr-summary-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+  letter-spacing: 0.1px;
+}
+.rr-summary-badge svg { font-size: 13px; }
+
+/* ── Note / Ghi chú item ─────────────────────────────────── */
+.rr-summary-item:last-child {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+.rr-summary-item:last-child .rr-summary-label {
+  color: #92400e;
+}
+.rr-summary-item:last-child .rr-summary-value {
+  color: #78350f;
+  font-weight: 500;
+}
+.rr-summary-item:last-child::before {
+  background: linear-gradient(180deg, #f59e0b, #d97706);
+  opacity: 1;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .rr-summary-grid {
+    grid-template-columns: 1fr;
+  }
+  .rr-summary-item.span-2 {
+    grid-column: span 1;
+  }
+}

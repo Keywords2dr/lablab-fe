@@ -1,19 +1,152 @@
-.rr-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; padding-top: 10px; }
-.rr-form-group.span-2 { grid-column: span 2; }
-.rr-form-label { font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 6px; display: block; }
-.rr-form-label .required { color: #ef4444; }
-
-.rr-form-input, .rr-form-textarea {
-  width: 100%; border: 1.5px solid #e2e8f0; border-radius: 10px;
-  padding: 10px 14px; background: #f8fafc; outline: none; font-family: inherit;
-}
-.rr-form-input:focus, .rr-form-textarea:focus { border-color: #0ea5e9; background: #fff; }
-.rr-form-input.error { border-color: #ef4444; }
-
-.rr-field-error { font-size: 0.75rem; color: #ef4444; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
-
+/* ── Selected-room chip ──────────────────────────────────── */
 .rr-selected-room-chip {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: #eff6ff; border: 1.5px solid #0ea5e9;
-  border-radius: 12px; padding: 10px 18px; color: #0369a1; font-weight: 600; margin-bottom: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  border: 1.5px solid #86efac;
+  border-radius: 12px;
+  padding: 10px 18px;
+  margin-bottom: 24px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #15803d;
+  box-shadow: 0 2px 8px rgba(134, 239, 172, 0.25);
+}
+.rr-selected-room-chip svg {
+  font-size: 18px;
+  color: #16a34a;
+  flex-shrink: 0;
+}
+
+/* ── Form grid ───────────────────────────────────────────── */
+.rr-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.rr-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.rr-form-group.span-2 {
+  grid-column: span 2;
+}
+
+/* ── Label ───────────────────────────────────────────────── */
+.rr-form-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #374151;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  margin-bottom: 7px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.rr-form-label .required {
+  color: #ef4444;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+/* ── Inputs / Select / Textarea ──────────────────────────── */
+.rr-form-input,
+.rr-form-select,
+.rr-form-textarea {
+  height: 44px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0 14px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: #111827;
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+  box-sizing: border-box;
+  width: 100%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* Textarea overrides */
+.rr-form-textarea {
+  height: auto;
+  min-height: 92px;
+  padding: 12px 14px;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+/* Focus */
+.rr-form-input:focus,
+.rr-form-select:focus,
+.rr-form-textarea:focus {
+  border-color: #6366f1;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* Hover (not focused) */
+.rr-form-input:not(:focus):hover,
+.rr-form-select:not(:focus):hover,
+.rr-form-textarea:not(:focus):hover {
+  border-color: #c4b5fd;
+}
+
+/* Error state */
+.rr-form-input.error,
+.rr-form-select.error,
+.rr-form-textarea.error {
+  border-color: #f87171;
+  background: #fff5f5;
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.12);
+}
+
+/* Select arrow */
+.rr-form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 18px;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+/* ── Field error message ─────────────────────────────────── */
+.rr-field-error {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: #dc2626;
+  margin-top: 5px;
+  animation: rrErrorIn 0.2s ease;
+}
+.rr-field-error svg { font-size: 13px; flex-shrink: 0; }
+
+@keyframes rrErrorIn {
+  from { opacity: 0; transform: translateY(-3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Datetime inputs — native UI consistency ─────────────── */
+input[type="datetime-local"].rr-form-input {
+  color-scheme: light;
+  padding: 0 12px;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .rr-form-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .rr-form-group.span-2 {
+    grid-column: span 1;
+  }
 }

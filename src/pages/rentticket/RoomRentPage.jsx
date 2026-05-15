@@ -1,12 +1,9 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
-  MeetingRoomOutlined,
-  ArrowForwardOutlined,
-  ArrowBackOutlined,
-  SendOutlined,
-  CheckCircleOutlined,
-  AddCircleOutlineOutlined,
-  MeetingRoomTwoTone,
+  MeetingRoomOutlined, ArrowForwardOutlined, ArrowBackOutlined, SendOutlined,
+  CheckCircleOutlined, AddCircleOutlineOutlined, MeetingRoomTwoTone, ReportProblemOutlined,
+  HomeOutlined,
 } from "@mui/icons-material";
 
 import { useRoomRent } from "./hooks/useRoomRent";
@@ -22,26 +19,15 @@ const STEPS = [
 ];
 
 export default function RoomRentPage() {
+  const navigate = useNavigate();
+
   const {
-    rooms,
-    loadingRooms,
-    roomSearch,
-    setRoomSearch,
-    selectedRoom,
-    setSelectedRoom,
-    step,
-    goNext,
-    goBack,
-    form,
-    setField,
-    errors,
-    submitting,
-    submitDone,
-    handleSubmit,
-    reset,
-    page,
-    setPage,
-    totalPages
+    rooms, loadingRooms, roomSearch, setRoomSearch,
+    selectedRoom, setSelectedRoom,
+    step, goNext, goBack,
+    form, setField, errors,
+    submitting, submitDone, submitError, handleSubmit, reset,
+    page, setPage, totalPages
   } = useRoomRent();
 
   if (submitDone) {
@@ -49,18 +35,19 @@ export default function RoomRentPage() {
       <div className="rr-root">
         <div className="rr-card">
           <div className="rr-success">
-            <div className="rr-success-icon">
-              <CheckCircleOutlined />
-            </div>
+            <div className="rr-success-icon"><CheckCircleOutlined /></div>
             <div className="rr-success-title">Đăng ký thành công!</div>
             <div className="rr-success-sub">
-              Yêu cầu mượn phòng <strong>{selectedRoom?.name}</strong> đã được
-              gửi. Vui lòng chờ xác nhận từ quản lý phòng lab.
+              Yêu cầu mượn <strong>{selectedRoom?.name || selectedRoom?.roomName}</strong> đã được gửi. Vui lòng chờ xác nhận.
             </div>
-            <button className="rr-btn rr-btn-primary" onClick={reset}>
-              <AddCircleOutlineOutlined />
-              Tạo phiếu mới
-            </button>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+              <button className="rr-btn rr-btn-primary" onClick={reset}>
+                <AddCircleOutlineOutlined /> Tạo phiếu mới
+              </button>
+              <button className="rr-btn rr-btn-ghost" onClick={() => navigate("/")}>
+                <HomeOutlined /> Về trang chủ
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -69,22 +56,16 @@ export default function RoomRentPage() {
 
   return (
     <div className="rr-root">
-      {/* ── Page header ── */}
       <div className="rr-header">
         <div className="rr-header-left">
-          <div className="rr-header-icon">
-            <MeetingRoomTwoTone />
-          </div>
+          <div className="rr-header-icon"><MeetingRoomTwoTone /></div>
           <div>
             <div className="rr-header-title">Đăng ký mượn phòng Lab</div>
-            <div className="rr-header-sub">
-              Chọn phòng và điền thông tin để gửi yêu cầu mượn phòng thí nghiệm.
-            </div>
+            <div className="rr-header-sub">Chọn phòng và điền thông tin để gửi yêu cầu.</div>
           </div>
         </div>
       </div>
 
-      {/* ── Stepper ── */}
       <div className="rr-stepper">
         {STEPS.map((s, i) => {
           const num = i + 1;
@@ -92,15 +73,9 @@ export default function RoomRentPage() {
           const isActive = step === num;
           return (
             <React.Fragment key={num}>
-              {i > 0 && (
-                <div className={`rr-step-connector${isDone ? " done" : ""}`} />
-              )}
-              <div
-                className={`rr-step${isActive ? " active" : ""}${isDone ? " done" : ""}`}
-              >
-                <div className="rr-step-circle">
-                  {isDone ? <CheckCircleOutlined style={{ fontSize: 18 }} /> : num}
-                </div>
+              {i > 0 && <div className={`rr-step-connector${isDone ? " done" : ""}`} />}
+              <div className={`rr-step${isActive ? " active" : ""}${isDone ? " done" : ""}`}>
+                <div className="rr-step-circle">{isDone ? <CheckCircleOutlined style={{ fontSize: 18 }} /> : num}</div>
                 <span className="rr-step-label">{s.label}</span>
               </div>
             </React.Fragment>
@@ -108,81 +83,41 @@ export default function RoomRentPage() {
         })}
       </div>
 
-      {/* ── Step panels ── */}
       {step === 1 && (
         <StepSelectRoom
-          rooms={rooms}
-          loading={loadingRooms}
-          roomSearch={roomSearch}
-          setRoomSearch={setRoomSearch}
-          selectedRoom={selectedRoom}
-          setSelectedRoom={setSelectedRoom}
-          page={page}
-          setPage={setPage}
-          totalPages={totalPages}
+          rooms={rooms} loading={loadingRooms} roomSearch={roomSearch} setRoomSearch={setRoomSearch}
+          selectedRoom={selectedRoom} setSelectedRoom={setSelectedRoom}
+          page={page} setPage={setPage} totalPages={totalPages}
         />
       )}
 
       {step === 2 && (
-        <StepBookingDetails
-          selectedRoom={selectedRoom}
-          form={form}
-          setField={setField}
-          errors={errors}
-        />
+        <StepBookingDetails selectedRoom={selectedRoom} form={form} setField={setField} errors={errors} />
       )}
 
       {step === 3 && (
-        <StepReview selectedRoom={selectedRoom} form={form} />
+        <>
+          {submitError && (
+            <div style={{ backgroundColor: '#fef2f2', color: '#dc2626', padding: '12px 16px', borderRadius: '10px', marginBottom: '20px', border: '1px solid #fee2e2', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <ReportProblemOutlined fontSize="small" /> {submitError}
+            </div>
+          )}
+          <StepReview selectedRoom={selectedRoom} form={form} />
+        </>
       )}
 
-      {/* ── Action bar ── */}
       <div className="rr-actions">
         <div>
-          {step > 1 && (
-            <button className="rr-btn rr-btn-ghost" onClick={goBack}>
-              <ArrowBackOutlined />
-              Quay lại
-            </button>
-          )}
+          {step > 1 && <button className="rr-btn rr-btn-ghost" onClick={goBack}><ArrowBackOutlined /> Quay lại</button>}
         </div>
-
         <div>
           {step < 3 ? (
-            <button
-              className="rr-btn rr-btn-primary"
-              onClick={goNext}
-              disabled={step === 1 && !selectedRoom}
-            >
-              Tiếp theo
-              <ArrowForwardOutlined />
+            <button className="rr-btn rr-btn-primary" onClick={goNext} disabled={step === 1 && !selectedRoom}>
+              Tiếp theo <ArrowForwardOutlined />
             </button>
           ) : (
-            <button
-              className="rr-btn rr-btn-success"
-              onClick={handleSubmit}
-              disabled={submitting}
-            >
-              {submitting ? (
-                <>
-                  <div
-                    style={{
-                      width: 16,
-                      height: 16,
-                      border: "2px solid rgba(255,255,255,0.4)",
-                      borderTopColor: "#fff",
-                      borderRadius: "50%",
-                      animation: "rrSpin 0.75s linear infinite",
-                    }}
-                  />
-                  Đang gửi…
-                </>
-              ) : (
-                <>
-                  <SendOutlined />
-                  Gửi yêu cầu
-                </>
-              )}
+            <button className="rr-btn rr-btn-success" onClick={handleSubmit} disabled={submitting}>
+              {submitting ? "Đang xử lý..." : <><SendOutlined /> Gửi yêu cầu</>}
             </button>
           )}
         </div>
