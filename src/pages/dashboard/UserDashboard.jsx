@@ -11,6 +11,7 @@ import {
   AccessTime,
   CalendarToday,
   SupervisorAccount,
+  TrackChanges,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
@@ -72,6 +73,21 @@ export default function UserDashboard() {
             <div className="ud-action-info">
               <h3>Mượn Hóa Chất</h3>
               <p>Đăng ký vật tư & dụng cụ</p>
+            </div>
+          </div>
+        </Grid>
+
+        <Grid size={{ xs: 12, sm: 6, md: gridCol }}>
+          <div
+            className="ud-action-card track"
+            onClick={() => navigate("/my-tickets")}
+          >
+            <div className="ud-icon-wrapper track">
+              <TrackChanges fontSize="large" />
+            </div>
+            <div className="ud-action-info">
+              <h3>Phiếu Của Tôi</h3>
+              <p>Theo dõi & lịch sử mượn</p>
             </div>
           </div>
         </Grid>
@@ -202,7 +218,7 @@ export default function UserDashboard() {
               </td>
               <td>
                 <div className="ud-date-item danger">
-                   <AccessTime fontSize="small" /> <strong>Ca Tối</strong>
+                  <AccessTime fontSize="small" /> <strong>Ca Tối</strong>
                 </div>
               </td>
               <td>
@@ -230,7 +246,7 @@ export default function UserDashboard() {
               </td>
               <td>
                 <div className="ud-date-item">
-                   <AccessTime fontSize="small" /> <strong>Ca Sáng</strong>
+                  <AccessTime fontSize="small" /> <strong>Ca Sáng</strong>
                 </div>
               </td>
               <td>

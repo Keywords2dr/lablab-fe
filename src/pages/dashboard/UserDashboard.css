@@ -101,4 +101,22 @@
 .ud-btn-small { background: white; border: 1px solid var(--lab-border-strong); padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: 0.2s; }
 .ud-btn-small:hover { background: var(--lab-surface-2); }
 .ud-btn-small.primary { color: var(--lab-blue); border-color: var(--lab-blue-light); background: var(--lab-blue-light); }
-.ud-btn-small.primary:hover { background: #dbeafe; }  
+.ud-btn-small.primary:hover { background: #dbeafe; }
+
+.ud-action-card.track {
+  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+  border: 1.5px solid #c4b5fd;
+}
+.ud-action-card.track:hover {
+  border-color: #7c3aed;
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.18);
+}
+
+.ud-icon-wrapper.track {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);
+}
+.ud-icon-wrapper.track svg {
+  color: #fff;
+}

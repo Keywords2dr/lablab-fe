@@ -1,0 +1,248 @@
+/* ══════════════════════════════════════════════════════
+   TICKET DETAIL MODAL
+   ══════════════════════════════════════════════════════ */
+
+.tdm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: tdmFadeIn 0.2s ease;
+  padding: 20px;
+}
+
+.tdm-modal {
+  background: #fff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 620px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.3);
+  animation: tdmSlideUp 0.3s ease;
+}
+
+/* ── Modal Header ────────────────────────────────── */
+.tdm-header {
+  padding: 24px 28px 18px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.tdm-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.tdm-header-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  flex-shrink: 0;
+}
+.tdm-header-icon svg {
+  color: #2563eb;
+  font-size: 24px;
+}
+.tdm-header-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+.tdm-header-id {
+  font-family: "Fira Code", monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-top: 2px;
+}
+.tdm-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s;
+  flex-shrink: 0;
+}
+.tdm-close:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* ── Modal Body ──────────────────────────────────── */
+.tdm-body {
+  padding: 24px 28px;
+}
+
+/* Info grid */
+.tdm-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.tdm-info-item {
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.tdm-info-item.span-2 {
+  grid-column: span 2;
+}
+.tdm-info-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 4px;
+}
+.tdm-info-value {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* Chemical list */
+.tdm-section-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tdm-section-title svg {
+  font-size: 18px;
+  color: #0ea5e9;
+}
+.tdm-chemical-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tdm-chemical-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+.tdm-chemical-name {
+  font-weight: 600;
+  color: #1e293b;
+}
+.tdm-chemical-qty {
+  font-weight: 700;
+  color: #0369a1;
+  font-size: 0.82rem;
+}
+
+/* Reject reason */
+.tdm-reject-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+.tdm-reject-box svg {
+  color: #ef4444;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.tdm-reject-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #dc2626;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+.tdm-reject-text {
+  font-size: 0.85rem;
+  color: #991b1b;
+  line-height: 1.5;
+}
+
+/* ── Modal Footer ────────────────────────────────── */
+.tdm-footer {
+  padding: 16px 28px 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.tdm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-family: "Inter", sans-serif;
+  transition: all 0.2s;
+}
+.tdm-btn.ghost {
+  background: #f1f5f9;
+  color: #475569;
+}
+.tdm-btn.ghost:hover {
+  background: #e2e8f0;
+}
+
+/* Animations */
+@keyframes tdmFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes tdmSlideUp {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .tdm-modal {
+    max-width: 100%;
+    border-radius: 16px 16px 0 0;
+    max-height: 92vh;
+  }
+  .tdm-info-grid {
+    grid-template-columns: 1fr;
+  }
+  .tdm-info-item.span-2 {
+    grid-column: span 1;
+  }
+  .tdm-body {
+    padding: 18px 20px;
+  }
+}

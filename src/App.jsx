@@ -22,14 +22,18 @@ import RoomManagerAssignment from "./pages/admin/rooms/RoomManagerAssignment";
 import RoomSupplyDistribution from "./pages/admin/rooms/RoomSupplyDistribution";
 import UserManagementPage from "./pages/admin/users/UserManagementPage";
 
-// --- TICKETS (MỚI) ---
+// --- TICKETS (ADMIN) ---
 import AdminTicketManager from "./pages/admin/Tickets/AdminTicketManager";
 import AdminTicketDetail from "./pages/admin/Tickets/AdminTicketDetail";
 
-// --- USER BORROW (Phiếu mượn của người dùng) ---
+// --- USER BORROW ---
 import RoomRentPage from "./pages/rentticket/RoomRentPage";
 import ChemicalRentPage from "./pages/rentticket/ChemicalRentPage";
 import TeacherRoomManagePage from "./pages/teacher/TeacherRoomManagePage";
+
+// --- MY TICKETS (THEO DÕI PHIẾU & LỊCH SỬ) ---
+import TicketTrackingPage from "./pages/mytickets/TicketTrackingPage";
+import BorrowHistoryPage from "./pages/mytickets/BorrowHistoryPage";
 
 // --- LAYOUTS ---
 import MainLayout from "./components/layouts/MainLayout";
@@ -64,22 +68,24 @@ function App() {
               {/* Phiếu mượn */}
               <Route path="/borrow/room" element={<RoomRentPage />} />
               <Route path="/borrow/chemical" element={<ChemicalRentPage />} />
-              <Route path="/manage/assigned-rooms" element={<TeacherRoomManagePage />} />
+              <Route
+                path="/manage/assigned-rooms"
+                element={<TeacherRoomManagePage />}
+              />
+
+              {/* Phiếu của tôi */}
+              <Route path="/my-tickets" element={<TicketTrackingPage />} />
+              <Route path="/borrow-history" element={<BorrowHistoryPage />} />
             </Route>
           </Route>
 
           {/* ==================== ADMIN ROUTES ==================== */}
           <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
             <Route element={<AdminLayout />}>
-              {/* Dashboard & Quản lý chung */}
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/users" element={<UserManagementPage />} />
               <Route path="/admin/audit-logs" element={<AuditLogPage />} />
-
-              {/* Vật tư & Hóa chất */}
               <Route path="/admin/materials" element={<MaterialManagement />} />
-
-              {/* Quản lý Phòng Lab */}
               <Route path="/admin/rooms" element={<RoomManagement />} />
               <Route
                 path="/admin/rooms/managers"
@@ -89,15 +95,23 @@ function App() {
                 path="/admin/rooms/supplies"
                 element={<RoomSupplyDistribution />}
               />
-
-              {/* ==================== QUẢN LÝ PHIẾU MƯỢN (ADMIN) ==================== */}
               <Route path="/admin/tickets" element={<AdminTicketManager />} />
-              <Route path="/admin/tickets/:id" element={<AdminTicketDetail />} />
+              <Route
+                path="/admin/tickets/:id"
+                element={<AdminTicketDetail />}
+              />
             </Route>
           </Route>
 
           {/* 404 Page */}
-          <Route path="*" element={<div style={{ padding: "40px", textAlign: "center" }}>404 - Trang không tồn tại</div>} />
+          <Route
+            path="*"
+            element={
+              <div style={{ padding: "40px", textAlign: "center" }}>
+                404 - Trang không tồn tại
+              </div>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
