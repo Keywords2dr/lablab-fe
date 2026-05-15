@@ -1,0 +1,39 @@
+.admin-ticket-manager {
+    padding: 24px;
+}
+
+.filter-section {
+    margin-bottom: 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.table-section {
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.requester-cell {
+    display: flex;
+    flex-direction: column;
+}
+
+.requester-name {
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.role-tag {
+    width: fit-content;
+    font-size: 10px;
+    margin-top: 4px;
+    border-radius: 4px;
+}
+
+.ant-table-thead > tr > th {
+    background-color: #f8f9fa !important;
+}
+
+.ant-btn-primary {
+    border-radius: 6px;
+}
