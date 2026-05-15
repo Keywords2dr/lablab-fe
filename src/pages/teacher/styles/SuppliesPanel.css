@@ -1,0 +1,19 @@
+.trm-supply-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-top: 16px; }
+.trm-supply-card { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 16px; transition: box-shadow 0.15s; }
+.trm-supply-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); }
+.trm-supply-card.low { border-color: #fde68a; background: #fffbeb; }
+.trm-supply-card.out { border-color: #fca5a5; background: #fff5f5; }
+.trm-supply-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.trm-supply-name { font-size: 13.5px; font-weight: 700; color: #1a2340; line-height: 1.4; }
+.trm-supply-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; }
+.trm-supply-badge.sup-ok  { background: #dcfce7; color: #166534; }
+.trm-supply-badge.sup-low { background: #fef9c3; color: #92400e; }
+.trm-supply-badge.sup-out { background: #fee2e2; color: #991b1b; }
+.trm-supply-nums { margin-bottom: 8px; }
+.trm-supply-avail { font-size: 22px; font-weight: 800; color: #1a2340; }
+.trm-supply-total { font-size: 13px; color: #94a3b8; }
+.trm-progress-bar { height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+.trm-progress-fill { height: 100%; border-radius: 999px; transition: width 0.4s ease; }
+.trm-progress-fill.ok  { background: #22c55e; }
+.trm-progress-fill.low { background: #f59e0b; }
+.trm-progress-fill.out { background: #ef4444; }

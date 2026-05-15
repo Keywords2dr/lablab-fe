@@ -15,6 +15,7 @@ export const roomApi = {
 
   createRoom: async (data) => axiosInstance.post("/rooms", data),
   updateRoom: async (id, data) => axiosInstance.put(`/rooms/${id}`, data),
+  getMyManagedRooms: async () => axiosInstance.get("/rooms/my-rooms"),
 
   deactivateRoom: async (id) =>
     axiosInstance.patch(`/rooms/${id}/status`, null, {

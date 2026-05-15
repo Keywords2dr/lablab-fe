@@ -16,6 +16,7 @@ import RoomSupplyDistribution from "./pages/admin/rooms/RoomSupplyDistribution";
 import UserManagementPage from "./pages/admin/users/UserManagementPage";
 import RoomRentPage from "./pages/rentticket/RoomRentPage";
 import ChemicalRentPage from "./pages/rentticket/ChemicalRentPage";
+import TeacherRoomManagePage from "./pages/teacher/TeacherRoomManagePage";
 
 import MainLayout from "./components/layouts/MainLayout";
 import AdminLayout from "./components/layouts/AdminLayout";
@@ -47,6 +48,7 @@ function App() {
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/borrow/room" element={<RoomRentPage />} />
               <Route path="/borrow/chemical" element={<ChemicalRentPage />} />
+              <Route path="/manage/assigned-rooms" element={<TeacherRoomManagePage />} />
             </Route>
           </Route>
 

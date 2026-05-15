@@ -1,0 +1,24 @@
+.trm-filter-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+.trm-search-box { display: flex; align-items: center; gap: 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 8px 14px; min-width: 240px; flex: 1; }
+.trm-search-box svg { color: #94a3b8; flex-shrink: 0; }
+.trm-search-box input { border: none; outline: none; font-size: 14px; width: 100%; background: transparent; color: #1a2340; }
+.trm-filter-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.trm-chip { border: 1.5px solid #e2e8f0; background: #fff; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; color: #64748b; cursor: pointer; transition: all 0.15s; }
+.trm-chip:hover { background: #f1f5f9; }
+.trm-chip.active { background: #1976d2; border-color: #1976d2; color: #fff; font-weight: 700; }
+.trm-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid #f1f5f9; }
+.trm-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.trm-table thead tr { background: #f8fafc; border-bottom: 2px solid #f1f5f9; }
+.trm-table th { text-align: left; padding: 12px 14px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #94a3b8; white-space: nowrap; }
+.trm-table tbody tr { border-bottom: 1px solid #f8fafc; transition: background 0.13s; }
+.trm-table tbody tr:hover { background: #f8fafc; }
+.trm-table td { padding: 13px 14px; vertical-align: middle; color: #334155; }
+.trm-type-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.4px; white-space: nowrap; }
+.trm-type-badge.room { background: #e0f2fe; color: #0369a1; }
+.trm-type-badge.chemical { background: #fef9c3; color: #92400e; }
+.trm-item-name { display: block; font-weight: 600; color: #1a2340; }
+.trm-item-sub  { display: block; font-size: 12px; color: #94a3b8; margin-top: 2px; }
+.trm-requester { display: flex; align-items: center; gap: 7px; }
+.trm-date-row { display: flex; align-items: center; gap: 4px; font-size: 13px; color: #475569; }
+.trm-action-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.trm-empty { text-align: center; padding: 40px; color: #94a3b8; font-size: 14px; }

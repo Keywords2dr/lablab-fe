@@ -1,0 +1,5 @@
+.trm-tabs { display: flex; gap: 4px; background: #f1f5f9; padding: 5px; border-radius: 14px; margin-bottom: 20px; flex-wrap: wrap; }
+.trm-tab { display: flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: 10px; border: none; background: transparent; font-size: 13.5px; font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.18s; white-space: nowrap; position: relative; }
+.trm-tab:hover { background: rgba(255,255,255,0.7); color: #1a2340; }
+.trm-tab.active { background: #fff; color: #1976d2; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.trm-tab-badge { background: #ef4444; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px; line-height: 1.6; }
