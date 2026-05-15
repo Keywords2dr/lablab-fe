@@ -18,126 +18,139 @@ export const ROOM_STATUS_MAP = {
   MAINTENANCE: { label: "Bảo trì", cls: "waiting" },
 };
 
-export const INCIDENT_STATUS = {
-  PENDING: { label: "Chờ xử lý", cls: "waiting" },
-  PROCESSING: { label: "Đang xử lý", cls: "active" },
-  FIXED: { label: "Đã xử lý", cls: "inc-fixed" },
-};
+const PAGE_SIZE = 10;
 
 export function useRoomManagement() {
   const [activeTab, setActiveTab] = useState("approval");
-
   const [room, setRoom] = useState(null);
+  const [managedRooms, setManagedRooms] = useState([]);
+  const [selectedRoomId, setSelectedRoomId] = useState(null);
+
   const [supplies, setSupplies] = useState([]);
+  const [suppliesPage, setSuppliesPage] = useState(0);
+  const [suppliesTotalPages, setSuppliesTotalPages] = useState(0);
+
   const [requests, setRequests] = useState([]);
-
-  // ── TỐI ƯU LOADING ──
-  // initialLoading: Chỉ dùng lúc load toàn trang (thông tin phòng)
-  const [initialLoading, setInitialLoading] = useState(true);
-  // tableLoading: Chỉ dùng khi chuyển trang/lọc dữ liệu trong bảng phiếu
-  const [tableLoading, setTableLoading] = useState(false);
-
-  const [filterStatus, setFilterStatus] = useState("ALL");
-  const [search, setSearch] = useState("");
-  const [detailItem, setDetailItem] = useState(null);
-  const [rejectTarget, setRejectTarget] = useState(null);
-  const [rejectNote, setRejectNote] = useState("");
-
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [pendingCount, setPendingCount] = useState(0);
 
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [filterStatus, setFilterStatus] = useState("ALL");
+  const [search, setSearch] = useState("");
+
+  // Chi tiết phiếu
+  const [detailItem, setDetailItem] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+
+  const [rejectTarget, setRejectTarget] = useState(null);
   const [newIncident, setNewIncident] = useState({ device: "", desc: "" });
   const [incidentSent, setIncidentSent] = useState(false);
 
-  // 1. Chỉ chạy 1 lần duy nhất khi vào trang (Lấy thông tin tĩnh)
   useEffect(() => {
-    const fetchStaticData = async () => {
+    const fetchManagedRooms = async () => {
       setInitialLoading(true);
       try {
-        const roomRes = await roomApi.getMyManagedRooms();
-        if (roomRes.data && roomRes.data.length > 0) {
-          const myRoom = roomRes.data[0];
-          setRoom({
-            id: myRoom.roomId,
-            name: myRoom.roomName,
-            status: myRoom.isActive ? "AVAILABLE" : "MAINTENANCE",
-            capacity: myRoom.capacity || 30,
-            description: myRoom.description || "Đang cập nhật...",
-          });
-
-          // Lấy tồn kho (chạy độc lập, không block UI)
-          const invRes = await roomApi.getRoomInventory(myRoom.roomId);
-          setSupplies(invRes.data || []);
+        const res = await roomApi.getMyManagedRooms();
+        if (res.data && res.data.length > 0) {
+          setManagedRooms(res.data);
+          const firstId =
+            res.data[0].roomId || res.data[0].room?.roomId || res.data[0].id;
+          setSelectedRoomId(firstId);
         }
       } catch (error) {
-        console.error("Lỗi khi tải phòng:", error);
+        console.error(error);
       } finally {
         setInitialLoading(false);
       }
     };
-    fetchStaticData();
+    fetchManagedRooms();
   }, []);
 
-  // 2. Fetch danh sách phiếu
+  useEffect(() => {
+    if (!selectedRoomId) return;
+    const fetchRoomDetail = async () => {
+      try {
+        const roomDetailRes = await roomApi.getRoomById(selectedRoomId);
+        const roomData = roomDetailRes.data;
+        setRoom({
+          id: roomData.roomId,
+          name: roomData.roomName,
+          status: roomData.isActive ? "AVAILABLE" : "MAINTENANCE",
+          description:
+            roomData.description || "Chưa có mô tả chi tiết cho phòng Lab này.",
+        });
+        setSuppliesPage(0);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchRoomDetail();
+  }, [selectedRoomId]);
+
+  const fetchSupplies = useCallback(async () => {
+    if (!selectedRoomId) return;
+    try {
+      const invRes = await roomApi.getRoomInventory(
+        selectedRoomId,
+        suppliesPage,
+        PAGE_SIZE,
+      );
+      const data = invRes.data;
+      if (Array.isArray(data)) {
+        setSupplies(data);
+        setSuppliesTotalPages(1);
+      } else {
+        setSupplies(data.content || []);
+        setSuppliesTotalPages(data.totalPages || 0);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }, [selectedRoomId, suppliesPage]);
+
+  useEffect(() => {
+    fetchSupplies();
+  }, [fetchSupplies]);
+
   const fetchTickets = useCallback(async () => {
     setTableLoading(true);
     try {
-      const ticketRes = await rentTicketApi.getTeacherAll(page, 10);
+      const ticketsReq =
+        filterStatus === "ALL"
+          ? rentTicketApi.getTeacherAll(page, PAGE_SIZE)
+          : rentTicketApi.getTeacherByStatus(filterStatus, page, PAGE_SIZE);
+
+      const [ticketRes, pendingRes] = await Promise.all([
+        ticketsReq,
+        rentTicketApi.getTeacherPending(),
+      ]);
+
       setRequests(ticketRes.data.content || []);
       setTotalPages(ticketRes.data.totalPages || 0);
+      setPendingCount(pendingRes.data ? pendingRes.data.length : 0);
     } catch (error) {
-      console.error("Lỗi khi tải phiếu:", error);
+      console.error(error);
     } finally {
       setTableLoading(false);
     }
-  }, [page]);
+  }, [page, filterStatus]);
 
   useEffect(() => {
     fetchTickets();
   }, [fetchTickets]);
 
-  // ─── CÁC HÀM XỬ LÝ ─────────────────────────────────────────────────────────
-
-  const handleApprove = async (id) => {
+  const handleOpenDetail = async (ticket) => {
+    setLoadingDetail(true);
+    setDetailItem(ticket);
     try {
-      await rentTicketApi.teacherApprove(id, { approved: true });
-      fetchTickets(); // Chỉ load lại table
-      setDetailItem(null);
+      const res = await rentTicketApi.getTicketById(ticket.ticketId);
+      setDetailItem(res.data);
     } catch (error) {
-      alert("Lỗi khi duyệt phiếu!");
-    }
-  };
-
-  const handleReject = async (id) => {
-    try {
-      await rentTicketApi.teacherApprove(id, {
-        approved: false,
-        rejectedReason: rejectNote,
-      });
-      fetchTickets();
-      setRejectTarget(null);
-      setRejectNote("");
-      setDetailItem(null);
-    } catch (error) {
-      alert("Lỗi khi từ chối!");
-    }
-  };
-
-  const handleActivate = async (id) => {
-    try {
-      await rentTicketApi.activateTicket(id);
-      fetchTickets();
-    } catch (error) {
-      alert("Lỗi khi bàn giao!");
-    }
-  };
-
-  const handleConfirmReturn = async (id) => {
-    try {
-      await rentTicketApi.confirmReturn(id);
-      fetchTickets();
-    } catch (error) {
-      alert("Lỗi khi xác nhận trả!");
+      console.error("Lỗi lấy chi tiết:", error);
+    } finally {
+      setLoadingDetail(false);
     }
   };
 
@@ -148,48 +161,49 @@ export function useRoomManagement() {
     setTimeout(() => setIncidentSent(false), 3000);
   };
 
-  // ─── FILTER & LỌC DỮ LIỆU TRÊN TRANG HIỆN TẠI ────────────────────────────
-  const pendingCount = requests.filter(
-    (r) => r.status === "PENDING_OWNER",
-  ).length;
   const filteredReqs = requests.filter((r) => {
-    const ms = filterStatus === "ALL" || r.status === filterStatus;
-    const mt =
-      search === "" ||
-      (r.requesterName &&
-        r.requesterName.toLowerCase().includes(search.toLowerCase())) ||
-      (r.ticketId && r.ticketId.includes(search));
-    return ms && mt;
+    if (search === "") return true;
+    const q = search.toLowerCase();
+    return (
+      (r.requesterName && r.requesterName.toLowerCase().includes(q)) ||
+      (r.ticketId && r.ticketId.toLowerCase().includes(q))
+    );
   });
 
   return {
     room,
+    managedRooms,
+    selectedRoomId,
+    setSelectedRoomId,
     supplies,
+    suppliesPage,
+    setSuppliesPage,
+    suppliesTotalPages,
     requests,
     initialLoading,
     tableLoading,
     activeTab,
     setActiveTab,
     filterStatus,
-    setFilterStatus,
+    setFilterStatus: (s) => {
+      setFilterStatus(s);
+      setPage(0);
+    },
     search,
     setSearch,
     detailItem,
     setDetailItem,
+    handleOpenDetail,
+    loadingDetail,
     rejectTarget,
     setRejectTarget,
-    rejectNote,
-    setRejectNote,
     pendingCount,
     filteredReqs,
     newIncident,
     setNewIncident,
     incidentSent,
-    handleApprove,
-    handleReject,
-    handleActivate,
-    handleConfirmReturn,
     handleIncidentSubmit,
+    refreshData: fetchTickets,
     page,
     setPage,
     totalPages,

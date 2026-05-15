@@ -1,74 +1,177 @@
 import React from "react";
-// ✅ Xóa import MOCK_SUPPLIES và SUPPLY_STATUS vì không tồn tại trong hook
+import { Science, InfoOutlined } from "@mui/icons-material";
 import "../styles/SuppliesPanel.css";
 
-// ✅ Định nghĩa SUPPLY_STATUS nội bộ trong file này
-const SUPPLY_STATUS = {
-  OK: { label: "Đủ dùng", cls: "active" },
-  LOW: { label: "Sắp hết", cls: "waiting" },
-  EMPTY: { label: "Hết hàng", cls: "rejected" },
-  EXPIRED: { label: "Hết hạn", cls: "rejected" },
+const CATEGORY_MAP = {
+  CHEMICAL: { label: "Hóa chất", cls: "chemical" },
+  EQUIPMENT: { label: "Dụng cụ", cls: "equipment" },
 };
 
-// Tính status từ dữ liệu inventory thực tế
-function getSupplyStatus(item) {
-  if (!item.quantity || item.quantity === 0) return "EMPTY";
-  if (item.quantity <= (item.minQuantity || 5)) return "LOW";
-  return "OK";
-}
-
-export default function SuppliesPanel({ room, supplies = [] }) {
+export default function SuppliesPanel({
+  room,
+  supplies = [],
+  suppliesPage,
+  setSuppliesPage,
+  suppliesTotalPages,
+}) {
   return (
     <div className="trm-panel">
-      <div className="trm-panel-title">
-        Vật tư & hóa chất — <span>{room.name}</span>
+      <div
+        className="trm-panel-header-row"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: "20px",
+        }}
+      >
+        <div className="trm-panel-title">
+          Vật tư & hóa chất — <span>{room.name}</span>
+        </div>
       </div>
 
-      {supplies.length === 0 ? (
-        <div className="trm-empty">Không có dữ liệu vật tư cho phòng này.</div>
-      ) : (
-        <div className="trm-supply-grid">
-          {/* ✅ Dùng prop supplies thay vì MOCK_SUPPLIES */}
-          {supplies.map((s) => {
-            const status = getSupplyStatus(s);
-            const total = s.totalQuantity ?? s.total ?? 0;
-            const avail = s.quantity ?? s.available ?? 0;
-            const unit = s.unit ?? "";
-            const pct = total > 0 ? Math.round((avail / total) * 100) : 0;
+      <div className="trm-table-wrap">
+        {supplies.length === 0 ? (
+          <div className="trm-empty">
+            Không có dữ liệu vật tư trong kho phòng này.
+          </div>
+        ) : (
+          <>
+            <table className="trm-table">
+              <thead>
+                <tr>
+                  <th>Mã HC</th>
+                  <th>Tên hóa chất / Vật tư</th>
+                  <th>Công thức</th>
+                  <th>Loại</th>
+                  <th style={{ textAlign: "center" }}>Đơn vị</th>
+                  <th style={{ textAlign: "right" }}>Khả dụng</th>
+                  <th style={{ textAlign: "right" }}>Cho mượn</th>
+                  <th>Ghi chú</th>
+                </tr>
+              </thead>
+              <tbody>
+                {supplies.map((s) => (
+                  <tr key={s.inventoryId || s.itemId}>
+                    <td className="trm-col-code">
+                      <code
+                        style={{
+                          background: "#f1f5f9",
+                          padding: "2px 6px",
+                          borderRadius: "4px",
+                          color: "#0ea5e9",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {s.itemCode}
+                      </code>
+                    </td>
+                    <td>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <Science sx={{ fontSize: 16, color: "#64748b" }} />
+                        <strong>{s.itemName}</strong>
+                      </div>
+                    </td>
+                    <td style={{ fontStyle: "italic", color: "#334155" }}>
+                      {s.chemicalFormula || "—"}
+                    </td>
+                    <td>
+                      <span
+                        className={`trm-type-badge ${s.categoryType === "CHEMICAL" ? "chemical" : "room"}`}
+                        style={{ fontSize: "11px" }}
+                      >
+                        {CATEGORY_MAP[s.categoryType]?.label || s.categoryType}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: "center" }}>{s.unit}</td>
+                    <td style={{ textAlign: "right" }}>
+                      <span
+                        style={{
+                          fontWeight: 800,
+                          color:
+                            s.availableQuantity <= 0 ? "#ef4444" : "#059669",
+                          fontSize: "16px",
+                        }}
+                      >
+                        {s.availableQuantity?.toLocaleString()}
+                      </span>
+                    </td>
+                    <td
+                      style={{
+                        textAlign: "right",
+                        color: "#f59e0b",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {s.lockedQuantity > 0
+                        ? s.lockedQuantity.toLocaleString()
+                        : "0"}
+                    </td>
+                    <td>
+                      <div
+                        className="trm-note-cell"
+                        title={s.note}
+                        style={{ fontSize: "13px", color: "#64748b" }}
+                      >
+                        {s.note ? (
+                          <>
+                            <InfoOutlined sx={{ fontSize: 14 }} /> {s.note}
+                          </>
+                        ) : (
+                          <span style={{ opacity: 0.3 }}>—</span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
-            return (
+            {suppliesTotalPages > 1 && (
               <div
-                key={s.inventoryId ?? s.id}
-                className={`trm-supply-card ${status.toLowerCase()}`}
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "16px",
+                  padding: "16px 0",
+                  borderTop: "1px solid #f1f5f9",
+                  background: "#fff",
+                }}
               >
-                <div className="trm-supply-top">
-                  <span className="trm-supply-name">
-                    {s.chemicalName ?? s.name ?? "N/A"}
-                  </span>
-                  <span
-                    className={`trm-supply-badge ${SUPPLY_STATUS[status].cls}`}
-                  >
-                    {SUPPLY_STATUS[status].label}
-                  </span>
-                </div>
-                <div className="trm-supply-nums">
-                  <span className="trm-supply-avail">{avail}</span>
-                  <span className="trm-supply-total">
-                    {" "}
-                    / {total} {unit}
-                  </span>
-                </div>
-                <div className="trm-progress-bar">
-                  <div
-                    className={`trm-progress-fill ${status.toLowerCase()}`}
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
+                <button
+                  className="trm-btn ghost"
+                  disabled={suppliesPage === 0}
+                  onClick={() => setSuppliesPage(suppliesPage - 1)}
+                >
+                  Trang trước
+                </button>
+                <span
+                  style={{
+                    fontSize: "14px",
+                    color: "#64748b",
+                    fontWeight: 500,
+                  }}
+                >
+                  Trang {suppliesPage + 1} / {suppliesTotalPages}
+                </span>
+                <button
+                  className="trm-btn ghost"
+                  disabled={suppliesPage >= suppliesTotalPages - 1}
+                  onClick={() => setSuppliesPage(suppliesPage + 1)}
+                >
+                  Trang sau
+                </button>
               </div>
-            );
-          })}
-        </div>
-      )}
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

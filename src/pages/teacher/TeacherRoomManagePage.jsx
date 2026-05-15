@@ -12,7 +12,13 @@ import { DetailModal, RejectModal } from "./components/Modals";
 export default function TeacherRoomManagePage() {
   const {
     room,
+    managedRooms,
+    selectedRoomId,
+    setSelectedRoomId,
     supplies,
+    suppliesPage,
+    setSuppliesPage,
+    suppliesTotalPages,
     initialLoading,
     tableLoading,
     activeTab,
@@ -25,18 +31,15 @@ export default function TeacherRoomManagePage() {
     pendingCount,
     detailItem,
     setDetailItem,
+    handleOpenDetail,
+    loadingDetail,
     rejectTarget,
     setRejectTarget,
-    rejectNote,
-    setRejectNote,
     newIncident,
     setNewIncident,
     incidentSent,
-    handleApprove,
-    handleReject,
-    handleActivate,
-    handleConfirmReturn,
     handleIncidentSubmit,
+    refreshData,
     page,
     setPage,
     totalPages,
@@ -71,7 +74,13 @@ export default function TeacherRoomManagePage() {
 
   return (
     <div className="trm-wrapper">
-      <RoomCard room={room} pendingCount={pendingCount} />
+      <RoomCard
+        room={room}
+        pendingCount={pendingCount}
+        managedRooms={managedRooms}
+        selectedRoomId={selectedRoomId}
+        setSelectedRoomId={setSelectedRoomId}
+      />
       <TabNavigation
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -85,11 +94,7 @@ export default function TeacherRoomManagePage() {
           filterStatus={filterStatus}
           setFilterStatus={setFilterStatus}
           filteredReqs={filteredReqs}
-          setDetailItem={setDetailItem}
-          handleApprove={handleApprove}
-          setRejectTarget={setRejectTarget}
-          handleActivate={handleActivate}
-          handleConfirmReturn={handleConfirmReturn}
+          handleOpenDetail={handleOpenDetail}
           page={page}
           setPage={setPage}
           totalPages={totalPages}
@@ -98,8 +103,15 @@ export default function TeacherRoomManagePage() {
       )}
 
       {activeTab === "supplies" && (
-        <SuppliesPanel room={room} supplies={supplies} />
+        <SuppliesPanel
+          room={room}
+          supplies={supplies}
+          suppliesPage={suppliesPage}
+          setSuppliesPage={setSuppliesPage}
+          suppliesTotalPages={suppliesTotalPages}
+        />
       )}
+
       {activeTab === "incident" && (
         <IncidentPanel
           newIncident={newIncident}
@@ -111,16 +123,15 @@ export default function TeacherRoomManagePage() {
 
       <DetailModal
         detailItem={detailItem}
+        loadingDetail={loadingDetail} // Truyền trạng thái loading
         setDetailItem={setDetailItem}
-        handleApprove={handleApprove}
         setRejectTarget={setRejectTarget}
+        refreshData={refreshData}
       />
       <RejectModal
         rejectTarget={rejectTarget}
         setRejectTarget={setRejectTarget}
-        rejectNote={rejectNote}
-        setRejectNote={setRejectNote}
-        handleReject={handleReject}
+        refreshData={refreshData}
       />
     </div>
   );

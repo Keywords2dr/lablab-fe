@@ -5,10 +5,6 @@ import {
   Science,
   Person,
   CalendarToday,
-  CheckCircle,
-  Cancel,
-  PlayArrow,
-  TaskAlt,
 } from "@mui/icons-material";
 import { TICKET_STATUS_MAP } from "../hooks/useRoomManagement";
 import "../styles/ApprovalPanel.css";
@@ -28,11 +24,7 @@ export default function ApprovalPanel({
   filterStatus,
   setFilterStatus,
   filteredReqs,
-  setDetailItem,
-  handleApprove,
-  setRejectTarget,
-  handleActivate,
-  handleConfirmReturn,
+  handleOpenDetail,
   page,
   setPage,
   totalPages,
@@ -40,18 +32,17 @@ export default function ApprovalPanel({
 }) {
   return (
     <div className="trm-panel">
-      {/* ── BỘ LỌC & TÌM KIẾM ── */}
+      {/* Search & Filter Bar */}
       <div
         className="trm-filter-bar"
         style={{
           display: "flex",
           flexDirection: "column",
-          alignItems: "stretch",
           gap: "16px",
           marginBottom: "24px",
         }}
       >
-        <div className="trm-search-box" style={{ maxWidth: "400px" }}>
+        <div className="trm-search-box" style={{ width: "100%" }}>
           <Search />
           <input
             type="text"
@@ -83,175 +74,163 @@ export default function ApprovalPanel({
         </div>
       </div>
 
-      {/* ── BẢNG DANH SÁCH PHIẾU CÓ HIỆU ỨNG MỜ KHI ĐANG LOAD ── */}
+      {/* Table Section */}
       <div
         className="trm-table-wrap"
-        style={{
-          // Khi tableLoading = true, làm mờ bảng đi 50% và chặn click chuột
-          opacity: tableLoading ? 0.5 : 1,
-          pointerEvents: tableLoading ? "none" : "auto",
-          transition: "opacity 0.2s ease-in-out",
-        }}
+        style={{ position: "relative", minHeight: "350px" }}
       >
-        {filteredReqs.length === 0 ? (
+        {tableLoading && (
           <div
-            className="trm-empty"
-            style={{ textAlign: "center", padding: "40px", color: "#64748b" }}
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 10,
+              background: "rgba(255, 255, 255, 0.55)",
+              backdropFilter: "blur(2px)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "12px",
+            }}
           >
-            {tableLoading
-              ? "Đang tải dữ liệu..."
-              : "Không có phiếu nào phù hợp với bộ lọc hiện tại."}
+            <div className="trm-loading-rings">
+              <div />
+              <div />
+              <div />
+            </div>
+            <div className="trm-loading-text">Đang tải dữ liệu...</div>
           </div>
-        ) : (
-          <>
-            <table className="trm-table">
-              <thead>
-                <tr>
-                  <th>Mã phiếu</th>
-                  <th>Loại</th>
-                  <th>Người mượn</th>
-                  <th>Ngày mượn</th>
-                  <th>Trạng thái</th>
-                  <th>Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredReqs.map((req) => (
-                  <tr key={req.ticketId}>
-                    <td>
-                      <span className="trm-req-id" title={req.ticketId}>
-                        {req.ticketId.substring(0, 8)}...
-                      </span>
-                    </td>
-                    <td>
-                      <span
-                        className={`trm-type-badge ${req.ticketType === "ROOM_ONLY" ? "room" : "chemical"}`}
-                      >
-                        {req.ticketType === "ROOM_ONLY" ? (
-                          <MeetingRoom sx={{ fontSize: 13 }} />
-                        ) : (
-                          <Science sx={{ fontSize: 13 }} />
-                        )}
-                        {req.ticketType === "ROOM_ONLY" ? "PHÒNG" : "HÓA CHẤT"}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="trm-requester">
-                        <Person sx={{ fontSize: 15, color: "#94a3b8" }} />
-                        <div>
+        )}
+
+        <div
+          style={{
+            opacity: tableLoading ? 0.3 : 1,
+            pointerEvents: tableLoading ? "none" : "auto",
+            transition: "opacity 0.25s",
+          }}
+        >
+          {filteredReqs.length === 0 ? (
+            <div
+              className="trm-empty"
+              style={{
+                textAlign: "center",
+                padding: "80px 20px",
+                color: "#64748b",
+              }}
+            >
+              Không có phiếu nào phù hợp với bộ lọc hiện tại.
+            </div>
+          ) : (
+            <>
+              <table className="trm-table">
+                <thead>
+                  <tr>
+                    <th>Mã phiếu</th>
+                    <th>Loại</th>
+                    <th>Người mượn</th>
+                    <th>Ngày mượn</th>
+                    <th>Trạng thái</th>
+                    <th style={{ textAlign: "right" }}>Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredReqs.map((req) => (
+                    <tr key={req.ticketId}>
+                      <td>
+                        <span className="trm-req-id">
+                          {req.ticketId.substring(0, 8)}...
+                        </span>
+                      </td>
+                      <td>
+                        <span
+                          className={`trm-type-badge ${req.ticketType === "ROOM_ONLY" ? "room" : "chemical"}`}
+                        >
+                          {req.ticketType === "ROOM_ONLY" ? (
+                            <MeetingRoom sx={{ fontSize: 13 }} />
+                          ) : (
+                            <Science sx={{ fontSize: 13 }} />
+                          )}
+                          {req.ticketType === "ROOM_ONLY"
+                            ? "PHÒNG"
+                            : "HÓA CHẤT"}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="trm-requester">
+                          <Person sx={{ fontSize: 15, color: "#94a3b8" }} />
                           <span className="trm-item-name">
                             {req.requesterName || "N/A"}
                           </span>
                         </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="trm-date-row">
-                        <CalendarToday sx={{ fontSize: 13 }} />
-                        {new Date(req.borrowDate).toLocaleString("vi-VN")}
-                      </div>
-                    </td>
-                    <td>
-                      <span
-                        className={`trm-status-chip ${TICKET_STATUS_MAP[req.status]?.cls}`}
-                      >
-                        {TICKET_STATUS_MAP[req.status]?.label || req.status}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="trm-action-btns">
+                      </td>
+                      <td>
+                        <div className="trm-date-row">
+                          <CalendarToday sx={{ fontSize: 13 }} />
+                          {new Date(req.borrowDate).toLocaleString("vi-VN")}
+                        </div>
+                      </td>
+                      <td>
+                        <span
+                          className={`trm-status-chip ${TICKET_STATUS_MAP[req.status]?.cls}`}
+                        >
+                          {TICKET_STATUS_MAP[req.status]?.label || req.status}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: "right" }}>
                         <button
                           className="trm-btn ghost"
-                          onClick={() => setDetailItem(req)}
+                          onClick={() => handleOpenDetail(req)}
                         >
                           Chi tiết
                         </button>
-                        {req.status === "PENDING_OWNER" && (
-                          <>
-                            <button
-                              className="trm-btn primary"
-                              onClick={() => handleApprove(req.ticketId)}
-                            >
-                              <CheckCircle sx={{ fontSize: 14 }} /> Duyệt
-                            </button>
-                            <button
-                              className="trm-btn danger"
-                              onClick={() => setRejectTarget(req)}
-                            >
-                              <Cancel sx={{ fontSize: 14 }} /> Từ chối
-                            </button>
-                          </>
-                        )}
-                        {req.status === "APPROVED" && (
-                          <button
-                            className="trm-btn primary"
-                            onClick={() => handleActivate(req.ticketId)}
-                          >
-                            <PlayArrow sx={{ fontSize: 14 }} /> Bàn giao đồ
-                          </button>
-                        )}
-                        {req.status === "PENDING_RETURN" && (
-                          <button
-                            className="trm-btn primary"
-                            onClick={() => handleConfirmReturn(req.ticketId)}
-                          >
-                            <TaskAlt sx={{ fontSize: 14 }} /> Xác nhận trả
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
 
-            {totalPages > 1 && (
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  gap: "16px",
-                  padding: "16px 0",
-                  borderTop: "1px solid #f1f5f9",
-                  background: "#fff",
-                }}
-              >
-                <button
-                  className="trm-btn ghost"
-                  disabled={page === 0}
-                  onClick={() => setPage(page - 1)}
+              {totalPages > 1 && (
+                <div
                   style={{
-                    opacity: page === 0 ? 0.5 : 1,
-                    cursor: page === 0 ? "not-allowed" : "pointer",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "16px",
+                    padding: "16px 0",
+                    borderTop: "1px solid #f1f5f9",
+                    background: "#fff",
+                    marginTop: "10px",
                   }}
                 >
-                  Trang trước
-                </button>
-                <span
-                  style={{
-                    fontSize: "14px",
-                    color: "#64748b",
-                    fontWeight: 500,
-                  }}
-                >
-                  Trang {page + 1} / {totalPages}
-                </span>
-                <button
-                  className="trm-btn ghost"
-                  disabled={page >= totalPages - 1}
-                  onClick={() => setPage(page + 1)}
-                  style={{
-                    opacity: page >= totalPages - 1 ? 0.5 : 1,
-                    cursor: page >= totalPages - 1 ? "not-allowed" : "pointer",
-                  }}
-                >
-                  Trang sau
-                </button>
-              </div>
-            )}
-          </>
-        )}
+                  <button
+                    className="trm-btn ghost"
+                    disabled={page === 0}
+                    onClick={() => setPage(page - 1)}
+                  >
+                    Trang trước
+                  </button>
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      color: "#64748b",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Trang {page + 1} / {totalPages}
+                  </span>
+                  <button
+                    className="trm-btn ghost"
+                    disabled={page >= totalPages - 1}
+                    onClick={() => setPage(page + 1)}
+                  >
+                    Trang sau
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
