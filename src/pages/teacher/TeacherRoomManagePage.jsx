@@ -33,6 +33,7 @@ export default function TeacherRoomManagePage() {
     setDetailItem,
     handleOpenDetail,
     loadingDetail,
+    chemicalDict,
     rejectTarget,
     setRejectTarget,
     newIncident,
@@ -123,10 +124,11 @@ export default function TeacherRoomManagePage() {
 
       <DetailModal
         detailItem={detailItem}
-        loadingDetail={loadingDetail} // Truyền trạng thái loading
+        loadingDetail={loadingDetail}
         setDetailItem={setDetailItem}
         setRejectTarget={setRejectTarget}
         refreshData={refreshData}
+        chemicalDict={chemicalDict} // Truyền từ điển vào modal
       />
       <RejectModal
         rejectTarget={rejectTarget}

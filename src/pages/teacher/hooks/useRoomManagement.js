@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { rentTicketApi } from "../../../api/rentTicketApi";
 import { roomApi } from "../../../api/roomApi";
+import { chemicalApi } from "../../../api/chemicalApi";
 
 export const TICKET_STATUS_MAP = {
   PENDING_OWNER: { label: "Chờ bạn duyệt", cls: "waiting" },
@@ -44,9 +45,35 @@ export function useRoomManagement() {
   const [detailItem, setDetailItem] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
+  // Từ điển hóa chất
+  const [chemicalDict, setChemicalDict] = useState({});
+
   const [rejectTarget, setRejectTarget] = useState(null);
   const [newIncident, setNewIncident] = useState({ device: "", desc: "" });
   const [incidentSent, setIncidentSent] = useState(false);
+
+  useEffect(() => {
+    const fetchChemicalDictionary = async () => {
+      try {
+        const res = await chemicalApi.getChemicals({ size: 1000 });
+        const items = res.data?.content || res.data || [];
+        const dict = {};
+        items.forEach((item) => {
+          const formula = item.chemicalFormula || item.formula;
+          if (formula) {
+            if (item.id || item.chemicalId)
+              dict[item.id || item.chemicalId] = formula;
+            if (item.code || item.itemCode)
+              dict[item.code || item.itemCode] = formula;
+          }
+        });
+        setChemicalDict(dict);
+      } catch (error) {
+        console.error("Không tải được từ điển hóa chất:", error);
+      }
+    };
+    fetchChemicalDictionary();
+  }, []);
 
   useEffect(() => {
     const fetchManagedRooms = async () => {
@@ -195,6 +222,7 @@ export function useRoomManagement() {
     setDetailItem,
     handleOpenDetail,
     loadingDetail,
+    chemicalDict,
     rejectTarget,
     setRejectTarget,
     pendingCount,

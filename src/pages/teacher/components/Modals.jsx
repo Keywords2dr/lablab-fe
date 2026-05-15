@@ -16,6 +16,7 @@ export function DetailModal({
   setDetailItem,
   setRejectTarget,
   refreshData,
+  chemicalDict = {},
 }) {
   const [loadingAction, setLoadingAction] = useState(null);
 
@@ -234,7 +235,11 @@ export function DetailModal({
                                 color: "#64748b",
                               }}
                             >
-                              {item.chemicalFormula || item.formula || "—"}
+                              {item.chemicalFormula ||
+                                item.formula ||
+                                chemicalDict[item.itemId] ||
+                                chemicalDict[item.itemCode] ||
+                                "—"}
                             </td>
                             <td
                               style={{
