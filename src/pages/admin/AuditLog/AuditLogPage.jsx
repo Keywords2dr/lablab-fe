@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'react-toastify';
 import axiosInstance from '../../../api/axiosInstance';
 import './AuditLogPage.css';
@@ -15,7 +15,6 @@ const ACTION_COLORS = {
 };
 
 const getActionStyle = (action = '') => {
-  if (!action) return { bg: '#f1f5f9', color: '#475569' };
   const key = Object.keys(ACTION_COLORS).find(k => action.toUpperCase().includes(k));
   return ACTION_COLORS[key] || { bg: '#f1f5f9', color: '#475569' };
 };
@@ -29,7 +28,6 @@ const ROLE_COLORS = {
 };
 
 const getRoleStyle = (role = '') => {
-  if (!role) return { bg: '#f1f5f9', color: '#475569' };
   const key = Object.keys(ROLE_COLORS).find(k => role.toUpperCase().includes(k));
   return ROLE_COLORS[key] || { bg: '#f1f5f9', color: '#475569' };
 };
@@ -47,7 +45,6 @@ const ENTITY_DISPLAY_CONFIG = {
       roomName: 'Phòng học mượn',
       borrowDate: 'Ngày mượn',
       expectedReturnDate: 'Ngày hẹn trả',
-      actualReturnDate: 'Ngày thực trả',
       itemUnit: 'Đơn vị',
       returnNote: 'Ghi chú trả lại',
       quantityBorrowed: 'Số lượng đã mượn',
@@ -71,6 +68,10 @@ const ENTITY_DISPLAY_CONFIG = {
       fullName: 'Họ và Tên',
       username: 'Tên tài khoản',
       role: 'Vai trò đảm nhiệm',
+      roomName: 'Phòng',           // ← ĐÃ THÊM
+      roomCode: 'Mã phòng',        // ← ĐÃ THÊM
+      assignedRoom: 'Phòng',
+      room: 'Phòng'
     }
   },
   ROOM_INVENTORY: {
@@ -87,7 +88,7 @@ const ENTITY_DISPLAY_CONFIG = {
       isActive: 'Trang thái hoạt động',
       roomName: 'Phòng số',
       staffCount: 'Số lượng nhân viên',
-      description: 'Mô tả',
+      description:'Mô tả',
     }
   },
   CHEMICAL: {
@@ -98,7 +99,7 @@ const ENTITY_DISPLAY_CONFIG = {
       itemCode: 'Mã hóa chất',
       supplier: 'Nhà cung cấp',
       packaging: 'Đóng gói',
-      amountPerPackage: 'Số lượng mỗi gói',
+      amountPerPackage:'Số lượng mỗi gói',
     }
   },
   USER: {
@@ -109,8 +110,8 @@ const ENTITY_DISPLAY_CONFIG = {
       faculty: 'Khoa',
       fullName: 'Họ và tên',
       isActive: 'Tình trang tài khoản',
-      username: 'Tài khoản',
-      department: 'Bộ môn',
+      username:'Tài khoản',
+      department:'Bộ môn',
     }
   },
   DEFAULT: {
@@ -118,6 +119,7 @@ const ENTITY_DISPLAY_CONFIG = {
       name: 'Tên',
       code: 'Mã',
       description: 'Mô tả',
+      roomName: 'Phòng',
     }
   }
 };
@@ -135,12 +137,13 @@ function SkeletonRow() {
 
 function parseSafe(jsonString) {
   if (!jsonString) return null;
-  try { return typeof jsonString === 'object' ? jsonString : JSON.parse(jsonString); }
-  catch { return null; }
+  try { return typeof jsonString === 'object' ? jsonString : JSON.parse(jsonString); } 
+  catch { return jsonString; }
 }
 
 const formatValue = (key, val) => {
-  if (val === null || val === undefined) return '—';
+  if (val === null || val === undefined || val === '' || val === 'null') return null;
+  
   const isDateKey = /date|at$/i.test(key);
   const isIsoDate = typeof val === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(val);
 
@@ -158,49 +161,63 @@ const formatValue = (key, val) => {
 
 // ==================== RENDER KV ====================
 function renderKV(data, entityName = '') {
-  if (data === null || data === undefined) {
-    return <span className="al-kv-null">—</span>;
-  }
+  if (data === null || data === undefined) return null;
+  
   if (typeof data !== 'object') {
-    return <span className="al-kv-val">{formatValue('', data)}</span>;
+    const val = formatValue('', data);
+    return val ? <span className="al-kv-val">{val}</span> : null;
   }
 
   if (Array.isArray(data)) {
+    const validItems = data.map(item => renderKV(item, entityName)).filter(Boolean);
+    if (validItems.length === 0) return null;
     return (
       <div className="al-kv-arr">
-        {data.map((item, i) => (
-          <div key={i} className="al-kv-nested">
-            <div className="al-kv-idx">Mục {i + 1}</div>
-            {renderKV(item, entityName)}
-          </div>
-        ))}
+        {data.map((item, i) => {
+          const content = renderKV(item, entityName);
+          if (!content) return null;
+          return (
+            <div key={i} className="al-kv-nested">
+              <div className="al-kv-idx">Mục {i + 1}</div>
+              {content}
+            </div>
+          );
+        })}
       </div>
     );
   }
 
   const config = ENTITY_DISPLAY_CONFIG[entityName] || ENTITY_DISPLAY_CONFIG.DEFAULT;
-
-  let entries = Object.entries(data).filter(([key]) => {
+  
+  let entries = Object.entries(data).filter(([key, val]) => {
     const lower = key.toLowerCase();
     const blackList = [
       'userid', 'roomid', 'id', 'itemid', 'ticketid', 'detailid', 'requesterid',
-      'rejectedat', 'rejectedbyid', 'adminapprovedbyid', 'ownerapprovedbyid'
+      'rejectedat', 'rejectedbyid', 'adminapprovedbyid', 'ownerapprovedbyid',
+      'actualreturndate'
     ];
-    return !blackList.some(k => lower === k);
+    if (blackList.some(k => lower === k)) return false;
+
+    const formatted = formatValue(key, val);
+    return formatted !== null && formatted !== '—' && formatted !== '';
   });
+
+  if (entries.length === 0) return null;
 
   return (
     <div className="al-kv-table">
       {entries.map(([key, val]) => {
-        const displayKey = config.translations?.[key] || key;
+        const displayKey = config.translations[key] || key;
+        const displayValue = typeof val === 'object' && val !== null 
+          ? renderKV(val, entityName) 
+          : formatValue(key, val);
+
+        if (!displayValue) return null;
+
         return (
           <div key={key} className="al-kv-row">
             <span className="al-kv-key">{displayKey}</span>
-            <div className="al-kv-val">
-              {typeof val === 'object' && val !== null
-                ? renderKV(val, entityName)
-                : formatValue(key, val)}
-            </div>
+            <div className="al-kv-val">{displayValue}</div>
           </div>
         );
       })}
@@ -247,7 +264,7 @@ function AuditLogModal({ log, isOpen, onClose }) {
                 <span className="al-diff-icon">−</span><span>Dữ liệu cũ</span>
               </div>
               <div className="al-diff-body">
-                {oldObj ? renderKV(oldObj, log.entityName) : <p className="al-diff-empty">Không có dữ liệu cũ</p>}
+                {renderKV(oldObj, log.entityName) || <p className="al-diff-empty">Không có dữ liệu cũ</p>}
               </div>
             </div>
             <div className="al-diff-panel">
@@ -255,7 +272,7 @@ function AuditLogModal({ log, isOpen, onClose }) {
                 <span className="al-diff-icon">+</span><span>Dữ liệu mới</span>
               </div>
               <div className="al-diff-body">
-                {newObj ? renderKV(newObj, log.entityName) : <p className="al-diff-empty">Không có dữ liệu mới</p>}
+                {renderKV(newObj, log.entityName) || <p className="al-diff-empty">Không có dữ liệu mới</p>}
               </div>
             </div>
           </div>
@@ -270,13 +287,22 @@ function AuditLogModal({ log, isOpen, onClose }) {
 
 // ==================== MAIN COMPONENT ====================
 export default function AuditLogPage() {
-  const [logs, setLogs] = useState([]);
+  const [logs, setLogs] = useState([]);           
   const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedLog, setSelectedLog] = useState(null);
+  
+  const [searchInput, setSearchInput] = useState('');
   const [filters, setFilters] = useState({
-    role: '', module: '', page: 0, size: 10, sortBy: 'createdAt', sortDir: 'desc',
+    role: '', 
+    module: '', 
+    search: '', 
+    page: 0, 
+    size: 10, 
+    sortBy: 'createdAt', 
+    sortDir: 'desc',
   });
+
   const [pagination, setPagination] = useState({
     totalPages: 0, currentPage: 0, totalElements: 0,
   });
@@ -284,60 +310,68 @@ export default function AuditLogPage() {
   const fetchModules = useCallback(async () => {
     try {
       const res = await axiosInstance.get('/audit-logs/modules');
-      // Fix: Đảm bảo res.data là mảng, nếu không mặc định mảng rỗng
-      setModules(Array.isArray(res.data) ? res.data : []);
-    } catch { 
-      setModules([]); // Reset về mảng rỗng nếu lỗi API
-      toast.error('Không thể lấy danh sách modules'); 
-    }
+      setModules(res.data);
+    } catch { toast.error('Không thể lấy danh sách modules'); }
   }, []);
 
   const fetchLogs = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
-        page: filters.page.toString(),
-        size: filters.size.toString(),
-        sortBy: filters.sortBy,
-        sortDir: filters.sortDir,
+      const response = await axiosInstance.get('/audit-logs', {
+        params: {
+          page: 0,
+          size: 500,
+          sortBy: filters.sortBy,
+          sortDir: filters.sortDir,
+        }
       });
-      if (filters.role) params.append('role', filters.role);
-      if (filters.module) params.append('module', filters.module);
 
-      const res = await axiosInstance.get(`/audit-logs?${params}`);
-      // Fix: Luôn đảm bảo logs là mảng
-      setLogs(res.data?.content || []);
+      setLogs(response.data.content || []);
       setPagination({
-        totalPages: res.data?.totalPages || 0,
-        currentPage: res.data?.number || 0,
-        totalElements: res.data?.totalElements || 0,
+        totalPages: 1,
+        currentPage: 0,
+        totalElements: response.data.content?.length || 0,
       });
     } catch (err) { 
-      setLogs([]); 
+      console.error("Fetch Error:", err);
       toast.error('Lỗi khi tải nhật ký hệ thống'); 
-    } 
-    finally { setLoading(false); }
-  }, [filters]);
+    } finally { 
+      setLoading(false); 
+    }
+  }, [filters.sortBy, filters.sortDir]);
+
+  const filteredLogs = useMemo(() => {
+    let result = logs;
+
+    if (searchInput.trim()) {
+      const keyword = searchInput.toLowerCase().trim();
+      result = result.filter(log =>
+        (log.actorUsername && log.actorUsername.toLowerCase().includes(keyword)) ||
+        (log.action && log.action.toLowerCase().includes(keyword)) ||
+        (log.entityName && log.entityName.toLowerCase().includes(keyword))
+      );
+    }
+
+    if (filters.role) {
+      result = result.filter(log => log.actorRole === filters.role);
+    }
+
+    if (filters.module) {
+      result = result.filter(log => log.entityName === filters.module);
+    }
+
+    return result;
+  }, [logs, searchInput, filters.role, filters.module]);
 
   useEffect(() => { fetchModules(); }, [fetchModules]);
   useEffect(() => { fetchLogs(); }, [fetchLogs]);
 
-  const handleFilterChange = (key, value) => setFilters(prev => ({ ...prev, [key]: value, page: 0 }));
-  const handlePageChange = (newPage) => setFilters(prev => ({ ...prev, page: newPage }));
-
-  const pageNumbers = () => {
-    const total = pagination.totalPages;
-    const cur = filters.page;
-    const pages = [];
-    if (total <= 0) return [];
-    let start = Math.max(0, cur - 2);
-    let end = Math.min(total - 1, cur + 2);
-    for (let i = start; i <= end; i++) pages.push(i);
-    return pages;
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
   };
 
-  const from = pagination.totalElements === 0 ? 0 : (pagination.currentPage * filters.size) + 1;
-  const to = Math.min((pagination.currentPage + 1) * filters.size, pagination.totalElements);
+  const from = 1;
+  const to = filteredLogs.length;
 
   return (
     <div className="al-page">
@@ -352,15 +386,45 @@ export default function AuditLogPage() {
       </div>
 
       <div className="al-filter-card">
-        <div className="al-filter-label">Bộ lọc</div>
+        <div className="al-filter-label">Bộ lọc & Tìm kiếm</div>
         <div className="al-filter-grid">
+          <div className="al-filter-item">
+            <label>Tìm kiếm nhanh</label>
+            <div className="al-search-box" style={{ position: 'relative' }}>
+              <input 
+                type="text" 
+                className="al-input"
+                placeholder="Tìm tên người dùng, hành động..."
+                value={searchInput}
+                onChange={e => setSearchInput(e.target.value)}
+              />
+              {searchInput && (
+                <button 
+                  onClick={() => setSearchInput('')}
+                  style={{
+                    position: 'absolute',
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '18px',
+                    cursor: 'pointer',
+                    color: '#6b7280'
+                  }}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="al-filter-item">
             <label>Module</label>
             <div className="al-select-wrap">
               <select value={filters.module} onChange={e => handleFilterChange('module', e.target.value)}>
                 <option value="">Tất cả</option>
-                {/* Fix: Dòng 352 - Thêm Optional Chaining */}
-                {modules?.map((mod, i) => <option key={i} value={mod}>{mod}</option>)}
+                {modules.map((mod, i) => <option key={i} value={mod}>{mod}</option>)}
               </select>
             </div>
           </div>
@@ -392,52 +456,41 @@ export default function AuditLogPage() {
             </thead>
             <tbody>
               {loading ? (
-                Array(filters.size).fill(0).map((_, i) => <SkeletonRow key={i} />)
-              ) : (logs?.length === 0) ? (
+                Array(10).fill(0).map((_, i) => <SkeletonRow key={i} />)
+              ) : filteredLogs.length === 0 ? (
                 <tr><td colSpan="5"><div className="al-empty">Không tìm thấy dữ liệu</div></td></tr>
-              ) : (
-                logs?.map((log) => {
-                  const actionStyle = getActionStyle(log.action);
-                  return (
-                    <tr key={log.logId} className="al-row" onClick={() => setSelectedLog(log)}>
-                      <td>
-                        <div className="al-datetime">
-                          <span className="al-date">{log.createdAt ? new Date(log.createdAt).toLocaleDateString('vi-VN') : '—'}</span>
-                          <span className="al-time" style={{ marginLeft: '8px' }}>{log.createdAt ? new Date(log.createdAt).toLocaleTimeString('vi-VN') : '—'}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="al-user">
-                          <div className="al-avatar">{(log.actorUsername || '?')[0].toUpperCase()}</div>
-                          <span>{log.actorUsername || '—'}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="al-badge" style={{ background: actionStyle.bg, color: actionStyle.color }}>{log.action}</span>
-                      </td>
-                      <td><span className="al-module-tag">{log.entityName}</span></td>
-                      <td>
-                        <span className="al-badge" style={{ background: getRoleStyle(log.actorRole).bg, color: getRoleStyle(log.actorRole).color }}>{log.actorRole}</span>
-                      </td>
-                    </tr>
-                  )
-                })
-              )}
+              ) : filteredLogs.map((log) => {
+                const actionStyle = getActionStyle(log.action);
+                return (
+                  <tr key={log.logId} className="al-row" onClick={() => setSelectedLog(log)}>
+                    <td>
+                      <div className="al-datetime">
+                        <span className="al-date">{new Date(log.createdAt).toLocaleDateString('vi-VN')}</span>
+                        <span className="al-time" style={{ marginLeft: '8px' }}>{new Date(log.createdAt).toLocaleTimeString('vi-VN')}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="al-user">
+                        <div className="al-avatar">{(log.actorUsername || '?')[0].toUpperCase()}</div>
+                        <span>{log.actorUsername || '—'}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span className="al-badge" style={{ background: actionStyle.bg, color: actionStyle.color }}>{log.action}</span>
+                    </td>
+                    <td><span className="al-module-tag">{log.entityName}</span></td>
+                    <td>
+                      <span className="al-badge" style={{ background: getRoleStyle(log.actorRole).bg, color: getRoleStyle(log.actorRole).color }}>{log.actorRole}</span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
 
         <div className="al-pagination">
-          <span className="al-page-info">Hiển thị {from}–{to} / {pagination.totalElements} bản ghi</span>
-          <div className="al-page-buttons">
-            <button className="al-page-btn" onClick={() => handlePageChange(0)} disabled={filters.page === 0}>«</button>
-            {pageNumbers()?.map(p => (
-              <button key={p} className={`al-page-btn ${p === filters.page ? 'active' : ''}`} onClick={() => handlePageChange(p)}>
-                {p + 1}
-              </button>
-            ))}
-            <button className="al-page-btn" onClick={() => handlePageChange(pagination.totalPages - 1)} disabled={filters.page >= pagination.totalPages - 1 || pagination.totalPages === 0}>»</button>
-          </div>
+          <span className="al-page-info">Hiển thị {filteredLogs.length} bản ghi</span>
         </div>
       </div>
 
