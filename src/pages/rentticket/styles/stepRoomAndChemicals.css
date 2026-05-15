@@ -1,0 +1,602 @@
+/* ── Wrapper & Split grid ──────────────────────────────── */
+.rac-wrapper { width: 100%; }
+
+.rac-split {
+  display: grid;
+  grid-template-columns: 300px 1px 1fr;
+  gap: 0;
+  min-height: 520px;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* ── Cột trái ──────────────────────────────────────────── */
+.rac-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: #f8fafc;
+  border-right: 1.5px solid #e2e8f0;
+  padding: 16px 12px;
+  overflow-y: auto;
+  max-height: 600px;
+}
+
+/* ── Divider ───────────────────────────────────────────── */
+.rac-divider { width: 1px; background: #e2e8f0; }
+
+/* ── Cột phải ──────────────────────────────────────────── */
+.rac-right {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  overflow-y: auto;
+  max-height: 600px;
+}
+
+/* ── Panel header ──────────────────────────────────────── */
+.rac-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 12px;
+}
+
+.rac-badge-count {
+  margin-left: auto;
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+.rac-badge-selected {
+  margin-left: auto;
+  background: #6366f1;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+/* ── Search box ────────────────────────────────────────── */
+.rac-search-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 9px;
+  padding: 7px 11px;
+  margin-bottom: 10px;
+  transition: border-color 0.2s;
+}
+.rac-search-box:focus-within { border-color: #6366f1; }
+
+.rac-search-icon { color: #94a3b8; font-size: 18px !important; }
+
+.rac-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 0.85rem;
+  color: #0f172a;
+  background: transparent;
+}
+
+.rac-search-clear {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #94a3b8;
+  font-size: 13px;
+  padding: 0 2px;
+}
+.rac-search-clear:hover { color: #ef4444; }
+
+/* ── Room list ─────────────────────────────────────────── */
+.rac-room-list { display: flex; flex-direction: column; gap: 6px; }
+
+/* ── Room card (used by StepRoomAndChemicals) ──────────── */
+.rac-room-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid transparent;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.rac-room-card:hover:not(.rac-room-card--inactive) {
+  border-color: #6366f1;
+  background: #f5f3ff;
+}
+.rac-room-card--sel {
+  border-color: #6366f1 !important;
+  background: #eef2ff !important;
+}
+.rac-room-card--inactive {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f1f5f9;
+}
+
+.rac-room-card-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.rac-room-card-right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.rac-room-location {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.rac-room-manager {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.rac-room-inactive-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  padding: 1px 6px;
+  border-radius: 999px;
+  margin-top: 3px;
+}
+
+/* ── Room item (legacy alias) ──────────────────────────── */
+.rac-room-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid transparent;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.rac-room-item:hover:not(.rac-room-item--inactive) {
+  border-color: #6366f1;
+  background: #f5f3ff;
+}
+.rac-room-item--selected {
+  border-color: #6366f1 !important;
+  background: #eef2ff !important;
+}
+.rac-room-item--inactive {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f1f5f9;
+}
+
+.rac-room-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.rac-room-icon--sel { background: #e0e7ff; color: #6366f1; }
+
+.rac-room-info { flex: 1; min-width: 0; }
+
+.rac-room-name {
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.rac-inactive-tag {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+.rac-room-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.73rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.rac-room-chem-count {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.7rem;
+  color: #6366f1;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.rac-room-arrow { flex-shrink: 0; }
+
+/* ── Placeholder (chưa chọn phòng) ────────────────────── */
+.rac-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #94a3b8;
+  text-align: center;
+  padding: 40px 24px;
+}
+
+.rac-placeholder-icon {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #cbd5e1;
+}
+
+.rac-placeholder p {
+  font-size: 0.875rem;
+  color: #64748b;
+  max-width: 260px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Chem layout (list + cart) ─────────────────────────── */
+.rac-chem-layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 230px;
+  gap: 14px;
+  align-items: start;
+}
+
+/* ── Chem list ─────────────────────────────────────────── */
+.rac-chem-col { display: flex; flex-direction: column; }
+.rac-chem-list { display: flex; flex-direction: column; gap: 6px; }
+
+.rac-chem-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.rac-chem-card:hover { border-color: #6366f1; background: #fafafa; }
+.rac-chem-card--sel  { border-color: #6366f1; background: #eef2ff; }
+
+.rac-chem-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #fff;
+  transition: all 0.15s;
+}
+.rac-chem-check--on { border-color: #6366f1; background: #6366f1; }
+
+.rac-chem-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6366f1;
+  flex-shrink: 0;
+}
+.rac-chem-card--sel .rac-chem-icon { background: #e0e7ff; }
+
+.rac-chem-info { flex: 1; min-width: 0; }
+
+.rac-chem-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rac-chem-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.rac-cas { font-size: 0.7rem; color: #94a3b8; }
+
+.rac-hazard {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+.rac-chem-avail {
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.rac-low-stock { color: #ef4444; font-size: 0.68rem; }
+
+.rac-cart-col {
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  position: sticky;
+  top: 0;
+}
+
+.rac-cart-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 13px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: #0f172a;
+  background: #f8fafc;
+  flex-wrap: wrap;
+}
+
+.rac-cart-clear-all {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: 1px solid #fecaca;
+  color: #ef4444;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.rac-cart-clear-all:hover { background: #fef2f2; color: #dc2626; }
+
+.rac-cart-count {
+  margin-left: auto;
+  background: #6366f1;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+}
+
+.rac-cart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px;
+  gap: 6px;
+  color: #94a3b8;
+  text-align: center;
+}
+.rac-cart-empty p    { margin: 0; font-size: 0.82rem; color: #64748b; }
+.rac-cart-empty span { font-size: 0.73rem; }
+
+.rac-cart-list { display: flex; flex-direction: column; }
+
+.rac-cart-item {
+  padding: 10px 13px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rac-cart-item:last-child { border-bottom: none; }
+
+.rac-cart-item-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  justify-content: space-between;
+}
+
+.rac-cart-item-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.35;
+  flex: 1;
+}
+
+.rac-cart-item-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rac-cart-item-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rac-qty-ctrl {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.rac-qty-btn {
+  background: #f8fafc;
+  border: none;
+  cursor: pointer;
+  padding: 6px 10px;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  min-width: 32px;
+  min-height: 32px;
+}
+.rac-qty-btn:hover:not(:disabled) { background: #e0e7ff; color: #6366f1; }
+.rac-qty-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.rac-qty-input {
+  width: 44px;
+  text-align: center;
+  border: none;
+  border-left: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  outline: none;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+  padding: 5px 2px;
+  background: #fff;
+  appearance: textfield;
+  min-height: 32px;
+}
+.rac-qty-input::-webkit-outer-spin-button,
+.rac-qty-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+.rac-unit {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.rac-cart-remove {
+  background: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  color: #cbd5e1;
+  padding: 5px 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+.rac-cart-remove:hover { color: #ef4444; background: #fef2f2; border-color: #fecaca; }
+
+.rac-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 16px;
+  gap: 8px;
+  color: #94a3b8;
+  font-size: 0.83rem;
+}
+.rac-empty-state p { margin: 0; }
+
+.rac-loading {
+  padding: 24px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.83rem;
+}
+
+@media (max-width: 900px) {
+  .rac-split {
+    grid-template-columns: 1fr;
+  }
+  .rac-left {
+    max-height: 260px;
+    border-right: none;
+    border-bottom: 1.5px solid #e2e8f0;
+  }
+  .rac-divider { display: none; }
+  .rac-chem-layout { grid-template-columns: 1fr; }
+}
+/* ── Error state & retry ───────────────────────────────── */
+.rac-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 16px;
+  gap: 10px;
+  color: #ef4444;
+  font-size: 0.83rem;
+  text-align: center;
+}
+.rac-error-state p { margin: 0; color: #64748b; }
+
+.rac-retry-btn {
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  color: #6366f1;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.rac-retry-btn:hover { background: #eef2ff; border-color: #6366f1; }

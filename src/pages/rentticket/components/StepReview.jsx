@@ -38,6 +38,11 @@ export default function StepReview({ selectedRoom, form }) {
               <div className="rr-summary-value">{selectedRoom?.name || selectedRoom?.roomName}</div>
               <span className="rr-summary-badge"><CheckCircleOutlined style={{ fontSize: 14 }} /> Hợp lệ</span>
             </div>
+            {selectedRoom?.managerName && (
+              <div style={{ marginTop: 4, fontSize: "0.82rem", color: "#64748b" }}>
+                Giảng viên phụ trách: <strong style={{ color: "#0f172a" }}>{selectedRoom.managerName}</strong>
+              </div>
+            )}
           </div>
 
           <div className="rr-summary-item">
