@@ -61,6 +61,7 @@ const ENTITY_DISPLAY_CONFIG = {
       ownerApprovedAt: 'Chủ sở hữu đã phê duyệt lúc',
       adminApprovedByName: 'Tên Quản trị viên đã phê duyệt',
       ownerApprovedByName: 'Tên chủ sở hữu đã phê duyệt',
+      createdAt: 'Được tạo lúc',
     }
   },
   ROOM_STAFF: {

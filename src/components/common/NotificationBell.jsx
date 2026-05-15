@@ -1,13 +1,25 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 const TYPE_CONFIG = {
-  ROOM_ASSIGN: { bg: "linear-gradient(135deg,#43e97b,#38f9d7)", icon: "🔑" },
-  ROOM_REMOVE: { bg: "linear-gradient(135deg,#f857a6,#ff5858)", icon: "🚫" },
-  BORROW:      { bg: "linear-gradient(135deg,#4facfe,#00f2fe)", icon: "🧪" },
-  default:     { bg: "linear-gradient(135deg,#a18cd1,#fbc2eb)", icon: "🔔" },
+  ROOM_ASSIGN:                { bg: "linear-gradient(135deg,#43e97b,#38f9d7)", icon: "🔑" },
+  ROOM_REMOVE:                { bg: "linear-gradient(135deg,#f857a6,#ff5858)", icon: "🚫" },
+  BORROW:                     { bg: "linear-gradient(135deg,#4facfe,#00f2fe)", icon: "🧪" },
+  TICKET_PENDING_ADMIN_ALERT: { bg: "linear-gradient(135deg,#f7971e,#ffd200)", icon: "📋" },
+  default:                    { bg: "linear-gradient(135deg,#a18cd1,#fbc2eb)", icon: "🔔" },
 };
 
 const BASE_URL = "http://localhost:8080/api/notifications";
+
+function getUserRole() {
+  try {
+    const raw = localStorage.getItem("auth-storage");
+    if (raw) {
+      const p = JSON.parse(raw);
+      return p.state?.user?.role || null;
+    }
+  } catch {}
+  return null;
+}
 
 function authHeaders() {
   let token = null;
@@ -63,36 +75,39 @@ function timeAgo(dateStr) {
   return new Date(dateStr).toLocaleDateString("vi-VN");
 }
 
+function getRedirectUrl(type) {
+  const role = getUserRole();
+  if (type === "TICKET_PENDING_ADMIN_ALERT" || type === "BORROW") {
+    return role === "ADMIN"
+      ? "http://localhost:5173/admin/tickets"
+      : "/borrow/chemical";
+  }
+  // ROOM_ASSIGN, ROOM_REMOVE
+  return "/manage/assigned-rooms";
+}
+
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 .nb-btn { position:relative; width:40px; height:40px; border-radius:50%; background:#E4E6EA; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#050505; transition:background .2s; }
 .nb-btn:hover { background:#D8DADF; }
 .nb-btn svg { width:22px; height:22px; fill:currentColor; }
 .nb-btn.ring svg { animation: nb-ring .55s ease; }
 @keyframes nb-ring { 0%,100%{transform:rotate(0)} 20%{transform:rotate(-22deg)} 40%{transform:rotate(22deg)} 60%{transform:rotate(-14deg)} 80%{transform:rotate(10deg)} }
-
 .nb-badge { position:absolute; top:0; right:0; background:#f02849; color:#fff; border-radius:10px; min-width:18px; height:18px; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; padding:0 3px; box-shadow:0 0 0 2px rgba(240,40,73,.25); animation: nb-pop .3s cubic-bezier(.36,.07,.19,.97); }
 @keyframes nb-pop{0%{transform:scale(0)}70%{transform:scale(1.25)}100%{transform:scale(1)}}
-
 .nb-panel { position:absolute; right:0; top:calc(100% + 12px); width:390px; background:#fff; border-radius:12px; box-shadow:0 12px 40px rgba(0,0,0,.18), 0 2px 8px rgba(0,0,0,.08); z-index:9999; overflow:hidden; font-family:'Inter', sans-serif; animation: nb-in .22s cubic-bezier(.34,1.56,.64,1); transform-origin:top right; }
 @keyframes nb-in{ from{opacity:0;transform:scale(.88) translateY(-10px)} to{opacity:1;transform:scale(1) translateY(0)} }
-
 .nb-panel::before{ content:''; position:absolute; top:-5px; right:14px; width:11px; height:11px; background:#fff; transform:rotate(45deg); box-shadow:-2px -2px 5px rgba(0,0,0,.06); border-radius:2px; z-index:1; }
-
 .nb-hd{ display:flex; align-items:center; justify-content:space-between; padding:16px 16px 6px; }
 .nb-hd-title{ font-size:20px; font-weight:700; color:#050505; }
 .nb-mark-all{ background:none; border:none; cursor:pointer; color:#1877f2; font-size:13px; font-weight:500; padding:6px 8px; border-radius:6px; }
 .nb-mark-all:hover{ background:#f0f2f5; }
-
 .nb-tabs{ display:flex; gap:4px; padding:4px 16px 10px; }
 .nb-tab{ padding:7px 16px; border-radius:20px; border:none; cursor:pointer; font-size:14px; font-weight:600; }
 .nb-tab.on{ background:#e7f0fd; color:#1877f2; }
 .nb-tab:not(.on){ background:#f0f2f5; color:#050505; }
-
 .nb-sep{ height:1px; background:#f0f2f5; }
 .nb-sec{ padding:10px 16px 2px; font-size:13px; font-weight:700; color:#050505; }
-
 .nb-list{ max-height:440px; overflow-y:auto; padding-bottom:8px; }
 .nb-item{ display:flex; align-items:flex-start; gap:12px; padding:8px 12px; margin:2px 6px; border-radius:10px; cursor:pointer; transition:background .15s; }
 .nb-item:hover{ background:#f2f2f2; }
@@ -105,11 +120,9 @@ const CSS = `
 .nb-msg{ font-size:12px; color:#65676b; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .nb-time{ font-size:12px; margin-top:4px; color:#65676b; }
 .nb-dot{ width:10px; height:10px; border-radius:50%; background:#1877f2; flex-shrink:0; margin-top:18px; }
-
 .nb-footer { padding: 12px 16px; border-top: 1px solid #f0f2f5; text-align: center; }
 .nb-view-all { width: 100%; padding: 11px; background: #f0f2f5; border: none; border-radius: 8px; color: #1877f2; font-weight: 600; font-size: 14px; cursor: pointer; transition: all .2s; }
 .nb-view-all:hover { background: #e4e6ea; color: #0d65d9; }
-
 .nb-wrap{ position:relative; display:inline-block; }
 `;
 
@@ -156,24 +169,29 @@ export default function NotificationBell({ onViewAll }) {
     return () => document.removeEventListener("mousedown", fn);
   }, []);
 
-  const markRead = async (id) => {
-    const ok = await apiFetch(`/${id}/read`, { method: "PATCH" });
-    if (ok) {
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-      setUnreadCount(c => Math.max(0, c - 1));
+  const handleItemClick = async (n) => {
+    if (!n.read) {
+      const ok = await apiFetch(`/${n.id}/read`, { method: "PATCH" });
+      if (ok !== null) {
+        setNotifications(prev =>
+          prev.map(item => item.id === n.id ? { ...item, read: true } : item)
+        );
+        setUnreadCount(c => Math.max(0, c - 1));
+      }
     }
+    setOpen(false);
+    window.location.href = getRedirectUrl(n.type);
   };
 
   const markAll = async () => {
     const ok = await apiFetch("/read-all", { method: "PATCH" });
-    if (ok) {
+    if (ok !== null) {
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
     }
   };
 
   const shown = tab === "unread" ? notifications.filter(n => !n.read) : notifications;
-
   const DAY = 86400000;
   const now = Date.now();
   const recent = shown.filter(n => n.createdAt && now - new Date(n.createdAt) < DAY);
@@ -187,7 +205,7 @@ export default function NotificationBell({ onViewAll }) {
   function Item({ n }) {
     const cfg = TYPE_CONFIG[n.type] || TYPE_CONFIG.default;
     return (
-      <div className={`nb-item${n.read ? "" : " unread"}`} onClick={() => !n.read && markRead(n.id)}>
+      <div className={`nb-item${n.read ? "" : " unread"}`} onClick={() => handleItemClick(n)}>
         <div className="nb-av">
           <div className="nb-av-circle" style={{ background: cfg.bg }}>{cfg.icon}</div>
         </div>
