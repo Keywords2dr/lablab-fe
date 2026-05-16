@@ -1,14 +1,41 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 const TYPE_CONFIG = {
-  ROOM_ASSIGN:                { bg: "linear-gradient(135deg,#43e97b,#38f9d7)", icon: "🔑" },
-  ROOM_REMOVE:                { bg: "linear-gradient(135deg,#f857a6,#ff5858)", icon: "🚫" },
-  BORROW:                     { bg: "linear-gradient(135deg,#4facfe,#00f2fe)", icon: "🧪" },
-  TICKET_PENDING_ADMIN_ALERT: { bg: "linear-gradient(135deg,#f7971e,#ffd200)", icon: "📋" },
-  default:                    { bg: "linear-gradient(135deg,#a18cd1,#fbc2eb)", icon: "🔔" },
+  ROOM_ASSIGN:                             { bg: "linear-gradient(135deg,#43e97b,#38f9d7)", icon: "🔑" },
+  ROOM_REMOVE:                             { bg: "linear-gradient(135deg,#f857a6,#ff5858)", icon: "🚫" },
+  BORROW:                                  { bg: "linear-gradient(135deg,#4facfe,#00f2fe)", icon: "🧪" },
+  TICKET_PENDING_ADMIN_ALERT:              { bg: "linear-gradient(135deg,#f7971e,#ffd200)", icon: "📋" },
+  TICKET_CREATED:                          { bg: "linear-gradient(135deg,#f7971e,#ffd200)", icon: "📋" },
+  TICKET_PENDING_RETURN:                   { bg: "linear-gradient(135deg,#43e97b,#38f9d7)", icon: "📦" },
+  TICKET_APPROVED_NOTIFY_TEACHER:          { bg: "linear-gradient(135deg,#43e97b,#38f9d7)", icon: "✅" },
+  TICKET_REJECTED_BY_ADMIN_NOTIFY_TEACHER: { bg: "linear-gradient(135deg,#f857a6,#ff5858)", icon: "❌" },
+  TICKET_CANCELLED:                        { bg: "linear-gradient(135deg,#f857a6,#ff5858)", icon: "🚫" },
+  RETURN_ISSUE_ALERT:                      { bg: "linear-gradient(135deg,#f7971e,#ffd200)", icon: "⚠️" },
+  default:                                 { bg: "linear-gradient(135deg,#a18cd1,#fbc2eb)", icon: "🔔" },
 };
 
 const BASE_URL = "http://localhost:8080/api/notifications";
+
+// Teacher: các type cần xử lý phòng → dẫn đến trang quản lý phòng
+// - Có phiếu mượn mới cần duyệt
+// - Student yêu cầu trả đồ
+const TEACHER_MANAGE_TYPES = new Set([
+  "TICKET_CREATED",           // Phiếu mượn mới từ student
+  "TICKET_PENDING_ADMIN_ALERT", // Phiếu chờ admin (teacher cần biết)
+  "TICKET_PENDING_RETURN",    // Yêu cầu trả đồ
+  "RETURN_ISSUE_ALERT",       // Cảnh báo vấn đề khi trả
+]);
+
+// Teacher: các type liên quan đến phiếu của chính teacher → dẫn đến lịch sử mượn
+// - Admin duyệt / từ chối / hủy phiếu của teacher
+const TEACHER_HISTORY_TYPES = new Set([
+  "TICKET_APPROVED_NOTIFY_TEACHER",          // Phiếu được Admin chấp thuận
+  "TICKET_REJECTED_BY_ADMIN_NOTIFY_TEACHER", // Phiếu bị Admin từ chối
+  "TICKET_CANCELLED",                        // Phiếu bị hủy
+  "BORROW",                                  // Thông báo mượn
+  "ROOM_ASSIGN",                             // Được giao phòng
+  "ROOM_REMOVE",                             // Bị thu hồi phòng
+]);
 
 function getUserRole() {
   try {
@@ -77,13 +104,14 @@ function timeAgo(dateStr) {
 
 function getRedirectUrl(type) {
   const role = getUserRole();
-  if (type === "TICKET_PENDING_ADMIN_ALERT" || type === "BORROW") {
-    return role === "ADMIN"
-      ? "http://localhost:5173/admin/tickets"
-      : "/borrow/chemical";
+  if (role === "ADMIN")   return "http://localhost:5173/admin/tickets";
+  if (role === "STUDENT") return "http://localhost:5173/my-tickets";
+  if (role === "TEACHER") {
+    // Yêu cầu trả đồ hoặc phiếu mượn mới → trang quản lý phòng
+    if (TEACHER_MANAGE_TYPES.has(type)) return "/manage/assigned-rooms";
+    // Phiếu của teacher được duyệt/từ chối/hủy → lịch sử mượn
+    return "/my-tickets";
   }
-  // ROOM_ASSIGN, ROOM_REMOVE
-  return "/manage/assigned-rooms";
 }
 
 const CSS = `

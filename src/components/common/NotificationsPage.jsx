@@ -2,14 +2,28 @@ import { useState, useEffect, useCallback } from "react";
 import "./NotificationsPage.css";
 
 const TYPE_CONFIG = {
-  ROOM_ASSIGN:              { bg: "linear-gradient(135deg,#43e97b,#38f9d7)", icon: "🔑" },
-  ROOM_REMOVE:              { bg: "linear-gradient(135deg,#f857a6,#ff5858)", icon: "🚫" },
-  BORROW:                   { bg: "linear-gradient(135deg,#4facfe,#00f2fe)", icon: "🧪" },
-  TICKET_PENDING_ADMIN_ALERT: { bg: "linear-gradient(135deg,#f7971e,#ffd200)", icon: "📋" },
-  default:                  { bg: "linear-gradient(135deg,#a18cd1,#fbc2eb)", icon: "🔔" },
+  ROOM_ASSIGN:                             { bg: "linear-gradient(135deg,#43e97b,#38f9d7)", icon: "🔑" },
+  ROOM_REMOVE:                             { bg: "linear-gradient(135deg,#f857a6,#ff5858)", icon: "🚫" },
+  BORROW:                                  { bg: "linear-gradient(135deg,#4facfe,#00f2fe)", icon: "🧪" },
+  TICKET_PENDING_ADMIN_ALERT:              { bg: "linear-gradient(135deg,#f7971e,#ffd200)", icon: "📋" },
+  TICKET_CREATED:                          { bg: "linear-gradient(135deg,#f7971e,#ffd200)", icon: "📋" },
+  TICKET_PENDING_RETURN:                   { bg: "linear-gradient(135deg,#43e97b,#38f9d7)", icon: "📦" },
+  TICKET_APPROVED_NOTIFY_TEACHER:          { bg: "linear-gradient(135deg,#43e97b,#38f9d7)", icon: "✅" },
+  TICKET_REJECTED_BY_ADMIN_NOTIFY_TEACHER: { bg: "linear-gradient(135deg,#f857a6,#ff5858)", icon: "❌" },
+  TICKET_CANCELLED:                        { bg: "linear-gradient(135deg,#f857a6,#ff5858)", icon: "🚫" },
+  RETURN_ISSUE_ALERT:                      { bg: "linear-gradient(135deg,#f7971e,#ffd200)", icon: "⚠️" },
+  default:                                 { bg: "linear-gradient(135deg,#a18cd1,#fbc2eb)", icon: "🔔" },
 };
 
 const BASE_URL = "http://localhost:8080/api/notifications";
+
+// Types dẫn Teacher đến trang quản lý phòng (assigned-rooms)
+const TEACHER_MANAGE_TYPES = new Set([
+  "ROOM_ASSIGN",
+  "ROOM_REMOVE",
+  "TICKET_PENDING_ADMIN_ALERT",
+  "RETURN_ISSUE_ALERT",
+]);
 
 function getUserRole() {
   try {
@@ -76,15 +90,16 @@ function timeAgo(dateStr) {
   return new Date(dateStr).toLocaleDateString("vi-VN");
 }
 
+// Nhận type của notification để phân loại đúng link cho TEACHER
 function getRedirectUrl(type) {
   const role = getUserRole();
-  if (type === "TICKET_PENDING_ADMIN_ALERT" || type === "BORROW") {
-    return role === "ADMIN"
-      ? "http://localhost:5173/admin/tickets"
-      : "/borrow/chemical";
+  if (role === "ADMIN")   return "http://localhost:5173/admin/tickets";
+  if (role === "STUDENT") return "http://localhost:5173/my-tickets";
+  if (role === "TEACHER") {
+    return TEACHER_MANAGE_TYPES.has(type)
+      ? "/manage/assigned-rooms"
+      : "/borrow-history";
   }
-  // ROOM_ASSIGN, ROOM_REMOVE
-  return "/manage/assigned-rooms";
 }
 
 export default function NotificationsPage() {
@@ -125,6 +140,7 @@ export default function NotificationsPage() {
         prev.map((item) => (item.id === n.id ? { ...item, read: true } : item))
       );
     }
+    // Truyền n.type để phân loại đúng link
     window.location.href = getRedirectUrl(n.type);
   };
 
