@@ -1,403 +1,471 @@
-import React, { useEffect, useState } from "react";
-import { Grid } from "@mui/material";
+import React, { useMemo } from "react";
 import {
   Science,
   MeetingRoom,
   MenuBook,
-  Inventory,
-  History,
-  CheckCircle,
   ReportProblem,
-  CalendarToday,
   SupervisorAccount,
   TrackChanges,
-  InboxOutlined,
-  AssignmentReturn,
+  ScienceOutlined,
+  SearchOutlined,
+  EventAvailable,
+  VerifiedUser,
+  Login,
+  ListAlt,
+  AssignmentTurnedIn,
+  RocketLaunch,
+  Email,
+  Phone,
+  LocationOn,
+  ArrowForward,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
-import { rentTicketApi } from "../../api/rentTicketApi";
-import {
-  TICKET_STATUS_MAP,
-  TICKET_TYPE_MAP,
-  mapPurpose,
-} from "../MyTickets/hooks/useTickets";
+import labHeroImg from "../../assets/lab_hero.png";
 import "./UserDashboard.css";
 
-// Các status thuộc nhóm "đang xử lý" (tracking)
-const ACTIVE_STATUSES = [
-  "PENDING_OWNER",
-  "PENDING_ADMIN",
-  "APPROVED",
-  "BORROWED",
-  "PENDING_RETURN",
-];
+/* ═══════════════════════════════════════
+   INLINE SVG ILLUSTRATIONS
+   ═══════════════════════════════════════ */
+const WikiIllustration = () => (
+  <svg viewBox="0 0 200 160" fill="none" className="feat-svg">
+    <rect x="30" y="20" width="140" height="100" rx="12" fill="#EEF2FF" />
+    <rect x="45" y="38" width="70" height="6" rx="3" fill="#818CF8" />
+    <rect x="45" y="52" width="110" height="4" rx="2" fill="#C7D2FE" />
+    <rect x="45" y="62" width="95" height="4" rx="2" fill="#C7D2FE" />
+    <rect x="45" y="72" width="105" height="4" rx="2" fill="#C7D2FE" />
+    <rect
+      x="45"
+      y="86"
+      width="50"
+      height="20"
+      rx="6"
+      fill="#6366F1"
+      opacity=".15"
+    />
+    <circle cx="155" cy="45" r="14" fill="#A5B4FC" opacity=".5" />
+    <path
+      d="M150 42 l5 8 l5-8"
+      stroke="#6366F1"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <circle cx="20" cy="80" r="8" fill="#E0E7FF" />
+    <circle cx="180" cy="110" r="6" fill="#DDD6FE" />
+  </svg>
+);
 
-const formatDate = (dateStr) => {
-  if (!dateStr) return "—";
-  return new Date(dateStr).toLocaleString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
+const BookingIllustration = () => (
+  <svg viewBox="0 0 200 160" fill="none" className="feat-svg">
+    <rect x="25" y="25" width="150" height="110" rx="12" fill="#F0FDFA" />
+    <rect
+      x="25"
+      y="25"
+      width="150"
+      height="28"
+      rx="12"
+      fill="#14B8A6"
+      opacity=".15"
+    />
+    <rect x="40" y="34" width="40" height="6" rx="3" fill="#0D9488" />
+    {[0, 1, 2, 3, 4].map((col) =>
+      [0, 1, 2].map((row) => (
+        <rect
+          key={`${col}-${row}`}
+          x={40 + col * 26}
+          y={62 + row * 22}
+          width="20"
+          height="16"
+          rx="4"
+          fill={col === 2 && row === 1 ? "#14B8A6" : "#CCFBF1"}
+          opacity={col === 2 && row === 1 ? ".9" : ".6"}
+        />
+      )),
+    )}
+    <circle cx="15" cy="70" r="6" fill="#CCFBF1" />
+    <circle cx="185" cy="120" r="8" fill="#99F6E4" opacity=".5" />
+  </svg>
+);
+
+const ChemIllustration = () => (
+  <svg viewBox="0 0 200 160" fill="none" className="feat-svg">
+    <path
+      d="M85 30 L85 70 L60 120 Q55 130 65 135 L135 135 Q145 130 140 120 L115 70 L115 30Z"
+      fill="#FEF3C7"
+      stroke="#F59E0B"
+      strokeWidth="2"
+    />
+    <path
+      d="M70 105 Q100 95 130 105 L140 120 Q145 130 135 135 L65 135 Q55 130 60 120Z"
+      fill="#FCD34D"
+      opacity=".5"
+    />
+    <rect
+      x="85"
+      y="22"
+      width="30"
+      height="8"
+      rx="2"
+      fill="#FBBF24"
+      opacity=".3"
+    />
+    <circle cx="95" cy="110" r="4" fill="#FDE68A" />
+    <circle cx="110" cy="100" r="3" fill="#FDE68A" />
+    <circle cx="105" cy="115" r="2.5" fill="#FEF3C7" />
+    <circle cx="160" cy="40" r="8" fill="#FEF3C7" />
+    <circle cx="40" cy="50" r="6" fill="#FDE68A" opacity=".5" />
+  </svg>
+);
 
 export default function UserDashboard() {
   const navigate = useNavigate();
-  const user = useAuthStore((state) => state.user);
-
+  const user = useAuthStore((s) => s.user);
   const isTeacher = user?.role === "TEACHER";
-  const gridCol = isTeacher ? 3 : 4;
 
-  const [stats, setStats] = useState({
-    borrowed: 0,
-    pending: 0,
-    pendingReturn: 0,
-    returned: 0,
-  });
-  const [statsLoading, setStatsLoading] = useState(true);
-
-  const [activeTickets, setActiveTickets] = useState([]);
-  const [tableLoading, setTableLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchAll = async () => {
-      try {
-        // Gọi song song: 4 API đếm stats + 1 API lấy danh sách bảng
-        const [
-          borrowedRes,
-          pendingRes,
-          pendingReturnRes,
-          returnedRes,
-          listRes,
-        ] = await Promise.allSettled([
-          rentTicketApi.getMyTicketsByStatus("BORROWED", 0, 1),
-          rentTicketApi.getMyTicketsByStatus("PENDING_OWNER", 0, 1),
-          rentTicketApi.getMyTicketsByStatus("PENDING_RETURN", 0, 1),
-          rentTicketApi.getMyTicketsByStatus("RETURNED", 0, 1),
-          rentTicketApi.getMyTicketsFiltered({
-            excludeStatus: "RETURNED,REJECTED,CANCELLED",
-            size: 500,
-          }),
-        ]);
-
-        // Hàm helper lấy totalElements an toàn
-        const getTotal = (settled) =>
-          settled.status === "fulfilled"
-            ? (settled.value.data?.totalElements ?? 0)
-            : 0;
-
-        setStats({
-          borrowed: getTotal(borrowedRes),
-          // Cộng cả PENDING_OWNER + PENDING_ADMIN vào "Chờ duyệt"
-          // PENDING_ADMIN không cần call riêng vì đã có trong danh sách
-          pending: getTotal(pendingRes),
-          pendingReturn: getTotal(pendingReturnRes),
-          returned: getTotal(returnedRes),
-        });
-
-        // Xử lý danh sách bảng
-        if (listRes.status === "fulfilled") {
-          const rawData =
-            listRes.value.data?.content || listRes.value.data || [];
-          const hydrated = rawData.map((t) => ({
-            ...t,
-            subject: t.subjectName || t.subject || "Chưa cập nhật môn",
-            purpose: mapPurpose(t.purposeType),
-          }));
-          setActiveTickets(hydrated);
-        }
-      } catch (err) {
-        console.error("Lỗi khi tải dữ liệu dashboard:", err);
-      } finally {
-        setStatsLoading(false);
-        setTableLoading(false);
-      }
-    };
-
-    fetchAll();
+  const greet = useMemo(() => {
+    const h = new Date().getHours();
+    return h < 12
+      ? "Chào buổi sáng"
+      : h < 18
+        ? "Chào buổi chiều"
+        : "Chào buổi tối";
   }, []);
 
+  const modules = [
+    {
+      icon: <MenuBook />,
+      cls: "m-blue",
+      title: "Wiki & Tra cứu",
+      desc: "Thông tin phòng, hóa chất & hướng dẫn",
+      path: "/wiki",
+    },
+    {
+      icon: <MeetingRoom />,
+      cls: "m-sky",
+      title: "Đăng ký phòng",
+      desc: "Đặt lịch sử dụng phòng Lab theo ca",
+      path: "/borrow/room",
+    },
+    {
+      icon: <Science />,
+      cls: "m-emerald",
+      title: "Mượn hóa chất",
+      desc: "Đăng ký vật tư & dụng cụ thí nghiệm",
+      path: "/borrow/chemical",
+    },
+    {
+      icon: <TrackChanges />,
+      cls: "m-violet",
+      title: "Phiếu của tôi",
+      desc: "Theo dõi trạng thái & lịch sử mượn",
+      path: "/my-tickets",
+    },
+    ...(isTeacher
+      ? [
+          {
+            icon: <SupervisorAccount />,
+            cls: "m-amber",
+            title: "Quản lý phòng",
+            desc: "Duyệt yêu cầu từ sinh viên",
+            path: "/manage/assigned-rooms",
+          },
+        ]
+      : []),
+    {
+      icon: <ReportProblem />,
+      cls: "m-rose",
+      title: "Báo cáo sự cố",
+      desc: "Thông báo hư hỏng, mất mát",
+      path: "/report",
+    },
+  ];
+
+  const features = [
+    {
+      icon: <SearchOutlined />,
+      title: "Tra cứu Wiki thông minh",
+      desc: "Tìm kiếm nhanh chóng thông tin về hóa chất, vật tư, dụng cụ thí nghiệm. Hệ thống cung cấp hướng dẫn sử dụng chi tiết, cảnh báo an toàn và thông số kỹ thuật đầy đủ.",
+      illustration: <WikiIllustration />,
+      color: "feat-indigo",
+      path: "/wiki",
+    },
+    {
+      icon: <EventAvailable />,
+      title: "Đặt phòng Lab trực tuyến",
+      desc: "Đăng ký sử dụng phòng thí nghiệm theo ca một cách dễ dàng. Xem lịch trống, chọn thời gian phù hợp và nhận xác nhận tự động từ hệ thống.",
+      illustration: <BookingIllustration />,
+      color: "feat-teal",
+      path: "/borrow/room",
+    },
+    {
+      icon: <Science />,
+      title: "Mượn hóa chất & vật tư",
+      desc: "Tạo phiếu mượn hóa chất, dụng cụ thí nghiệm trực tuyến. Theo dõi trạng thái phiếu mượn theo thời gian thực, nhận thông báo khi phiếu được duyệt.",
+      illustration: <ChemIllustration />,
+      color: "feat-amber",
+      path: "/borrow/chemical",
+    },
+  ];
+
+  const steps = [
+    {
+      icon: <Login />,
+      num: "01",
+      title: "Đăng nhập",
+      desc: "Truy cập hệ thống bằng tài khoản trường",
+    },
+    {
+      icon: <ListAlt />,
+      num: "02",
+      title: "Chọn dịch vụ",
+      desc: "Đặt phòng hoặc mượn hóa chất, vật tư",
+    },
+    {
+      icon: <AssignmentTurnedIn />,
+      num: "03",
+      title: "Tạo phiếu",
+      desc: "Điền thông tin và gửi yêu cầu mượn",
+    },
+    {
+      icon: <VerifiedUser />,
+      num: "04",
+      title: "Nhận duyệt",
+      desc: "Theo dõi và nhận kết quả phê duyệt",
+    },
+  ];
+
   return (
-    <div className="ud-wrapper">
-      <div className="ud-hero-banner">
-        <div className="ud-hero-content">
-          <div className="ud-hero-eyebrow">Hệ thống đang hoạt động</div>
-          <h1 className="ud-hero-title">Trung tâm Tri thức LabLab</h1>
-          <p className="ud-hero-subtitle">
-            Nền tảng tra cứu thông tin, đặt vé mượn theo ca và quản lý vật tư
-            thí nghiệm thời gian thực.
-          </p>
-          <button className="ud-hero-btn" onClick={() => navigate("/wiki")}>
-            <MenuBook fontSize="small" /> Truy cập Wiki
-          </button>
+    <div className="dash">
+      <div className="dash-inner">
+        {/* ═══════════════════════════════════
+            HERO SECTION
+            ═══════════════════════════════════ */}
+        <section className="dash-hero dash-anim">
+          <div className="dash-hero-pattern" />
+          <div className="dash-hero-content">
+            <div className="dash-hero-eyebrow">
+              <span className="live-dot" />
+              Hệ thống đang hoạt động
+            </div>
+            <h1>
+              {greet},{" "}
+              <span className="user-name">{user?.username || "bạn"}</span> 👋
+            </h1>
+            <p className="dash-hero-desc">
+              Nền tảng quản lý phòng thí nghiệm thông minh — đặt lịch mượn theo
+              ca, tra cứu thông tin vật tư và theo dõi phiếu mượn thời gian
+              thực.
+            </p>
+            <div className="dash-hero-btns">
+              <button
+                className="dash-hero-btn accent"
+                onClick={() => navigate("/wiki")}
+              >
+                <MenuBook style={{ fontSize: 18 }} /> Truy cập Wiki
+              </button>
+              <button
+                className="dash-hero-btn ghost"
+                onClick={() => navigate("/my-tickets")}
+              >
+                <TrackChanges style={{ fontSize: 18 }} /> Phiếu của tôi
+              </button>
+            </div>
+          </div>
+          <div className="dash-hero-image">
+            <img src={labHeroImg} alt="Laboratory illustration" />
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════
+            FEATURE HIGHLIGHTS
+            ═══════════════════════════════════ */}
+        <section className="dash-features-section dash-anim da-2">
+          <div className="dash-features-header">
+            <span className="dash-section-chip">Tính năng nổi bật</span>
+            <h2>Mọi thứ bạn cần, chỉ trong một nền tảng</h2>
+            <p>
+              Quản lý phòng thí nghiệm chưa bao giờ dễ dàng đến thế. Trải nghiệm
+              các tính năng được thiết kế dành riêng cho giảng viên và sinh
+              viên.
+            </p>
+          </div>
+          <div className="dash-features-grid">
+            {features.map((f, i) => (
+              <div
+                key={f.title}
+                className={`dash-feature-card ${f.color} dash-anim da-${i + 3}`}
+                onClick={() => navigate(f.path)}
+              >
+                <div className="feat-card-top">
+                  <div className="feat-icon-wrap">{f.icon}</div>
+                  <h3>{f.title}</h3>
+                  <p>{f.desc}</p>
+                </div>
+                <div className="feat-card-illust">{f.illustration}</div>
+                <div className="feat-card-link">
+                  Khám phá ngay <ArrowForward style={{ fontSize: 16 }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════
+            HOW IT WORKS
+            ═══════════════════════════════════ */}
+        <section className="dash-how-section dash-anim da-4">
+          <div className="dash-features-header">
+            <span className="dash-section-chip">Quy trình sử dụng</span>
+            <h2>Bắt đầu chỉ với 4 bước đơn giản</h2>
+            <p>
+              Từ đăng nhập đến hoàn tất mượn — mọi thứ được tối ưu cho sự tiện
+              lợi tối đa.
+            </p>
+          </div>
+          <div className="dash-how-steps">
+            {steps.map((st, i) => (
+              <div
+                key={st.num}
+                className={`dash-how-step dash-anim da-${i + 3}`}
+              >
+                <div className="how-step-num">{st.num}</div>
+                <div className="how-step-icon">{st.icon}</div>
+                <h4>{st.title}</h4>
+                <p>{st.desc}</p>
+                {i < steps.length - 1 && <div className="how-step-connector" />}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════
+            MODULE CARDS
+            ═══════════════════════════════════ */}
+        <h2 className="dash-sec-title dash-anim da-3">Chức năng chính</h2>
+        <div className="dash-modules">
+          {modules.map((m, i) => (
+            <div
+              key={m.title}
+              className={`dash-module ${m.cls} dash-anim da-${Math.min(i + 3, 6)}`}
+              onClick={() => navigate(m.path)}
+            >
+              <div className="dash-module-icon">{m.icon}</div>
+              <div>
+                <h3>{m.title}</h3>
+                <p>{m.desc}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* ── Section 01: Đăng ký mượn mới ── */}
-      <div className="ud-section-header">
-        <span className="ud-section-number">01</span>
-        <h2 className="ud-section-title">Đăng ký mượn mới</h2>
-        <div className="ud-section-line" />
-      </div>
-
-      <Grid container spacing={3} mb={6}>
-        <Grid size={{ xs: 12, sm: 6, md: gridCol }}>
-          <div
-            className="ud-action-card room"
-            onClick={() => navigate("/borrow/room")}
-          >
-            <div className="ud-icon-wrapper room">
-              <MeetingRoom fontSize="large" />
-            </div>
-            <div className="ud-action-info">
-              <h3>Đăng Ký Phòng</h3>
-              <p>Đặt lịch sử dụng phòng Lab</p>
-            </div>
-          </div>
-        </Grid>
-
-        <Grid size={{ xs: 12, sm: 6, md: gridCol }}>
-          <div
-            className="ud-action-card chemical"
-            onClick={() => navigate("/borrow/chemical")}
-          >
-            <div className="ud-icon-wrapper chemical">
-              <Science fontSize="large" />
-            </div>
-            <div className="ud-action-info">
-              <h3>Mượn Hóa Chất</h3>
-              <p>Đăng ký vật tư & dụng cụ</p>
-            </div>
-          </div>
-        </Grid>
-
-        <Grid size={{ xs: 12, sm: 6, md: gridCol }}>
-          <div
-            className="ud-action-card track"
-            onClick={() => navigate("/my-tickets")}
-          >
-            <div className="ud-icon-wrapper track">
-              <TrackChanges fontSize="large" />
-            </div>
-            <div className="ud-action-info">
-              <h3>Phiếu Của Tôi</h3>
-              <p>Theo dõi & lịch sử mượn</p>
-            </div>
-          </div>
-        </Grid>
-
-        {isTeacher && (
-          <Grid size={{ xs: 12, sm: 6, md: gridCol }}>
-            <div
-              className="ud-action-card manage"
-              onClick={() => navigate("/manage/assigned-rooms")}
+      {/* ═══════════════════════════════════
+          CTA SECTION
+          ═══════════════════════════════════ */}
+      <section className="dash-cta">
+        <div className="dash-cta-orb dash-cta-orb-1" />
+        <div className="dash-cta-orb dash-cta-orb-2" />
+        <div className="dash-cta-inner">
+          <RocketLaunch style={{ fontSize: 40, opacity: 0.9 }} />
+          <h2>Sẵn sàng bắt đầu?</h2>
+          <p>
+            Đăng ký phòng, mượn hóa chất, tra cứu thông tin — tất cả chỉ trong
+            vài cú click. Hệ thống LabLab luôn sẵn sàng hỗ trợ bạn.
+          </p>
+          <div className="dash-cta-btns">
+            <button
+              className="dash-cta-btn primary"
+              onClick={() => navigate("/borrow/room")}
             >
-              <div className="ud-icon-wrapper manage">
-                <SupervisorAccount fontSize="large" />
+              <MeetingRoom style={{ fontSize: 18 }} /> Đặt phòng ngay
+            </button>
+            <button
+              className="dash-cta-btn secondary"
+              onClick={() => navigate("/borrow/chemical")}
+            >
+              <Science style={{ fontSize: 18 }} /> Mượn hóa chất
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════
+          FOOTER
+          ═══════════════════════════════════ */}
+      <footer className="dash-footer">
+        <div className="dash-footer-inner">
+          <div className="dash-footer-grid">
+            {/* Brand */}
+            <div className="footer-brand">
+              <div className="footer-logo">
+                <ScienceOutlined style={{ fontSize: 24, color: "#60a5fa" }} />
+                <span>
+                  Lab<em>Lab</em>.
+                </span>
               </div>
-              <div className="ud-action-info">
-                <h3>Quản Lý Phòng</h3>
-                <p>Duyệt yêu cầu sinh viên</p>
-              </div>
+              <p>
+                Nền tảng quản lý phòng thí nghiệm trực tuyến dành cho trường đại
+                học. Tối ưu hóa quy trình mượn phòng, hóa chất và vật tư thí
+                nghiệm.
+              </p>
             </div>
-          </Grid>
-        )}
 
-        <Grid size={{ xs: 12, sm: 6, md: gridCol }}>
-          <div
-            className="ud-action-card report"
-            onClick={() => navigate("/report")}
-          >
-            <div className="ud-icon-wrapper report">
-              <ReportProblem fontSize="large" />
+            {/* Quick Links */}
+            <div className="footer-col">
+              <h4>Truy cập nhanh</h4>
+              <ul>
+                <li onClick={() => navigate("/")}>Trang chủ</li>
+                <li onClick={() => navigate("/wiki")}>Wiki & Tra cứu</li>
+                <li onClick={() => navigate("/my-tickets")}>Phiếu của tôi</li>
+                <li onClick={() => navigate("/borrow-history")}>
+                  Lịch sử mượn
+                </li>
+              </ul>
             </div>
-            <div className="ud-action-info">
-              <h3>Báo Cáo Sự Cố</h3>
-              <p>Hư hỏng, mất mát thiết bị</p>
+
+            {/* Features */}
+            <div className="footer-col">
+              <h4>Tính năng</h4>
+              <ul>
+                <li onClick={() => navigate("/borrow/room")}>Đặt phòng Lab</li>
+                <li onClick={() => navigate("/borrow/chemical")}>
+                  Mượn hóa chất
+                </li>
+                <li onClick={() => navigate("/profile")}>Hồ sơ cá nhân</li>
+                <li onClick={() => navigate("/notifications")}>Thông báo</li>
+              </ul>
+            </div>
+
+            {/* Contact */}
+            <div className="footer-col">
+              <h4>Liên hệ</h4>
+              <ul className="footer-contact">
+                <li>
+                  <Email style={{ fontSize: 15 }} /> lablab@university.edu.vn
+                </li>
+                <li>
+                  <Phone style={{ fontSize: 15 }} /> (028) 1234-5678
+                </li>
+                <li>
+                  <LocationOn style={{ fontSize: 15 }} /> TP. Hồ Chí Minh, Việt
+                  Nam
+                </li>
+              </ul>
             </div>
           </div>
-        </Grid>
-      </Grid>
 
-      {/* ── Section 02: Tổng quan cá nhân ── */}
-      <div className="ud-section-header">
-        <span className="ud-section-number">02</span>
-        <h2 className="ud-section-title">Tổng quan cá nhân</h2>
-        <div className="ud-section-line" />
-      </div>
-
-      <Grid container spacing={3} mb={6}>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <div className="ud-stat-card">
-            <div className="ud-stat-top">
-              <span className="ud-stat-label">Đang mượn</span>
-              <div className="ud-stat-badge borrow">
-                <Inventory fontSize="small" />
-              </div>
-            </div>
-            <div className="ud-stat-value">
-              {statsLoading ? "..." : stats.borrowed}
-            </div>
-            <div className="ud-stat-trend">Ca mượn đang diễn ra</div>
+          <div className="dash-footer-divider" />
+          <div className="dash-footer-bottom">
+            <p>
+              © {new Date().getFullYear()} LabLab. Được phát triển bởi đội ngũ
+              sinh viên.
+            </p>
+            <p className="footer-credits">
+              Phiên bản 1.0 — Quản lý phòng thí nghiệm
+            </p>
           </div>
-        </Grid>
-
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <div className="ud-stat-card">
-            <div className="ud-stat-top">
-              <span className="ud-stat-label">Chờ duyệt</span>
-              <div className="ud-stat-badge pending">
-                <History fontSize="small" />
-              </div>
-            </div>
-            <div className="ud-stat-value">
-              {statsLoading ? "..." : stats.pending}
-            </div>
-            <div className="ud-stat-trend">Yêu cầu đang chờ duyệt</div>
-          </div>
-        </Grid>
-
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <div className="ud-stat-card">
-            <div className="ud-stat-top">
-              <span className="ud-stat-label">Chờ xác nhận trả</span>
-              <div className="ud-stat-badge pending-return">
-                <AssignmentReturn fontSize="small" />
-              </div>
-            </div>
-            <div className="ud-stat-value">
-              {statsLoading ? "..." : stats.pendingReturn}
-            </div>
-            <div className="ud-stat-trend">Đang chờ giáo viên xác nhận</div>
-          </div>
-        </Grid>
-
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <div className="ud-stat-card">
-            <div className="ud-stat-top">
-              <span className="ud-stat-label">Hoàn tất</span>
-              <div className="ud-stat-badge returned">
-                <CheckCircle fontSize="small" />
-              </div>
-            </div>
-            <div className="ud-stat-value">
-              {statsLoading ? "..." : stats.returned}
-            </div>
-            <div className="ud-stat-trend">Lịch sử trả đồ an toàn</div>
-          </div>
-        </Grid>
-      </Grid>
-
-      {/* ── Section 03: Lịch trình mượn hiện tại ── */}
-      <div className="ud-section-header">
-        <span className="ud-section-number">03</span>
-        <h2 className="ud-section-title">Lịch trình mượn hiện tại</h2>
-        <div className="ud-section-line" />
-      </div>
-
-      <div className="ud-table-wrapper">
-        {tableLoading ? (
-          <div
-            style={{ padding: "2rem", textAlign: "center", color: "#94a3b8" }}
-          >
-            Đang tải...
-          </div>
-        ) : activeTickets.length === 0 ? (
-          <div
-            style={{
-              padding: "3rem",
-              textAlign: "center",
-              color: "#94a3b8",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "0.5rem",
-            }}
-          >
-            <InboxOutlined style={{ fontSize: 40, opacity: 0.4 }} />
-            <span>Không có phiếu nào đang xử lý</span>
-          </div>
-        ) : (
-          <table className="ud-table">
-            <thead>
-              <tr>
-                <th>Loại phiếu</th>
-                <th>Phòng Lab</th>
-                <th>Môn học</th>
-                <th>Ngày mượn</th>
-                <th>Dự kiến trả</th>
-                <th>Trạng Thái</th>
-                <th>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {activeTickets.map((ticket) => {
-                const statusInfo = TICKET_STATUS_MAP[ticket.status] || {};
-                const typeInfo = TICKET_TYPE_MAP[ticket.ticketType] || {};
-
-                return (
-                  <tr key={ticket.ticketId}>
-                    <td>
-                      <span
-                        className={`ud-type-badge ${
-                          ticket.ticketType === "ROOM_ONLY"
-                            ? "room"
-                            : "chemical"
-                        }`}
-                      >
-                        {typeInfo.short || ticket.ticketType}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="ud-item-name">
-                        {ticket.roomName || "—"}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="ud-item-desc">
-                        {ticket.subject}
-                        {ticket.classCode ? ` — ${ticket.classCode}` : ""}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="ud-date-item">
-                        <CalendarToday fontSize="small" />
-                        {formatDate(ticket.borrowDate)}
-                      </div>
-                    </td>
-                    <td>
-                      <div className="ud-date-item">
-                        <CalendarToday fontSize="small" />
-                        {formatDate(ticket.expectedReturnDate)}
-                      </div>
-                    </td>
-                    <td>
-                      <span
-                        className={`ud-status-chip ${statusInfo.cls || ""}`}
-                      >
-                        {statusInfo.label || ticket.status}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="ud-action-btns">
-                        <button
-                          className="ud-btn-small primary"
-                          onClick={() => navigate("/my-tickets")}
-                        >
-                          Xem chi tiết
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </div>
+        </div>
+      </footer>
     </div>
   );
 }
