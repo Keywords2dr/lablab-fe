@@ -39,6 +39,9 @@ import BorrowHistoryPage from "./pages/mytickets/BorrowHistoryPage";
 import MainLayout from "./components/layouts/MainLayout";
 import AdminLayout from "./components/layouts/AdminLayout";
 
+// --- 404 ---
+import NotFoundPage from "./pages/notfound/NotFoundPage";
+
 const theme = createTheme({
   palette: {
     primary: { main: "#1976d2" },
@@ -104,14 +107,7 @@ function App() {
           </Route>
 
           {/* 404 Page */}
-          <Route
-            path="*"
-            element={
-              <div style={{ padding: "40px", textAlign: "center" }}>
-                404 - Trang không tồn tại
-              </div>
-            }
-          />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

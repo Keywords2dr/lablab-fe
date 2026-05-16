@@ -38,7 +38,13 @@ export default function MainLayout() {
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [openPassword, setOpenPassword] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [loadingPassword, setLoadingPassword] = useState(false);
+
+  const [showPassword, setShowPassword] = useState({
+    old: false,
+    new: false,
+    confirm: false,
+  });
 
   const [passData, setPassData] = useState({
     old: "",
@@ -46,8 +52,15 @@ export default function MainLayout() {
     confirm: "",
   });
 
-  const handleLogout = () => {
+  const handleCloseMenu = () => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    handleCloseMenu();
     logout();
     navigate("/login");
   };
@@ -55,14 +68,19 @@ export default function MainLayout() {
   const closePasswordModal = () => {
     setOpenPassword(false);
     setPassData({ old: "", new: "", confirm: "" });
-    setShowPassword(false);
+    setShowPassword({ old: false, new: false, confirm: false });
   };
 
   const handleChangePassword = async () => {
     const { old, new: newPass, confirm } = passData;
-    if (!old || !newPass || !confirm) return toast.warning("Vui lòng nhập đầy đủ!");
-    if (newPass !== confirm) return toast.warning("Mật khẩu không khớp!");
+    if (!old || !newPass || !confirm)
+      return toast.warning("Vui lòng nhập đầy đủ!");
+    if (newPass === old)
+      return toast.warning("Mật khẩu mới không được trùng với mật khẩu cũ!");
+    if (newPass !== confirm)
+      return toast.warning("Mật khẩu xác nhận không khớp!");
 
+    setLoadingPassword(true);
     try {
       await userApi.changePassword({
         oldPassword: old,
@@ -73,7 +91,13 @@ export default function MainLayout() {
       closePasswordModal();
     } catch (err) {
       toast.error(err.response?.data?.message || "Đổi mật khẩu thất bại!");
+    } finally {
+      setLoadingPassword(false);
     }
+  };
+
+  const toggleShow = (field) => {
+    setShowPassword((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
   return (
@@ -111,22 +135,39 @@ export default function MainLayout() {
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
-        onClose={() => setAnchorEl(null)}
+        onClose={handleCloseMenu}
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
         transformOrigin={{ horizontal: "right", vertical: "top" }}
+        disableScrollLock
       >
-        <MenuItem onClick={() => { setAnchorEl(null); navigate("/profile"); }}>
-          <ListItemIcon><Person fontSize="small" /></ListItemIcon>
+        <MenuItem
+          onClick={() => {
+            handleCloseMenu();
+            navigate("/profile");
+          }}
+        >
+          <ListItemIcon>
+            <Person fontSize="small" />
+          </ListItemIcon>
           Hồ sơ cá nhân
         </MenuItem>
 
-        <MenuItem onClick={() => { setAnchorEl(null); setOpenPassword(true); }}>
-          <ListItemIcon><Lock fontSize="small" /></ListItemIcon>
+        <MenuItem
+          onClick={() => {
+            handleCloseMenu();
+            setOpenPassword(true);
+          }}
+        >
+          <ListItemIcon>
+            <Lock fontSize="small" />
+          </ListItemIcon>
           Đổi mật khẩu
         </MenuItem>
 
         <MenuItem onClick={handleLogout} sx={{ color: "error.main" }}>
-          <ListItemIcon><Logout fontSize="small" color="error" /></ListItemIcon>
+          <ListItemIcon>
+            <Logout fontSize="small" color="error" />
+          </ListItemIcon>
           Đăng xuất
         </MenuItem>
       </Menu>
@@ -135,30 +176,50 @@ export default function MainLayout() {
       <Dialog open={openPassword} onClose={closePasswordModal}>
         <DialogTitle>Đổi mật khẩu</DialogTitle>
         <DialogContent>
-          {["old", "new", "confirm"].map((field, index) => (
+          {["old", "new", "confirm"].map((field) => (
             <TextField
               key={field}
               fullWidth
-              label={field === "old" ? "Mật khẩu cũ" : field === "new" ? "Mật khẩu mới" : "Xác nhận mật khẩu"}
+              label={
+                field === "old"
+                  ? "Mật khẩu cũ"
+                  : field === "new"
+                    ? "Mật khẩu mới"
+                    : "Xác nhận mật khẩu"
+              }
               margin="normal"
-              type={showPassword && index !== 0 ? "text" : "password"}
+              type={showPassword[field] ? "text" : "password"}
               value={passData[field]}
-              onChange={(e) => setPassData({ ...passData, [field]: e.target.value })}
-              InputProps={{
-                endAdornment: index !== 0 && (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPassword(!showPassword)}>
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
+              onChange={(e) =>
+                setPassData({ ...passData, [field]: e.target.value })
+              }
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => toggleShow(field)} edge="end">
+                        {showPassword[field] ? (
+                          <VisibilityOff />
+                        ) : (
+                          <Visibility />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
           ))}
         </DialogContent>
         <DialogActions>
           <Button onClick={closePasswordModal}>Hủy</Button>
-          <Button variant="contained" onClick={handleChangePassword}>Xác nhận</Button>
+          <Button
+            variant="contained"
+            onClick={handleChangePassword}
+            disabled={loadingPassword}
+          >
+            {loadingPassword ? "Đang xử lý..." : "Xác nhận"}
+          </Button>
         </DialogActions>
       </Dialog>
     </div>

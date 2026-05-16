@@ -1,0 +1,124 @@
+.notfound-root {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f4ff;
+  position: relative;
+  overflow: hidden;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* Animated background bubbles */
+.notfound-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.bubble {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.18;
+  animation: float 8s ease-in-out infinite;
+}
+
+.b1 {
+  width: 340px;
+  height: 340px;
+  background: #2563eb;
+  top: -80px;
+  left: -80px;
+  animation-delay: 0s;
+}
+
+.b2 {
+  width: 220px;
+  height: 220px;
+  background: #60a5fa;
+  bottom: -60px;
+  right: 10%;
+  animation-delay: 2s;
+}
+
+.b3 {
+  width: 160px;
+  height: 160px;
+  background: #3b82f6;
+  top: 40%;
+  right: -40px;
+  animation-delay: 4s;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50%       { transform: translateY(-24px) scale(1.04); }
+}
+
+/* Card */
+.notfound-card {
+  position: relative;
+  z-index: 1;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 56px 64px;
+  text-align: center;
+  box-shadow: 0 8px 48px rgba(37, 99, 235, 0.12);
+  max-width: 460px;
+  width: 90%;
+  animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Flask icon */
+.notfound-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.flask-icon {
+  font-size: 64px !important;
+  color: #2563eb;
+  animation: wobble 3s ease-in-out infinite;
+}
+
+@keyframes wobble {
+  0%, 100% { transform: rotate(0deg); }
+  20%       { transform: rotate(-12deg); }
+  40%       { transform: rotate(10deg); }
+  60%       { transform: rotate(-6deg); }
+  80%       { transform: rotate(4deg); }
+}
+
+/* 404 number */
+.notfound-code {
+  font-size: 96px;
+  font-weight: 800;
+  line-height: 1;
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+  letter-spacing: -4px;
+}
+
+.notfound-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 12px;
+}
+
+.notfound-desc {
+  font-size: 0.95rem;
+  color: #64748b;
+  line-height: 1.7;
+  margin: 0 0 8px;
+}
