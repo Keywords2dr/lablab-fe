@@ -9,6 +9,105 @@ import SuppliesPanel from "./components/SuppliesPanel";
 import IncidentPanel from "./components/IncidentPanel";
 import { DetailModal, RejectModal } from "./components/Modals";
 
+function PageSkeleton() {
+  return (
+    <div className="trm-wrapper">
+      {/* RoomCard skeleton */}
+      <div
+        className="trm-room-card"
+        style={{
+          background: "linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%)",
+          minHeight: "120px",
+          borderRadius: "16px",
+          marginBottom: "16px",
+          animation: "trm-pulse 1.4s ease-in-out infinite",
+        }}
+      />
+
+      {/* TabNavigation skeleton */}
+      <div
+        style={{
+          display: "flex",
+          gap: "8px",
+          marginBottom: "16px",
+        }}
+      >
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            style={{
+              height: "42px",
+              width: "140px",
+              borderRadius: "10px",
+              background: "#e2e8f0",
+              animation: "trm-pulse 1.4s ease-in-out infinite",
+              animationDelay: `${i * 0.1}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Panel skeleton */}
+      <div
+        className="trm-panel"
+        style={{
+          padding: "24px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "14px",
+        }}
+      >
+        {/* Search bar skeleton */}
+        <div
+          style={{
+            height: "44px",
+            borderRadius: "10px",
+            background: "#e2e8f0",
+            animation: "trm-pulse 1.4s ease-in-out infinite",
+          }}
+        />
+        {/* Filter chips skeleton */}
+        <div style={{ display: "flex", gap: "8px" }}>
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              style={{
+                height: "32px",
+                width: "110px",
+                borderRadius: "999px",
+                background: "#e2e8f0",
+                animation: "trm-pulse 1.4s ease-in-out infinite",
+                animationDelay: `${i * 0.08}s`,
+              }}
+            />
+          ))}
+        </div>
+        {/* Table rows skeleton */}
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div
+            key={i}
+            style={{
+              height: "52px",
+              borderRadius: "8px",
+              background: i % 2 === 0 ? "#f1f5f9" : "#e2e8f0",
+              animation: "trm-pulse 1.4s ease-in-out infinite",
+              animationDelay: `${i * 0.07}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* CSS animation nhúng inline để không phụ thuộc file CSS */}
+      <style>{`
+        @keyframes trm-pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export default function TeacherRoomManagePage() {
   const {
     room,
@@ -47,19 +146,7 @@ export default function TeacherRoomManagePage() {
   } = useRoomManagement();
 
   if (initialLoading) {
-    return (
-      <div
-        className="trm-wrapper"
-        style={{
-          justifyContent: "center",
-          alignItems: "center",
-          display: "flex",
-          height: "100vh",
-        }}
-      >
-        <div className="trm-loading-spinner">Đang tải dữ liệu hệ thống...</div>
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   if (!room) {

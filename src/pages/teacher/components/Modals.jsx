@@ -9,9 +9,9 @@ import {
 } from "@mui/icons-material";
 import { rentTicketApi } from "../../../api/rentTicketApi";
 import { TICKET_STATUS_MAP } from "../hooks/useRoomManagement";
+import { toast } from "react-toastify";
 import "../styles/Modals.css";
 
-// Map trạng thái trả từng item hóa chất
 const RETURN_STATUS_MAP = {
   RETURNED: { label: "Đã trả đủ", color: "#059669" },
   PARTIAL: { label: "Trả thiếu", color: "#f59e0b" },
@@ -40,7 +40,6 @@ export function DetailModal({
   const isChemical = detailItem.ticketType === "CHEMICAL_ONLY";
   const isRoom = detailItem.ticketType === "ROOM_ONLY";
 
-  // Hiển thị thông tin trả khi status là PENDING_RETURN hoặc RETURNED
   const showReturnInfo = ["PENDING_RETURN", "RETURNED"].includes(
     detailItem.status,
   );
@@ -51,10 +50,11 @@ export function DetailModal({
       await rentTicketApi.teacherApprove(detailItem.ticketId, {
         approved: true,
       });
+      toast.success("Đã duyệt phiếu thành công!");
       refreshData();
       setDetailItem(null);
     } catch (error) {
-      alert(error.response?.data?.message || "Lỗi khi duyệt phiếu!");
+      toast.error(error.response?.data?.message || "Lỗi khi duyệt phiếu!");
     } finally {
       setLoadingAction(null);
     }
@@ -64,10 +64,11 @@ export function DetailModal({
     setLoadingAction("ACTIVATE");
     try {
       await rentTicketApi.activateTicket(detailItem.ticketId);
+      toast.success("Bàn giao thành công!");
       refreshData();
       setDetailItem(null);
     } catch (error) {
-      alert(error.response?.data?.message || "Lỗi khi bàn giao!");
+      toast.error(error.response?.data?.message || "Lỗi khi bàn giao!");
     } finally {
       setLoadingAction(null);
     }
@@ -77,10 +78,11 @@ export function DetailModal({
     setLoadingAction("RETURN");
     try {
       await rentTicketApi.confirmReturn(detailItem.ticketId);
+      toast.success("Đã xác nhận nhận đồ thành công!");
       refreshData();
       setDetailItem(null);
     } catch (error) {
-      alert(error.response?.data?.message || "Lỗi khi xác nhận trả!");
+      toast.error(error.response?.data?.message || "Lỗi khi xác nhận trả!");
     } finally {
       setLoadingAction(null);
     }
@@ -143,11 +145,6 @@ export function DetailModal({
               </span>
             </div>
             <div className="trm-detail-item bg-orange">
-              {/*
-                FIX 1: Label "Sử dụng tại phòng" chỉ đúng với phiếu phòng.
-                Với hóa chất, người mượn lấy hóa chất từ kho của phòng này
-                nhưng có thể dùng ở nơi khác → đổi thành "Lấy từ kho phòng".
-              */}
               <span className="trm-detail-label">
                 {isRoom ? "Sử dụng tại phòng" : "Lấy từ kho phòng"}
               </span>
@@ -296,11 +293,6 @@ export function DetailModal({
             </div>
           )}
 
-          {/*
-            FIX 2: Bảng thông tin trả — chỉ hiện khi PENDING_RETURN hoặc RETURNED.
-            Hiển thị số lượng thực trả, trạng thái trả và ghi chú từng item
-            mà người mượn đã gửi lên khi yêu cầu trả.
-          */}
           {showReturnInfo &&
             isChemical &&
             detailItem.items &&
@@ -520,11 +512,12 @@ export function RejectModal({ rejectTarget, setRejectTarget, refreshData }) {
         approved: false,
         rejectedReason: rejectNote,
       });
+      toast.success("Đã từ chối phiếu!");
       refreshData();
       setRejectTarget(null);
       setRejectNote("");
     } catch (error) {
-      alert(error.response?.data?.message || "Lỗi khi từ chối!");
+      toast.error(error.response?.data?.message || "Lỗi khi từ chối!");
     } finally {
       setIsSubmitting(false);
     }

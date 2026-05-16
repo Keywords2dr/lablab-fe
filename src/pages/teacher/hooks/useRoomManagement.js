@@ -36,22 +36,23 @@ export function useRoomManagement() {
   const [totalPages, setTotalPages] = useState(0);
   const [pendingCount, setPendingCount] = useState(0);
 
+  // initialLoading: true cho đến khi CẢ danh sách phòng lẫn chi tiết phòng đầu tiên đã sẵn sàng.
+  // Tránh flash "bạn chưa có phòng" do room=null trong khoảng giữa 2 useEffect cũ.
   const [initialLoading, setInitialLoading] = useState(true);
   const [tableLoading, setTableLoading] = useState(false);
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [search, setSearch] = useState("");
 
-  // Chi tiết phiếu
   const [detailItem, setDetailItem] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
-  // Từ điển hóa chất
   const [chemicalDict, setChemicalDict] = useState({});
 
   const [rejectTarget, setRejectTarget] = useState(null);
   const [newIncident, setNewIncident] = useState({ device: "", desc: "" });
   const [incidentSent, setIncidentSent] = useState(false);
 
+  // ─── Fetch hóa chất dictionary (chạy song song, không block UI) ───────────
   useEffect(() => {
     const fetchChemicalDictionary = async () => {
       try {
@@ -75,28 +76,63 @@ export function useRoomManagement() {
     fetchChemicalDictionary();
   }, []);
 
+  // ─── FIX: Gộp fetchManagedRooms + fetchRoomDetail vào 1 luồng ────────────
+  // Trước đây: fetchManagedRooms xong → setInitialLoading(false) → room vẫn null
+  // → render "bạn chưa có phòng" → fetchRoomDetail mới chạy → setRoom → render lại.
+  // Giờ: chỉ setInitialLoading(false) sau khi cả 2 bước đều hoàn tất.
   useEffect(() => {
-    const fetchManagedRooms = async () => {
+    const bootstrap = async () => {
       setInitialLoading(true);
       try {
+        // Bước 1: lấy danh sách phòng quản lý
         const res = await roomApi.getMyManagedRooms();
-        if (res.data && res.data.length > 0) {
-          setManagedRooms(res.data);
-          const firstId =
-            res.data[0].roomId || res.data[0].room?.roomId || res.data[0].id;
-          setSelectedRoomId(firstId);
+        if (!res.data || res.data.length === 0) {
+          // Không có phòng nào → tắt loading, để UI hiện thông báo đúng
+          setInitialLoading(false);
+          return;
         }
+
+        const rooms = res.data;
+        setManagedRooms(rooms);
+        const firstId = rooms[0].roomId || rooms[0].room?.roomId || rooms[0].id;
+        setSelectedRoomId(firstId);
+
+        // Bước 2: lấy chi tiết phòng đầu tiên ngay trong cùng luồng
+        // → room có giá trị trước khi initialLoading tắt
+        const roomDetailRes = await roomApi.getRoomById(firstId);
+        const roomData = roomDetailRes.data;
+        setRoom({
+          id: roomData.roomId,
+          name: roomData.roomName,
+          status: roomData.isActive ? "AVAILABLE" : "MAINTENANCE",
+          description:
+            roomData.description || "Chưa có mô tả chi tiết cho phòng Lab này.",
+        });
+        setSuppliesPage(0);
       } catch (error) {
         console.error(error);
       } finally {
+        // Chỉ tắt loading sau khi cả 2 bước xong
         setInitialLoading(false);
       }
     };
-    fetchManagedRooms();
+
+    bootstrap();
   }, []);
 
+  // ─── Khi người dùng chọn phòng khác từ dropdown ──────────────────────────
+  // useEffect riêng, chỉ chạy khi selectedRoomId thay đổi SAU lần mount đầu.
+  // Lần mount đầu đã được xử lý trong bootstrap() rồi nên dùng ref để bỏ qua.
+  const [isFirstMount, setIsFirstMount] = useState(true);
+
   useEffect(() => {
+    if (isFirstMount) {
+      // Bỏ qua lần render đầu tiên — bootstrap() đã xử lý
+      setIsFirstMount(false);
+      return;
+    }
     if (!selectedRoomId) return;
+
     const fetchRoomDetail = async () => {
       try {
         const roomDetailRes = await roomApi.getRoomById(selectedRoomId);
@@ -113,9 +149,12 @@ export function useRoomManagement() {
         console.error(error);
       }
     };
+
     fetchRoomDetail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRoomId]);
 
+  // ─── Fetch vật tư ─────────────────────────────────────────────────────────
   const fetchSupplies = useCallback(async () => {
     if (!selectedRoomId) return;
     try {
@@ -141,6 +180,7 @@ export function useRoomManagement() {
     fetchSupplies();
   }, [fetchSupplies]);
 
+  // ─── Fetch phiếu mượn ─────────────────────────────────────────────────────
   const fetchTickets = useCallback(async () => {
     setTableLoading(true);
     try {
@@ -168,6 +208,7 @@ export function useRoomManagement() {
     fetchTickets();
   }, [fetchTickets]);
 
+  // ─── Handlers ─────────────────────────────────────────────────────────────
   const handleOpenDetail = async (ticket) => {
     setLoadingDetail(true);
     setDetailItem(ticket);

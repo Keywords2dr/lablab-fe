@@ -24,52 +24,76 @@ export function useRoomRent() {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const pageSize = 10;
-  const abortRef = useRef(null);
+  const abortRoomsRef = useRef(null);
+  const abortStaffRef = useRef(null);
 
+  // ── Fetch rooms fast (no staff), then load staff in background ─────────────
   const fetchRooms = useCallback(async () => {
-    if (abortRef.current) abortRef.current.abort();
+    // Hủy cả 2 batch cũ
+    if (abortRoomsRef.current) abortRoomsRef.current.abort();
+    if (abortStaffRef.current) abortStaffRef.current.abort();
+
     const ctrl = new AbortController();
-    abortRef.current = ctrl;
+    abortRoomsRef.current = ctrl;
 
     setLoadingRooms(true);
     try {
       const res = await roomApi.getRooms(
         { keyword: roomSearch.trim(), status: "active", page, size: pageSize },
-        ctrl.signal
+        ctrl.signal,
       );
 
-      const rawData = res.data?.content || res.data || [];
+      if (ctrl.signal.aborted) return;
+
+      const rawData = res.data?.content ?? res.data ?? [];
       const rawRooms = Array.isArray(rawData) ? rawData : [];
-      setTotalPages(res.data?.totalPages || 0);
+      setTotalPages(res.data?.totalPages ?? 0);
 
-      const enrichedRooms = await Promise.all(
-        rawRooms.map(async (room) => {
-          const rId = room.id || room._id || room.roomId;
-          if (!rId) return room;
-          try {
-            const staffRes = await roomApi.getRoomStaff(rId);
-            const staffList = staffRes.data || [];
-            const managerName =
-              staffList.length > 0
-                ? staffList.map((s) => s.fullName || s.name || s.username).join(", ")
-                : null;
-            return { ...room, id: rId, managerName };
-          } catch {
-            return { ...room, id: rId, managerName: null };
-          }
-        })
-      );
-
-      setRooms(enrichedRooms);
-    } catch (err) {
-      if (err?.name !== "CanceledError") setRooms([]);
-    } finally {
+      const mapped = rawRooms.map((room) => ({
+        ...room,
+        id: room.id ?? room._id ?? room.roomId,
+        managerName: null,
+      }));
+      setRooms(mapped);
       setLoadingRooms(false);
+
+      if (mapped.length === 0) return;
+
+      const staffCtrl = new AbortController();
+      abortStaffRef.current = staffCtrl;
+
+      for (const room of mapped) {
+        if (staffCtrl.signal.aborted) break;
+        try {
+          const staffRes = await roomApi.getRoomStaff(room.id);
+          if (staffCtrl.signal.aborted) break;
+          const staffList = staffRes.data ?? [];
+          const managerName =
+            staffList.length > 0
+              ? staffList
+                  .map((s) => s.fullName ?? s.name ?? s.username)
+                  .join(", ")
+              : "";
+          setRooms((prev) =>
+            prev.map((r) => (r.id === room.id ? { ...r, managerName } : r)),
+          );
+          setSelectedRoom((prev) =>
+            prev?.id === room.id ? { ...prev, managerName } : prev,
+          );
+        } catch {
+          // bỏ qua lỗi từng phòng, tiếp tục
+        }
+      }
+    } catch (err) {
+      if (err?.name !== "CanceledError" && err?.code !== "ERR_CANCELED") {
+        setRooms([]);
+        setLoadingRooms(false);
+      }
     }
   }, [roomSearch, page]);
 
   useEffect(() => {
-    const t = setTimeout(fetchRooms, 350);
+    const t = setTimeout(fetchRooms, 300);
     return () => clearTimeout(t);
   }, [fetchRooms]);
 
@@ -77,13 +101,14 @@ export function useRoomRent() {
     setPage(0);
   }, [roomSearch]);
 
+  // ── Step / form state ──────────────────────────────────────────────────────
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [submitDone, setSubmitDone] = useState(false);
   const [submitError, setSubmitError] = useState(null);
 
   const INITIAL_FORM = {
-    ticketType: autoTicketType, 
+    ticketType: autoTicketType,
     purposeType: "TEACHING",
     subjectName: "",
     classCode: "",
@@ -106,11 +131,13 @@ export function useRoomRent() {
     if (!form.borrowDate) e.borrowDate = "Vui lòng chọn ngày giờ mượn.";
     if (!form.expectedReturnDate)
       e.expectedReturnDate = "Vui lòng chọn ngày giờ trả.";
-    
-    if (form.borrowDate && form.expectedReturnDate && form.expectedReturnDate <= form.borrowDate) {
+    if (
+      form.borrowDate &&
+      form.expectedReturnDate &&
+      form.expectedReturnDate <= form.borrowDate
+    ) {
       e.expectedReturnDate = "Thời gian trả dự kiến phải sau thời gian mượn.";
     }
-
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -119,8 +146,11 @@ export function useRoomRent() {
     if (step === 1 && selectedRoom) setStep(2);
     else if (step === 2 && validate()) setStep(3);
   };
-  
-  const goBack = () => { setSubmitError(null); setStep((s) => s - 1); };
+
+  const goBack = () => {
+    setSubmitError(null);
+    setStep((s) => s - 1);
+  };
 
   const handleSubmit = async () => {
     setSubmitting(true);
@@ -140,10 +170,14 @@ export function useRoomRent() {
 
       await rentTicketApi.createTicket(payload);
       setSubmitDone(true);
+      return { success: true };
     } catch (err) {
-      console.error("Submit failed:", err);
-      const msg = err?.response?.data?.message || err?.message || "Gửi yêu cầu thất bại. Vui lòng thử lại.";
+      const msg =
+        err?.response?.data?.message ??
+        err?.message ??
+        "Gửi yêu cầu thất bại. Vui lòng thử lại.";
       setSubmitError(msg);
+      return { success: false, message: msg };
     } finally {
       setSubmitting(false);
     }
@@ -160,11 +194,25 @@ export function useRoomRent() {
   };
 
   return {
-    rooms, loadingRooms, roomSearch, setRoomSearch,
-    selectedRoom, setSelectedRoom,
-    step, goNext, goBack,
-    form, setField, errors,
-    submitting, submitDone, submitError, handleSubmit, reset,
-    page, setPage, totalPages,
+    rooms,
+    loadingRooms,
+    roomSearch,
+    setRoomSearch,
+    selectedRoom,
+    setSelectedRoom,
+    step,
+    goNext,
+    goBack,
+    form,
+    setField,
+    errors,
+    submitting,
+    submitDone,
+    submitError,
+    handleSubmit,
+    reset,
+    page,
+    setPage,
+    totalPages,
   };
 }
