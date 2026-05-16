@@ -5,10 +5,19 @@ import {
   PlayArrow,
   TaskAlt,
   Science,
+  AssignmentReturn,
 } from "@mui/icons-material";
 import { rentTicketApi } from "../../../api/rentTicketApi";
 import { TICKET_STATUS_MAP } from "../hooks/useRoomManagement";
 import "../styles/Modals.css";
+
+// Map trạng thái trả từng item hóa chất
+const RETURN_STATUS_MAP = {
+  RETURNED: { label: "Đã trả đủ", color: "#059669" },
+  PARTIAL: { label: "Trả thiếu", color: "#f59e0b" },
+  DAMAGED: { label: "Hư hỏng", color: "#ef4444" },
+  LOST: { label: "Mất mát", color: "#dc2626" },
+};
 
 export function DetailModal({
   detailItem,
@@ -27,6 +36,14 @@ export function DetailModal({
   }, [detailItem]);
 
   if (!detailItem) return null;
+
+  const isChemical = detailItem.ticketType === "CHEMICAL_ONLY";
+  const isRoom = detailItem.ticketType === "ROOM_ONLY";
+
+  // Hiển thị thông tin trả khi status là PENDING_RETURN hoặc RETURNED
+  const showReturnInfo = ["PENDING_RETURN", "RETURNED"].includes(
+    detailItem.status,
+  );
 
   const handleApprove = async () => {
     setLoadingAction("APPROVE");
@@ -96,11 +113,9 @@ export function DetailModal({
               <span className="trm-detail-label">Loại phiếu</span>
               <span className="trm-detail-value">
                 <span
-                  className={`trm-type-badge ${detailItem.ticketType === "ROOM_ONLY" ? "room" : "chemical"}`}
+                  className={`trm-type-badge ${isRoom ? "room" : "chemical"}`}
                 >
-                  {detailItem.ticketType === "ROOM_ONLY"
-                    ? "MƯỢN PHÒNG"
-                    : "MƯỢN HÓA CHẤT"}
+                  {isRoom ? "MƯỢN PHÒNG" : "MƯỢN HÓA CHẤT"}
                 </span>
               </span>
             </div>
@@ -128,7 +143,14 @@ export function DetailModal({
               </span>
             </div>
             <div className="trm-detail-item bg-orange">
-              <span className="trm-detail-label">Sử dụng tại phòng</span>
+              {/*
+                FIX 1: Label "Sử dụng tại phòng" chỉ đúng với phiếu phòng.
+                Với hóa chất, người mượn lấy hóa chất từ kho của phòng này
+                nhưng có thể dùng ở nơi khác → đổi thành "Lấy từ kho phòng".
+              */}
+              <span className="trm-detail-label">
+                {isRoom ? "Sử dụng tại phòng" : "Lấy từ kho phòng"}
+              </span>
               <span className="trm-detail-value" style={{ color: "#0284c7" }}>
                 {detailItem.roomName || "N/A"}
               </span>
@@ -165,8 +187,8 @@ export function DetailModal({
             </div>
           </div>
 
-          {/* BẢNG CHI TIẾT VẬT TƯ */}
-          {detailItem.ticketType === "CHEMICAL_ONLY" && (
+          {/* BẢNG CHI TIẾT VẬT TƯ — thông tin mượn ban đầu */}
+          {isChemical && (
             <div className="trm-items-section" style={{ marginTop: "24px" }}>
               <h3
                 style={{
@@ -271,6 +293,145 @@ export function DetailModal({
                   </table>
                 </div>
               )}
+            </div>
+          )}
+
+          {/*
+            FIX 2: Bảng thông tin trả — chỉ hiện khi PENDING_RETURN hoặc RETURNED.
+            Hiển thị số lượng thực trả, trạng thái trả và ghi chú từng item
+            mà người mượn đã gửi lên khi yêu cầu trả.
+          */}
+          {showReturnInfo &&
+            isChemical &&
+            detailItem.items &&
+            detailItem.items.length > 0 && (
+              <div className="trm-items-section" style={{ marginTop: "20px" }}>
+                <h3
+                  style={{
+                    fontSize: "15px",
+                    color: "#1e293b",
+                    marginBottom: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <AssignmentReturn sx={{ fontSize: 18, color: "#f97316" }} />
+                  Thông tin hoàn trả từ người mượn
+                </h3>
+                <div className="trm-table-mini-wrap">
+                  <table className="trm-table-mini">
+                    <thead>
+                      <tr>
+                        <th>Tên vật tư</th>
+                        <th style={{ textAlign: "right" }}>Đã mượn</th>
+                        <th style={{ textAlign: "right" }}>Thực trả</th>
+                        <th style={{ textAlign: "center" }}>Trạng thái</th>
+                        <th>Ghi chú trả</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {detailItem.items.map((item, idx) => {
+                        const rs = RETURN_STATUS_MAP[item.returnStatus] || null;
+                        return (
+                          <tr key={idx}>
+                            <td>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                }}
+                              >
+                                <strong>{item.itemName}</strong>
+                                {item.itemCode && (
+                                  <span
+                                    style={{
+                                      fontSize: "11px",
+                                      color: "#94a3b8",
+                                    }}
+                                  >
+                                    Mã: {item.itemCode}
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td
+                              style={{ textAlign: "right", color: "#64748b" }}
+                            >
+                              {item.quantityBorrowed ?? "—"}{" "}
+                              {item.itemUnit || ""}
+                            </td>
+                            <td
+                              style={{
+                                textAlign: "right",
+                                fontWeight: "bold",
+                                color:
+                                  item.quantityReturned >= item.quantityBorrowed
+                                    ? "#059669"
+                                    : "#f59e0b",
+                              }}
+                            >
+                              {item.quantityReturned ?? "—"}{" "}
+                              {item.itemUnit || ""}
+                            </td>
+                            <td style={{ textAlign: "center" }}>
+                              {rs ? (
+                                <span
+                                  style={{
+                                    fontSize: "12px",
+                                    fontWeight: 600,
+                                    color: rs.color,
+                                    background: rs.color + "18",
+                                    padding: "2px 8px",
+                                    borderRadius: "999px",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  {rs.label}
+                                </span>
+                              ) : (
+                                <span
+                                  style={{ color: "#94a3b8", fontSize: "12px" }}
+                                >
+                                  —
+                                </span>
+                              )}
+                            </td>
+                            <td style={{ color: "#475569", fontSize: "13px" }}>
+                              {item.returnNote || (
+                                <span style={{ color: "#cbd5e1" }}>
+                                  Không có
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+          {/* Ghi chú trả phòng (ROOM_ONLY) — hiện khi PENDING_RETURN / RETURNED */}
+          {showReturnInfo && isRoom && detailItem.returnNote && (
+            <div
+              className="trm-detail-item full-width bg-slate"
+              style={{ marginTop: "16px" }}
+            >
+              <span className="trm-detail-label" style={{ color: "#f97316" }}>
+                <AssignmentReturn
+                  sx={{
+                    fontSize: 14,
+                    verticalAlign: "middle",
+                    marginRight: "4px",
+                  }}
+                />
+                Ghi chú trả phòng từ người mượn
+              </span>
+              <span className="trm-detail-value" style={{ fontWeight: 500 }}>
+                {detailItem.returnNote}
+              </span>
             </div>
           )}
 
