@@ -1,0 +1,276 @@
+/* UserManagementPage.css — REDESIGN HIỆN ĐẠI */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --primary: #4f46e5;
+  --primary-light: #6366f1;
+  --primary-dark: #3730a3;
+  --primary-glow: rgba(79, 70, 229, 0.25);
+  --surface: #ffffff;
+  --surface-alt: #f8fafc;
+  --bg: #f1f5f9;
+  --border: #e2e8f0;
+  --border-light: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.07), 0 4px 6px -4px rgba(0,0,0,0.05);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+}
+
+/* ── Page wrapper ────────────────────────────────────────────────────────── */
+.admin-users-page {
+  padding: 2rem 2.5rem;
+  background: var(--bg);
+  min-height: 100vh;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  animation: pageSlideIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes pageSlideIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Hero Banner ─────────────────────────────────────────────────────────── */
+.users-banner {
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 45%, #4338ca 100%);
+  padding: 2.25rem 2.5rem;
+  border-radius: var(--radius-xl);
+  margin-bottom: 1.75rem;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  box-shadow:
+    0 20px 40px -10px rgba(67, 56, 202, 0.45),
+    0 0 0 1px rgba(255,255,255,0.06) inset;
+}
+
+/* Decorative orbs */
+.users-banner::before {
+  content: '';
+  position: absolute;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(129,140,248,0.18) 0%, transparent 70%);
+  bottom: -160px;
+  left: -80px;
+  pointer-events: none;
+}
+
+.users-banner::after {
+  content: '';
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(196,181,253,0.12) 0%, transparent 70%);
+  top: -70px;
+  right: 120px;
+  pointer-events: none;
+}
+
+.banner-left {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.banner-icon {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(12px);
+  padding: 1.1rem;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 8px 20px rgba(0,0,0,0.2),
+    inset 0 1px 0 rgba(255,255,255,0.2);
+  flex-shrink: 0;
+}
+
+.banner-text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.banner-title {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  font-size: 1.65rem !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.02em !important;
+}
+
+.banner-desc {
+  color: rgba(199, 210, 254, 0.85) !important;
+  font-size: 0.9rem !important;
+  font-weight: 400 !important;
+}
+
+.banner-stats {
+  margin-left: auto;
+  display: flex;
+  gap: 1.25rem;
+  position: relative;
+  z-index: 2;
+}
+
+.stat-pill {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  backdrop-filter: blur(8px);
+  border-radius: var(--radius-md);
+  padding: 0.6rem 1.2rem;
+  text-align: center;
+}
+
+.stat-pill-number {
+  display: block;
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.stat-pill-label {
+  display: block;
+  color: rgba(199, 210, 254, 0.8);
+  font-size: 0.72rem;
+  font-weight: 500;
+  margin-top: 3px;
+  white-space: nowrap;
+}
+
+/* ── Action Bar ──────────────────────────────────────────────────────────── */
+.action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--surface);
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filters-row {
+  display: flex;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 280px;
+}
+
+/* Search input styling */
+.search-input {
+  flex: 2;
+  min-width: 220px;
+}
+
+.search-input .MuiOutlinedInput-root,
+.filter-select .MuiOutlinedInput-root {
+  border-radius: var(--radius-sm) !important;
+  background: var(--surface-alt) !important;
+  font-size: 0.875rem !important;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.search-input .MuiOutlinedInput-root:hover fieldset,
+.filter-select .MuiOutlinedInput-root:hover fieldset {
+  border-color: var(--primary-light) !important;
+}
+
+.search-input .MuiOutlinedInput-root.Mui-focused fieldset,
+.filter-select .MuiOutlinedInput-root.Mui-focused fieldset {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.filter-select {
+  flex: 1;
+  min-width: 130px;
+}
+
+/* ── Create Button ───────────────────────────────────────────────────────── */
+.create-new-button {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%) !important;
+  color: white !important;
+  text-transform: none !important;
+  padding: 10px 20px !important;
+  border-radius: var(--radius-sm) !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  letter-spacing: 0 !important;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px var(--primary-glow) !important;
+  transition: all 0.22s cubic-bezier(0.22,1,0.36,1) !important;
+  border: none !important;
+}
+
+.create-new-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4) !important;
+  filter: brightness(1.08);
+}
+
+.create-new-button:active {
+  transform: translateY(0) !important;
+}
+
+/* ── Table Container ─────────────────────────────────────────────────────── */
+.table-container {
+  border-radius: var(--radius-lg);
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .admin-users-page {
+    padding: 1.25rem;
+  }
+
+  .users-banner {
+    padding: 1.75rem 1.5rem;
+  }
+
+  .banner-stats {
+    display: none;
+  }
+
+  .action-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filters-row {
+    flex-direction: column;
+    min-width: unset;
+  }
+
+  .search-input,
+  .filter-select {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .create-new-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
