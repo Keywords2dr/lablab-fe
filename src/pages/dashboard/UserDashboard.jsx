@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Grid } from "@mui/material";
 import {
   Science,
@@ -8,14 +8,41 @@ import {
   History,
   CheckCircle,
   ReportProblem,
-  AccessTime,
   CalendarToday,
   SupervisorAccount,
   TrackChanges,
+  InboxOutlined,
+  AssignmentReturn,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
+import { rentTicketApi } from "../../api/rentTicketApi";
+import {
+  TICKET_STATUS_MAP,
+  TICKET_TYPE_MAP,
+  mapPurpose,
+} from "../MyTickets/hooks/useTickets";
 import "./UserDashboard.css";
+
+// Các status thuộc nhóm "đang xử lý" (tracking)
+const ACTIVE_STATUSES = [
+  "PENDING_OWNER",
+  "PENDING_ADMIN",
+  "APPROVED",
+  "BORROWED",
+  "PENDING_RETURN",
+];
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return "—";
+  return new Date(dateStr).toLocaleString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
 
 export default function UserDashboard() {
   const navigate = useNavigate();
@@ -23,6 +50,75 @@ export default function UserDashboard() {
 
   const isTeacher = user?.role === "TEACHER";
   const gridCol = isTeacher ? 3 : 4;
+
+  const [stats, setStats] = useState({
+    borrowed: 0,
+    pending: 0,
+    pendingReturn: 0,
+    returned: 0,
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  const [activeTickets, setActiveTickets] = useState([]);
+  const [tableLoading, setTableLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      try {
+        // Gọi song song: 4 API đếm stats + 1 API lấy danh sách bảng
+        const [
+          borrowedRes,
+          pendingRes,
+          pendingReturnRes,
+          returnedRes,
+          listRes,
+        ] = await Promise.allSettled([
+          rentTicketApi.getMyTicketsByStatus("BORROWED", 0, 1),
+          rentTicketApi.getMyTicketsByStatus("PENDING_OWNER", 0, 1),
+          rentTicketApi.getMyTicketsByStatus("PENDING_RETURN", 0, 1),
+          rentTicketApi.getMyTicketsByStatus("RETURNED", 0, 1),
+          rentTicketApi.getMyTicketsFiltered({
+            excludeStatus: "RETURNED,REJECTED,CANCELLED",
+            size: 500,
+          }),
+        ]);
+
+        // Hàm helper lấy totalElements an toàn
+        const getTotal = (settled) =>
+          settled.status === "fulfilled"
+            ? (settled.value.data?.totalElements ?? 0)
+            : 0;
+
+        setStats({
+          borrowed: getTotal(borrowedRes),
+          // Cộng cả PENDING_OWNER + PENDING_ADMIN vào "Chờ duyệt"
+          // PENDING_ADMIN không cần call riêng vì đã có trong danh sách
+          pending: getTotal(pendingRes),
+          pendingReturn: getTotal(pendingReturnRes),
+          returned: getTotal(returnedRes),
+        });
+
+        // Xử lý danh sách bảng
+        if (listRes.status === "fulfilled") {
+          const rawData =
+            listRes.value.data?.content || listRes.value.data || [];
+          const hydrated = rawData.map((t) => ({
+            ...t,
+            subject: t.subjectName || t.subject || "Chưa cập nhật môn",
+            purpose: mapPurpose(t.purposeType),
+          }));
+          setActiveTickets(hydrated);
+        }
+      } catch (err) {
+        console.error("Lỗi khi tải dữ liệu dashboard:", err);
+      } finally {
+        setStatsLoading(false);
+        setTableLoading(false);
+      }
+    };
+
+    fetchAll();
+  }, []);
 
   return (
     <div className="ud-wrapper">
@@ -40,6 +136,7 @@ export default function UserDashboard() {
         </div>
       </div>
 
+      {/* ── Section 01: Đăng ký mượn mới ── */}
       <div className="ud-section-header">
         <span className="ud-section-number">01</span>
         <h2 className="ud-section-title">Đăng ký mượn mới</h2>
@@ -125,6 +222,7 @@ export default function UserDashboard() {
         </Grid>
       </Grid>
 
+      {/* ── Section 02: Tổng quan cá nhân ── */}
       <div className="ud-section-header">
         <span className="ud-section-number">02</span>
         <h2 className="ud-section-title">Tổng quan cá nhân</h2>
@@ -140,10 +238,13 @@ export default function UserDashboard() {
                 <Inventory fontSize="small" />
               </div>
             </div>
-            <div className="ud-stat-value">3</div>
+            <div className="ud-stat-value">
+              {statsLoading ? "..." : stats.borrowed}
+            </div>
             <div className="ud-stat-trend">Ca mượn đang diễn ra</div>
           </div>
         </Grid>
+
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <div className="ud-stat-card">
             <div className="ud-stat-top">
@@ -152,24 +253,28 @@ export default function UserDashboard() {
                 <History fontSize="small" />
               </div>
             </div>
-            <div className="ud-stat-value">1</div>
+            <div className="ud-stat-value">
+              {statsLoading ? "..." : stats.pending}
+            </div>
             <div className="ud-stat-trend">Yêu cầu đang chờ duyệt</div>
           </div>
         </Grid>
+
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <div className="ud-stat-card">
             <div className="ud-stat-top">
-              <span className="ud-stat-label">Cảnh báo trả</span>
-              <div className="ud-stat-badge danger">
-                <AccessTime fontSize="small" />
+              <span className="ud-stat-label">Chờ xác nhận trả</span>
+              <div className="ud-stat-badge pending-return">
+                <AssignmentReturn fontSize="small" />
               </div>
             </div>
-            <div className="ud-stat-value">1</div>
-            <div className="ud-stat-trend danger-text">
-              Sắp kết thúc ca mượn!
+            <div className="ud-stat-value">
+              {statsLoading ? "..." : stats.pendingReturn}
             </div>
+            <div className="ud-stat-trend">Đang chờ giáo viên xác nhận</div>
           </div>
         </Grid>
+
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <div className="ud-stat-card">
             <div className="ud-stat-top">
@@ -178,12 +283,15 @@ export default function UserDashboard() {
                 <CheckCircle fontSize="small" />
               </div>
             </div>
-            <div className="ud-stat-value">15</div>
+            <div className="ud-stat-value">
+              {statsLoading ? "..." : stats.returned}
+            </div>
             <div className="ud-stat-trend">Lịch sử trả đồ an toàn</div>
           </div>
         </Grid>
       </Grid>
 
+      {/* ── Section 03: Lịch trình mượn hiện tại ── */}
       <div className="ud-section-header">
         <span className="ud-section-number">03</span>
         <h2 className="ud-section-title">Lịch trình mượn hiện tại</h2>
@@ -191,75 +299,104 @@ export default function UserDashboard() {
       </div>
 
       <div className="ud-table-wrapper">
-        <table className="ud-table">
-          <thead>
-            <tr>
-              <th>Loại phiếu</th>
-              <th>Vật tư / Phòng Lab</th>
-              <th>Ngày Đăng Ký</th>
-              <th>Khung giờ</th>
-              <th>Trạng Thái</th>
-              <th>Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <span className="ud-type-badge room">PHÒNG</span>
-              </td>
-              <td>
-                <span className="ud-item-name">Phòng Thực Hành Hóa 01</span>
-                <span className="ud-item-desc">Mã: RL022</span>
-              </td>
-              <td>
-                <div className="ud-date-item">
-                  <CalendarToday fontSize="small" /> 19/04/2026
-                </div>
-              </td>
-              <td>
-                <div className="ud-date-item danger">
-                  <AccessTime fontSize="small" /> <strong>Ca Tối</strong>
-                </div>
-              </td>
-              <td>
-                <span className="ud-status-chip active">Đang mượn</span>
-              </td>
-              <td>
-                <div className="ud-action-btns">
-                  <button className="ud-btn-small primary">Trả phòng</button>
-                  <button className="ud-btn-small">Báo sự cố</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <span className="ud-type-badge chemical">VẬT TƯ</span>
-              </td>
-              <td>
-                <span className="ud-item-name">Ống nghiệm thủy tinh x10</span>
-                <span className="ud-item-desc">Mã: PM045</span>
-              </td>
-              <td>
-                <div className="ud-date-item">
-                  <CalendarToday fontSize="small" /> 20/04/2026
-                </div>
-              </td>
-              <td>
-                <div className="ud-date-item">
-                  <AccessTime fontSize="small" /> <strong>Ca Sáng</strong>
-                </div>
-              </td>
-              <td>
-                <span className="ud-status-chip waiting">Chờ duyệt</span>
-              </td>
-              <td>
-                <div className="ud-action-btns">
-                  <button className="ud-btn-small">Hủy</button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        {tableLoading ? (
+          <div
+            style={{ padding: "2rem", textAlign: "center", color: "#94a3b8" }}
+          >
+            Đang tải...
+          </div>
+        ) : activeTickets.length === 0 ? (
+          <div
+            style={{
+              padding: "3rem",
+              textAlign: "center",
+              color: "#94a3b8",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "0.5rem",
+            }}
+          >
+            <InboxOutlined style={{ fontSize: 40, opacity: 0.4 }} />
+            <span>Không có phiếu nào đang xử lý</span>
+          </div>
+        ) : (
+          <table className="ud-table">
+            <thead>
+              <tr>
+                <th>Loại phiếu</th>
+                <th>Phòng Lab</th>
+                <th>Môn học</th>
+                <th>Ngày mượn</th>
+                <th>Dự kiến trả</th>
+                <th>Trạng Thái</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {activeTickets.map((ticket) => {
+                const statusInfo = TICKET_STATUS_MAP[ticket.status] || {};
+                const typeInfo = TICKET_TYPE_MAP[ticket.ticketType] || {};
+
+                return (
+                  <tr key={ticket.ticketId}>
+                    <td>
+                      <span
+                        className={`ud-type-badge ${
+                          ticket.ticketType === "ROOM_ONLY"
+                            ? "room"
+                            : "chemical"
+                        }`}
+                      >
+                        {typeInfo.short || ticket.ticketType}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="ud-item-name">
+                        {ticket.roomName || "—"}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="ud-item-desc">
+                        {ticket.subject}
+                        {ticket.classCode ? ` — ${ticket.classCode}` : ""}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="ud-date-item">
+                        <CalendarToday fontSize="small" />
+                        {formatDate(ticket.borrowDate)}
+                      </div>
+                    </td>
+                    <td>
+                      <div className="ud-date-item">
+                        <CalendarToday fontSize="small" />
+                        {formatDate(ticket.expectedReturnDate)}
+                      </div>
+                    </td>
+                    <td>
+                      <span
+                        className={`ud-status-chip ${statusInfo.cls || ""}`}
+                      >
+                        {statusInfo.label || ticket.status}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="ud-action-btns">
+                        <button
+                          className="ud-btn-small primary"
+                          onClick={() => navigate("/my-tickets")}
+                        >
+                          Xem chi tiết
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
