@@ -27,7 +27,6 @@ const NAV_ITEMS = [
     group: "CHỨC NĂNG CHÍNH",
     items: [
       { label: "Tổng Quan", icon: <Dashboard fontSize="small" />, path: "/admin" },
-      // --- ĐÃ FIX: Cập nhật path cho Duyệt Phiếu Mượn ---
       { label: "Duyệt Phiếu Mượn", icon: <Receipt fontSize="small" />, path: "/admin/tickets" },
       { label: "Quản lý Vật tư", icon: <Inventory fontSize="small" />, path: "/admin/materials" },
       {
@@ -83,7 +82,7 @@ export default function AdminLayout() {
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Kiểm tra active (cải tiến để hỗ trợ tốt hơn)
+  // Kiểm tra active 
   const isActive = (path, isChild = false) => {
     if (!path) return false;
     const currentPath = location.pathname;
@@ -91,11 +90,10 @@ export default function AdminLayout() {
     if (isChild) {
       return currentPath === path;
     } else {
-      // Logic cho trang Duyệt Phiếu (Active cả khi ở trang chi tiết /admin/tickets/:id)
+      // Logic cho trang Duyệt Phiếu 
       if (path === "/admin/tickets") {
         return currentPath.startsWith("/admin/tickets");
       }
-      // Với các route chính (như /admin/users)
       if (path === "/admin/users") {
         return currentPath.startsWith("/admin/users");
       }

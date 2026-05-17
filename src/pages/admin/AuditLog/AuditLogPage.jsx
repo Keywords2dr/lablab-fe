@@ -69,8 +69,8 @@ const ENTITY_DISPLAY_CONFIG = {
       fullName: 'Họ và Tên',
       username: 'Tên tài khoản',
       role: 'Vai trò đảm nhiệm',
-      roomName: 'Phòng',           // ← ĐÃ THÊM
-      roomCode: 'Mã phòng',        // ← ĐÃ THÊM
+      roomName: 'Phòng',           
+      roomCode: 'Mã phòng',        
       assignedRoom: 'Phòng',
       room: 'Phòng'
     }

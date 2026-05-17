@@ -17,12 +17,19 @@ const TYPE_CONFIG = {
 
 const BASE_URL = "http://localhost:8080/api/notifications";
 
-// Types dẫn Teacher đến trang quản lý phòng (assigned-rooms)
+// Teacher: các type dẫn đến trang quản lý phòng (assigned-rooms)
 const TEACHER_MANAGE_TYPES = new Set([
   "ROOM_ASSIGN",
   "ROOM_REMOVE",
   "TICKET_PENDING_ADMIN_ALERT",
   "RETURN_ISSUE_ALERT",
+]);
+
+// Student: các type liên quan đến trả/hủy → dẫn đến lịch sử mượn
+const STUDENT_HISTORY_TYPES = new Set([
+  "TICKET_RETURNED",        
+  "TICKET_CANCELLED",       
+  "RETURN_ISSUE_ALERT",    
 ]);
 
 function getUserRole() {
@@ -90,11 +97,15 @@ function timeAgo(dateStr) {
   return new Date(dateStr).toLocaleDateString("vi-VN");
 }
 
-// Nhận type của notification để phân loại đúng link cho TEACHER
 function getRedirectUrl(type) {
   const role = getUserRole();
-  if (role === "ADMIN")   return "http://localhost:5173/admin/tickets";
-  if (role === "STUDENT") return "http://localhost:5173/my-tickets";
+  if (role === "ADMIN") return "http://localhost:5173/admin/tickets";
+  if (role === "STUDENT") {
+    // Trả thành công, Hủy phiếu mượn thành công, Trả thất bại → lịch sử mượn
+    if (STUDENT_HISTORY_TYPES.has(type)) return "http://localhost:5173/borrow-history";
+    // Mặc định → theo dõi phiếu
+    return "http://localhost:5173/my-tickets";
+  }
   if (role === "TEACHER") {
     return TEACHER_MANAGE_TYPES.has(type)
       ? "/manage/assigned-rooms"
@@ -140,7 +151,6 @@ export default function NotificationsPage() {
         prev.map((item) => (item.id === n.id ? { ...item, read: true } : item))
       );
     }
-    // Truyền n.type để phân loại đúng link
     window.location.href = getRedirectUrl(n.type);
   };
 

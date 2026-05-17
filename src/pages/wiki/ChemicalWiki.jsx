@@ -1,4 +1,3 @@
-// src/pages/wiki/ChemicalWiki.jsx
 import React, { useState } from "react";
 import { Search, Science, FilterList } from "@mui/icons-material";
 

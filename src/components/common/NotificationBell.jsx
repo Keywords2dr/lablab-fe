@@ -17,24 +17,28 @@ const TYPE_CONFIG = {
 const BASE_URL = "http://localhost:8080/api/notifications";
 
 // Teacher: các type cần xử lý phòng → dẫn đến trang quản lý phòng
-// - Có phiếu mượn mới cần duyệt
-// - Student yêu cầu trả đồ
 const TEACHER_MANAGE_TYPES = new Set([
-  "TICKET_CREATED",           // Phiếu mượn mới từ student
-  "TICKET_PENDING_ADMIN_ALERT", // Phiếu chờ admin (teacher cần biết)
-  "TICKET_PENDING_RETURN",    // Yêu cầu trả đồ
-  "RETURN_ISSUE_ALERT",       // Cảnh báo vấn đề khi trả
+  "TICKET_CREATED",
+  "TICKET_PENDING_ADMIN_ALERT",
+  "TICKET_PENDING_RETURN",
+  "RETURN_ISSUE_ALERT",
 ]);
 
 // Teacher: các type liên quan đến phiếu của chính teacher → dẫn đến lịch sử mượn
-// - Admin duyệt / từ chối / hủy phiếu của teacher
 const TEACHER_HISTORY_TYPES = new Set([
-  "TICKET_APPROVED_NOTIFY_TEACHER",          // Phiếu được Admin chấp thuận
-  "TICKET_REJECTED_BY_ADMIN_NOTIFY_TEACHER", // Phiếu bị Admin từ chối
-  "TICKET_CANCELLED",                        // Phiếu bị hủy
-  "BORROW",                                  // Thông báo mượn
-  "ROOM_ASSIGN",                             // Được giao phòng
-  "ROOM_REMOVE",                             // Bị thu hồi phòng
+  "TICKET_APPROVED_NOTIFY_TEACHER",
+  "TICKET_REJECTED_BY_ADMIN_NOTIFY_TEACHER",
+  "TICKET_CANCELLED",
+  "BORROW",
+  "ROOM_ASSIGN",
+  "ROOM_REMOVE",
+]);
+
+// Student: các type liên quan đến trả/hủy → dẫn đến lịch sử mượn
+const STUDENT_HISTORY_TYPES = new Set([
+  "TICKET_RETURNED",       
+  "TICKET_CANCELLED",       
+  "RETURN_ISSUE_ALERT",     
 ]);
 
 function getUserRole() {
@@ -104,12 +108,15 @@ function timeAgo(dateStr) {
 
 function getRedirectUrl(type) {
   const role = getUserRole();
-  if (role === "ADMIN")   return "http://localhost:5173/admin/tickets";
-  if (role === "STUDENT") return "http://localhost:5173/my-tickets";
+  if (role === "ADMIN") return "http://localhost:5173/admin/tickets";
+  if (role === "STUDENT") {
+    // Trả thành công, Hủy phiếu mượn thành công, Trả thất bại → lịch sử mượn
+    if (STUDENT_HISTORY_TYPES.has(type)) return "http://localhost:5173/borrow-history";
+    // Mặc định → theo dõi phiếu
+    return "http://localhost:5173/my-tickets";
+  }
   if (role === "TEACHER") {
-    // Yêu cầu trả đồ hoặc phiếu mượn mới → trang quản lý phòng
     if (TEACHER_MANAGE_TYPES.has(type)) return "/manage/assigned-rooms";
-    // Phiếu của teacher được duyệt/từ chối/hủy → lịch sử mượn
     return "/my-tickets";
   }
 }

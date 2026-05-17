@@ -28,7 +28,7 @@ export const useChemicalsWiki = () => {
   const fetchChemicals = useCallback(async (page = 0) => {
     setLoading(true);
     
-    // Fix quan trọng: Clear dữ liệu cũ ngay lập tức để tránh hiện dữ liệu trang trước
+    // Clear dữ liệu cũ ngay lập tức để tránh hiện dữ liệu trang trước
     setChemicals([]);
 
     try {
