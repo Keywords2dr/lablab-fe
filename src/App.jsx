@@ -35,6 +35,10 @@ import TeacherRoomManagePage from "./pages/teacher/TeacherRoomManagePage";
 import TicketTrackingPage from "./pages/mytickets/TicketTrackingPage";
 import BorrowHistoryPage from "./pages/mytickets/BorrowHistoryPage";
 
+// --- REPORTS ---
+import ReportPage from "./pages/reports/ReportPage";
+import AdminReportPage from "./pages/admin/reports/AdminReportPage";
+
 // --- LAYOUTS ---
 import MainLayout from "./components/layouts/MainLayout";
 import AdminLayout from "./components/layouts/AdminLayout";
@@ -79,6 +83,9 @@ function App() {
               {/* Phiếu của tôi */}
               <Route path="/my-tickets" element={<TicketTrackingPage />} />
               <Route path="/borrow-history" element={<BorrowHistoryPage />} />
+
+              {/* Báo cáo sự cố */}
+              <Route path="/report" element={<ReportPage />} />
             </Route>
           </Route>
 
@@ -103,6 +110,8 @@ function App() {
                 path="/admin/tickets/:id"
                 element={<AdminTicketDetail />}
               />
+              {/* Báo cáo sự cố (admin) */}
+              <Route path="/admin/reports" element={<AdminReportPage />} />
             </Route>
           </Route>
 
