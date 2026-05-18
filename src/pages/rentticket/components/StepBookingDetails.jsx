@@ -1,23 +1,33 @@
 import React from "react";
 import {
-  AssignmentOutlined, MeetingRoomOutlined, ErrorOutlined,
+  AssignmentOutlined,
+  MeetingRoomOutlined,
+  ErrorOutlined,
 } from "@mui/icons-material";
 
 const PURPOSE_TYPE_OPTIONS = [
   { value: "TEACHING", label: "Giảng dạy" },
   { value: "RESEARCH", label: "Nghiên cứu" },
-  { value: "PRACTICE", label: "Thực hành" },
+  { value: "EXAM", label: "Thi cử" },
   { value: "OTHER", label: "Khác" },
 ];
 
-export default function StepBookingDetails({ selectedRoom, form, setField, errors }) {
+export default function StepBookingDetails({
+  selectedRoom,
+  form,
+  setField,
+  errors,
+}) {
   const todayLocal = new Date().toISOString().slice(0, 16);
-  const displayName = selectedRoom?.name || selectedRoom?.roomName || selectedRoom?.id || null;
+  const displayName =
+    selectedRoom?.name || selectedRoom?.roomName || selectedRoom?.id || null;
 
   return (
     <div className="rr-card">
       <div className="rr-card-header">
-        <div className="rr-card-header-icon"><AssignmentOutlined /></div>
+        <div className="rr-card-header-icon">
+          <AssignmentOutlined />
+        </div>
         <div className="rr-card-header-text">
           <h3>Thông tin đăng ký</h3>
           <p>Điền đầy đủ thông tin bên dưới để hoàn tất yêu cầu.</p>
@@ -32,14 +42,19 @@ export default function StepBookingDetails({ selectedRoom, form, setField, error
             {selectedRoom?.location && ` — ${selectedRoom.location}`}
           </div>
         ) : (
-          <div className="rr-selected-room-chip" style={{ color: "#ef4444", borderColor: "#fca5a5" }}>
+          <div
+            className="rr-selected-room-chip"
+            style={{ color: "#ef4444", borderColor: "#fca5a5" }}
+          >
             <MeetingRoomOutlined /> Chưa chọn phòng
           </div>
         )}
 
         <div className="rr-form-grid">
           <div className="rr-form-group">
-            <label className="rr-form-label">Mục đích sử dụng <span className="required">*</span></label>
+            <label className="rr-form-label">
+              Mục đích sử dụng <span className="required">*</span>
+            </label>
             <select
               className={`rr-form-input${errors.purposeType ? " error" : ""}`}
               value={form.purposeType}
@@ -47,32 +62,53 @@ export default function StepBookingDetails({ selectedRoom, form, setField, error
             >
               <option value="">-- Chọn mục đích --</option>
               {PURPOSE_TYPE_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
               ))}
             </select>
-            {errors.purposeType && <span className="rr-field-error"><ErrorOutlined style={{ fontSize: 14 }} />{errors.purposeType}</span>}
+            {errors.purposeType && (
+              <span className="rr-field-error">
+                <ErrorOutlined style={{ fontSize: 14 }} />
+                {errors.purposeType}
+              </span>
+            )}
           </div>
 
           <div className="rr-form-group">
-            <label className="rr-form-label">Môn học <span className="required">*</span></label>
+            <label className="rr-form-label">
+              Môn học <span className="required">*</span>
+            </label>
             <input
               className={`rr-form-input${errors.subjectName ? " error" : ""}`}
               placeholder="Tên môn học…"
               value={form.subjectName}
               onChange={(e) => setField("subjectName", e.target.value)}
             />
-            {errors.subjectName && <span className="rr-field-error"><ErrorOutlined style={{ fontSize: 14 }} />{errors.subjectName}</span>}
+            {errors.subjectName && (
+              <span className="rr-field-error">
+                <ErrorOutlined style={{ fontSize: 14 }} />
+                {errors.subjectName}
+              </span>
+            )}
           </div>
 
           <div className="rr-form-group">
-            <label className="rr-form-label">Mã lớp <span className="required">*</span></label>
+            <label className="rr-form-label">
+              Mã lớp <span className="required">*</span>
+            </label>
             <input
               className={`rr-form-input${errors.classCode ? " error" : ""}`}
               placeholder="Ví dụ: CHEM101-01"
               value={form.classCode}
               onChange={(e) => setField("classCode", e.target.value)}
             />
-            {errors.classCode && <span className="rr-field-error"><ErrorOutlined style={{ fontSize: 14 }} />{errors.classCode}</span>}
+            {errors.classCode && (
+              <span className="rr-field-error">
+                <ErrorOutlined style={{ fontSize: 14 }} />
+                {errors.classCode}
+              </span>
+            )}
           </div>
 
           <div className="rr-form-group span-2">
@@ -86,7 +122,9 @@ export default function StepBookingDetails({ selectedRoom, form, setField, error
           </div>
 
           <div className="rr-form-group">
-            <label className="rr-form-label">Ngày &amp; giờ bắt đầu <span className="required">*</span></label>
+            <label className="rr-form-label">
+              Ngày &amp; giờ bắt đầu <span className="required">*</span>
+            </label>
             <input
               type="datetime-local"
               className={`rr-form-input${errors.borrowDate ? " error" : ""}`}
@@ -94,11 +132,18 @@ export default function StepBookingDetails({ selectedRoom, form, setField, error
               value={form.borrowDate}
               onChange={(e) => setField("borrowDate", e.target.value)}
             />
-            {errors.borrowDate && <span className="rr-field-error"><ErrorOutlined style={{ fontSize: 14 }} />{errors.borrowDate}</span>}
+            {errors.borrowDate && (
+              <span className="rr-field-error">
+                <ErrorOutlined style={{ fontSize: 14 }} />
+                {errors.borrowDate}
+              </span>
+            )}
           </div>
 
           <div className="rr-form-group">
-            <label className="rr-form-label">Ngày &amp; giờ trả dự kiến <span className="required">*</span></label>
+            <label className="rr-form-label">
+              Ngày &amp; giờ trả dự kiến <span className="required">*</span>
+            </label>
             <input
               type="datetime-local"
               className={`rr-form-input${errors.expectedReturnDate ? " error" : ""}`}
@@ -106,7 +151,12 @@ export default function StepBookingDetails({ selectedRoom, form, setField, error
               value={form.expectedReturnDate}
               onChange={(e) => setField("expectedReturnDate", e.target.value)}
             />
-            {errors.expectedReturnDate && <span className="rr-field-error"><ErrorOutlined style={{ fontSize: 14 }} />{errors.expectedReturnDate}</span>}
+            {errors.expectedReturnDate && (
+              <span className="rr-field-error">
+                <ErrorOutlined style={{ fontSize: 14 }} />
+                {errors.expectedReturnDate}
+              </span>
+            )}
           </div>
 
           <div className="rr-form-group span-2">

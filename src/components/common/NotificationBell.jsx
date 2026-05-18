@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { notificationApi } from "../../api/notificationApi";
 
 const TYPE_CONFIG = {
   ROOM_ASSIGN: { bg: "linear-gradient(135deg,#43e97b,#38f9d7)", icon: "🔑" },
@@ -32,8 +33,6 @@ const TYPE_CONFIG = {
   default: { bg: "linear-gradient(135deg,#a18cd1,#fbc2eb)", icon: "🔔" },
 };
 
-const BASE_URL = "http://localhost:8080/api/notifications";
-
 const TEACHER_MANAGE_TYPES = new Set([
   "TICKET_CREATED",
   "TICKET_PENDING_ADMIN_ALERT",
@@ -60,50 +59,6 @@ function getUserRole() {
     console.warn("Không thể đọc user role từ localStorage:", error);
   }
   return null;
-}
-
-function authHeaders() {
-  let token = null;
-  const directToken =
-    localStorage.getItem("token") || localStorage.getItem("accessToken");
-  if (!directToken) {
-    const raw = localStorage.getItem("auth-storage");
-    if (raw) {
-      try {
-        const p = JSON.parse(raw);
-        token = p.state?.token || p.state?.user?.token;
-      } catch (error) {
-        console.warn("Không thể đọc token từ auth-storage:", error);
-      }
-    }
-  } else {
-    token = directToken;
-  }
-  const clean = token ? token.replace(/"/g, "") : null;
-  return {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-    ...(clean ? { Authorization: `Bearer ${clean}` } : {}),
-  };
-}
-
-async function apiFetch(path, options = {}) {
-  try {
-    const headers = authHeaders();
-    if (!headers.Authorization) return null;
-    const res = await fetch(`${BASE_URL}${path}`, {
-      ...options,
-      headers: { ...headers, ...options.headers },
-      mode: "cors",
-    });
-    if (!res.ok) return null;
-    const ct = res.headers.get("content-type") || "";
-    if (!ct.includes("application/json")) return null;
-    return await res.json();
-  } catch (error) {
-    console.warn("Lỗi fetch API:", error);
-    return null;
-  }
 }
 
 function timeAgo(dateStr) {
@@ -186,17 +141,21 @@ export default function NotificationBell({ onViewAll }) {
 
   useEffect(() => {
     const fetchCount = async () => {
-      const data = await apiFetch("/unread-count");
-      if (data === null) return;
-      const c = Number(
-        typeof data === "number" ? data : (data.unreadCount ?? 0),
-      );
-      if (c > prevCount.current) {
-        setRing(true);
-        setTimeout(() => setRing(false), 600);
+      try {
+        const res = await notificationApi.getUnreadCount();
+        const data = res.data;
+        const c = Number(
+          typeof data === "number" ? data : (data.unreadCount ?? 0),
+        );
+        if (c > prevCount.current) {
+          setRing(true);
+          setTimeout(() => setRing(false), 600);
+        }
+        prevCount.current = c;
+        setUnreadCount(c);
+      } catch {
+        // axiosInstance đã xử lý lỗi 401/403/500
       }
-      prevCount.current = c;
-      setUnreadCount(c);
     };
 
     fetchCount();
@@ -206,10 +165,14 @@ export default function NotificationBell({ onViewAll }) {
 
   useEffect(() => {
     if (!open) return;
-    apiFetch("?page=0&size=10").then((data) => {
-      if (data?.content) setNotifications(data.content);
-      else if (Array.isArray(data)) setNotifications(data);
-    });
+    notificationApi
+      .getNotifications(0, 10)
+      .then((res) => {
+        const data = res.data;
+        if (data?.content) setNotifications(data.content);
+        else if (Array.isArray(data)) setNotifications(data);
+      })
+      .catch(() => {});
   }, [open]);
 
   useEffect(() => {
@@ -233,14 +196,16 @@ export default function NotificationBell({ onViewAll }) {
 
   const handleItemClick = async (n) => {
     if (!n.read) {
-      const ok = await apiFetch(`/${n.id}/read`, { method: "PATCH" });
-      if (ok !== null) {
+      try {
+        await notificationApi.markAsRead(n.id);
         setNotifications((prev) =>
           prev.map((item) =>
             item.id === n.id ? { ...item, read: true } : item,
           ),
         );
         setUnreadCount((c) => Math.max(0, c - 1));
+      } catch {
+        // axiosInstance đã xử lý lỗi
       }
     }
     setOpen(false);
@@ -248,10 +213,12 @@ export default function NotificationBell({ onViewAll }) {
   };
 
   const markAll = async () => {
-    const ok = await apiFetch("/read-all", { method: "PATCH" });
-    if (ok !== null) {
+    try {
+      await notificationApi.markAllAsRead();
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setUnreadCount(0);
+    } catch {
+      // axiosInstance đã xử lý lỗi
     }
   };
 
