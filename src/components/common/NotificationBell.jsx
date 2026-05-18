@@ -1,17 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 const TYPE_CONFIG = {
-  ROOM_ASSIGN:                             { bg: "linear-gradient(135deg,#43e97b,#38f9d7)", icon: "🔑" },
-  ROOM_REMOVE:                             { bg: "linear-gradient(135deg,#f857a6,#ff5858)", icon: "🚫" },
-  BORROW:                                  { bg: "linear-gradient(135deg,#4facfe,#00f2fe)", icon: "🧪" },
-  TICKET_PENDING_ADMIN_ALERT:              { bg: "linear-gradient(135deg,#f7971e,#ffd200)", icon: "📋" },
-  TICKET_CREATED:                          { bg: "linear-gradient(135deg,#f7971e,#ffd200)", icon: "📋" },
-  TICKET_PENDING_RETURN:                   { bg: "linear-gradient(135deg,#43e97b,#38f9d7)", icon: "📦" },
-  TICKET_APPROVED_NOTIFY_TEACHER:          { bg: "linear-gradient(135deg,#43e97b,#38f9d7)", icon: "✅" },
+  ROOM_ASSIGN: { bg: "linear-gradient(135deg,#43e97b,#38f9d7)", icon: "🔑" },
+  ROOM_REMOVE: { bg: "linear-gradient(135deg,#f857a6,#ff5858)", icon: "🚫" },
+  BORROW: { bg: "linear-gradient(135deg,#4facfe,#00f2fe)", icon: "🧪" },
+  TICKET_PENDING_ADMIN_ALERT: { bg: "linear-gradient(135deg,#f7971e,#ffd200)", icon: "📋" },
+  TICKET_CREATED: { bg: "linear-gradient(135deg,#f7971e,#ffd200)", icon: "📋" },
+  TICKET_PENDING_RETURN: { bg: "linear-gradient(135deg,#43e97b,#38f9d7)", icon: "📦" },
+  TICKET_APPROVED_NOTIFY_TEACHER: { bg: "linear-gradient(135deg,#43e97b,#38f9d7)", icon: "✅" },
   TICKET_REJECTED_BY_ADMIN_NOTIFY_TEACHER: { bg: "linear-gradient(135deg,#f857a6,#ff5858)", icon: "❌" },
-  TICKET_CANCELLED:                        { bg: "linear-gradient(135deg,#f857a6,#ff5858)", icon: "🚫" },
-  RETURN_ISSUE_ALERT:                      { bg: "linear-gradient(135deg,#f7971e,#ffd200)", icon: "⚠️" },
-  default:                                 { bg: "linear-gradient(135deg,#a18cd1,#fbc2eb)", icon: "🔔" },
+  TICKET_CANCELLED: { bg: "linear-gradient(135deg,#f857a6,#ff5858)", icon: "🚫" },
+  RETURN_ISSUE_ALERT: { bg: "linear-gradient(135deg,#f7971e,#ffd200)", icon: "⚠️" },
+  default: { bg: "linear-gradient(135deg,#a18cd1,#fbc2eb)", icon: "🔔" },
 };
 
 const BASE_URL = "http://localhost:8080/api/notifications";
@@ -36,9 +36,9 @@ const TEACHER_HISTORY_TYPES = new Set([
 
 // Student: các type liên quan đến trả/hủy → dẫn đến lịch sử mượn
 const STUDENT_HISTORY_TYPES = new Set([
-  "TICKET_RETURNED",       
-  "TICKET_CANCELLED",       
-  "RETURN_ISSUE_ALERT",     
+  "TICKET_RETURNED",        // Trả thành công
+  "TICKET_CANCELLED",       // Hủy phiếu mượn thành công
+  "RETURN_ISSUE_ALERT",     // Trả thất bại
 ]);
 
 function getUserRole() {
@@ -48,7 +48,7 @@ function getUserRole() {
       const p = JSON.parse(raw);
       return p.state?.user?.role || null;
     }
-  } catch {}
+  } catch { }
   return null;
 }
 
@@ -61,7 +61,7 @@ function authHeaders() {
       try {
         const p = JSON.parse(raw);
         token = p.state?.token || p.state?.user?.token;
-      } catch {}
+      } catch { }
     }
   } else {
     token = directToken;
@@ -260,7 +260,7 @@ export default function NotificationBell({ onViewAll }) {
       <div ref={panelRef} className="nb-wrap">
         <button className={`nb-btn${ring ? " ring" : ""}`} onClick={() => setOpen(o => !o)} aria-label="Thông báo">
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6V11a6 6 0 0 0-5-5.92V4a1 1 0 1 0-2 0v1.08A6 6 0 0 0 6 11v5l-2 2v1h16v-1l-2-2z"/>
+            <path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6V11a6 6 0 0 0-5-5.92V4a1 1 0 1 0-2 0v1.08A6 6 0 0 0 6 11v5l-2 2v1h16v-1l-2-2z" />
           </svg>
           {unreadCount > 0 && <span className="nb-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>}
         </button>
@@ -283,8 +283,8 @@ export default function NotificationBell({ onViewAll }) {
 
             <div className="nb-list">
               {shown.length === 0 ? (
-                <div className="nb-empty" style={{padding: "44px 20px", textAlign: "center"}}>
-                  <div style={{fontSize: "44px", marginBottom: "12px"}}>🔔</div>
+                <div className="nb-empty" style={{ padding: "44px 20px", textAlign: "center" }}>
+                  <div style={{ fontSize: "44px", marginBottom: "12px" }}>🔔</div>
                   <div>Chưa có thông báo nào</div>
                 </div>
               ) : (
