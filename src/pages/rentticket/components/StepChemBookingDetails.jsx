@@ -9,7 +9,7 @@ import {
 const PURPOSE_TYPE_OPTIONS = [
   { value: "TEACHING", label: "Giảng dạy" },
   { value: "RESEARCH", label: "Nghiên cứu" },
-  { value: "PRACTICE", label: "Thực hành" },
+  { value: "EXAM", label: "Thi cử" },
   { value: "OTHER", label: "Khác" },
 ];
 
@@ -38,8 +38,10 @@ export default function StepChemBookingDetails({
       </div>
 
       <div className="rr-card-body">
-        {/* Tóm tắt phòng + số hóa chất */}
-        <div className="rr-selected-room-chip" style={{ gap: 16, flexWrap: "wrap" }}>
+        <div
+          className="rr-selected-room-chip"
+          style={{ gap: 16, flexWrap: "wrap" }}
+        >
           <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <MeetingRoomOutlined />
             Phòng:&nbsp;<strong>{displayName || "Chưa chọn"}</strong>

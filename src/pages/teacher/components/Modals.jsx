@@ -12,6 +12,13 @@ import { TICKET_STATUS_MAP } from "../hooks/useRoomManagement";
 import { toast } from "react-toastify";
 import "../styles/Modals.css";
 
+const PURPOSE_TYPE_MAP = {
+  TEACHING: "Giảng dạy",
+  RESEARCH: "Nghiên cứu",
+  EXAM: "Thi cử",
+  OTHER: "Khác",
+};
+
 const RETURN_STATUS_MAP = {
   RETURNED: { label: "Đã trả đủ", color: "#059669" },
   PARTIAL: { label: "Trả thiếu", color: "#f59e0b" },
@@ -100,8 +107,8 @@ export function DetailModal({
   };
 
   return (
-    <div className="trm-overlay" onClick={() => setDetailItem(null)}>
-      <div className="trm-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="trm-overlay">
+      <div className="trm-modal">
         <div className="trm-modal-header">
           <h2>Chi tiết phiếu #{detailItem.ticketId?.substring(0, 8)}</h2>
           <button className="trm-close" onClick={() => setDetailItem(null)}>
@@ -158,6 +165,18 @@ export function DetailModal({
                 {detailItem.subjectName || "Học tập tự do"}
               </span>
             </div>
+            <div className="trm-detail-item bg-orange">
+              <span className="trm-detail-label">Mã lớp</span>
+              <span className="trm-detail-value">
+                {detailItem.classCode || "—"}
+              </span>
+            </div>
+            <div className="trm-detail-item bg-slate full-width">
+              <span className="trm-detail-label">Chi tiết bài học</span>
+              <span className="trm-detail-value">
+                {detailItem.lessonDetail?.trim() || "—"}
+              </span>
+            </div>
             <div className="trm-detail-item bg-emerald">
               <span className="trm-detail-label">Thời điểm bắt đầu</span>
               <span className="trm-detail-value">
@@ -173,7 +192,9 @@ export function DetailModal({
             <div className="trm-detail-item bg-slate">
               <span className="trm-detail-label">Mục đích chi tiết</span>
               <span className="trm-detail-value">
-                {detailItem.purposeType || "TEACHING"}
+                {PURPOSE_TYPE_MAP[detailItem.purposeType] ||
+                  detailItem.purposeType ||
+                  "—"}
               </span>
             </div>
             <div className="trm-detail-item bg-slate">
@@ -405,7 +426,6 @@ export function DetailModal({
               </div>
             )}
 
-          {/* Ghi chú trả phòng (ROOM_ONLY) — hiện khi PENDING_RETURN / RETURNED */}
           {showReturnInfo && isRoom && detailItem.returnNote && (
             <div
               className="trm-detail-item full-width bg-slate"
@@ -524,11 +544,8 @@ export function RejectModal({ rejectTarget, setRejectTarget, refreshData }) {
   };
 
   return (
-    <div className="trm-overlay" onClick={() => setRejectTarget(null)}>
-      <div
-        className="trm-modal trm-modal-sm"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="trm-overlay">
+      <div className="trm-modal trm-modal-sm">
         <div className="trm-modal-header">
           <h2>Từ chối phiếu #{rejectTarget.ticketId?.substring(0, 8)}</h2>
           <button className="trm-close" onClick={() => setRejectTarget(null)}>

@@ -1,44 +1,52 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 
 const TYPE_CONFIG = {
   ROOM_ASSIGN: { bg: "linear-gradient(135deg,#43e97b,#38f9d7)", icon: "🔑" },
   ROOM_REMOVE: { bg: "linear-gradient(135deg,#f857a6,#ff5858)", icon: "🚫" },
   BORROW: { bg: "linear-gradient(135deg,#4facfe,#00f2fe)", icon: "🧪" },
-  TICKET_PENDING_ADMIN_ALERT: { bg: "linear-gradient(135deg,#f7971e,#ffd200)", icon: "📋" },
+  TICKET_PENDING_ADMIN_ALERT: {
+    bg: "linear-gradient(135deg,#f7971e,#ffd200)",
+    icon: "📋",
+  },
   TICKET_CREATED: { bg: "linear-gradient(135deg,#f7971e,#ffd200)", icon: "📋" },
-  TICKET_PENDING_RETURN: { bg: "linear-gradient(135deg,#43e97b,#38f9d7)", icon: "📦" },
-  TICKET_APPROVED_NOTIFY_TEACHER: { bg: "linear-gradient(135deg,#43e97b,#38f9d7)", icon: "✅" },
-  TICKET_REJECTED_BY_ADMIN_NOTIFY_TEACHER: { bg: "linear-gradient(135deg,#f857a6,#ff5858)", icon: "❌" },
-  TICKET_CANCELLED: { bg: "linear-gradient(135deg,#f857a6,#ff5858)", icon: "🚫" },
-  RETURN_ISSUE_ALERT: { bg: "linear-gradient(135deg,#f7971e,#ffd200)", icon: "⚠️" },
+  TICKET_PENDING_RETURN: {
+    bg: "linear-gradient(135deg,#43e97b,#38f9d7)",
+    icon: "📦",
+  },
+  TICKET_APPROVED_NOTIFY_TEACHER: {
+    bg: "linear-gradient(135deg,#43e97b,#38f9d7)",
+    icon: "✅",
+  },
+  TICKET_REJECTED_BY_ADMIN_NOTIFY_TEACHER: {
+    bg: "linear-gradient(135deg,#f857a6,#ff5858)",
+    icon: "❌",
+  },
+  TICKET_CANCELLED: {
+    bg: "linear-gradient(135deg,#f857a6,#ff5858)",
+    icon: "🚫",
+  },
+  RETURN_ISSUE_ALERT: {
+    bg: "linear-gradient(135deg,#f7971e,#ffd200)",
+    icon: "⚠️",
+  },
   default: { bg: "linear-gradient(135deg,#a18cd1,#fbc2eb)", icon: "🔔" },
 };
 
 const BASE_URL = "http://localhost:8080/api/notifications";
 
-// Teacher: các type cần xử lý phòng → dẫn đến trang quản lý phòng
 const TEACHER_MANAGE_TYPES = new Set([
   "TICKET_CREATED",
   "TICKET_PENDING_ADMIN_ALERT",
   "TICKET_PENDING_RETURN",
   "RETURN_ISSUE_ALERT",
-]);
-
-// Teacher: các type liên quan đến phiếu của chính teacher → dẫn đến lịch sử mượn
-const TEACHER_HISTORY_TYPES = new Set([
   "TICKET_APPROVED_NOTIFY_TEACHER",
   "TICKET_REJECTED_BY_ADMIN_NOTIFY_TEACHER",
-  "TICKET_CANCELLED",
-  "BORROW",
-  "ROOM_ASSIGN",
-  "ROOM_REMOVE",
 ]);
 
-// Student: các type liên quan đến trả/hủy → dẫn đến lịch sử mượn
 const STUDENT_HISTORY_TYPES = new Set([
-  "TICKET_RETURNED",        // Trả thành công
-  "TICKET_CANCELLED",       // Hủy phiếu mượn thành công
-  "RETURN_ISSUE_ALERT",     // Trả thất bại
+  "TICKET_RETURNED",
+  "TICKET_CANCELLED",
+  "RETURN_ISSUE_ALERT",
 ]);
 
 function getUserRole() {
@@ -48,20 +56,25 @@ function getUserRole() {
       const p = JSON.parse(raw);
       return p.state?.user?.role || null;
     }
-  } catch { }
+  } catch (error) {
+    console.warn("Không thể đọc user role từ localStorage:", error);
+  }
   return null;
 }
 
 function authHeaders() {
   let token = null;
-  const directToken = localStorage.getItem("token") || localStorage.getItem("accessToken");
+  const directToken =
+    localStorage.getItem("token") || localStorage.getItem("accessToken");
   if (!directToken) {
     const raw = localStorage.getItem("auth-storage");
     if (raw) {
       try {
         const p = JSON.parse(raw);
         token = p.state?.token || p.state?.user?.token;
-      } catch { }
+      } catch (error) {
+        console.warn("Không thể đọc token từ auth-storage:", error);
+      }
     }
   } else {
     token = directToken;
@@ -87,7 +100,8 @@ async function apiFetch(path, options = {}) {
     const ct = res.headers.get("content-type") || "";
     if (!ct.includes("application/json")) return null;
     return await res.json();
-  } catch {
+  } catch (error) {
+    console.warn("Lỗi fetch API:", error);
     return null;
   }
 }
@@ -110,9 +124,8 @@ function getRedirectUrl(type) {
   const role = getUserRole();
   if (role === "ADMIN") return "http://localhost:5173/admin/tickets";
   if (role === "STUDENT") {
-    // Trả thành công, Hủy phiếu mượn thành công, Trả thất bại → lịch sử mượn
-    if (STUDENT_HISTORY_TYPES.has(type)) return "http://localhost:5173/borrow-history";
-    // Mặc định → theo dõi phiếu
+    if (STUDENT_HISTORY_TYPES.has(type))
+      return "http://localhost:5173/borrow-history";
     return "http://localhost:5173/my-tickets";
   }
   if (role === "TEACHER") {
@@ -169,24 +182,27 @@ export default function NotificationBell({ onViewAll }) {
   const [ring, setRing] = useState(false);
   const panelRef = useRef(null);
   const prevCount = useRef(0);
-
-  const fetchCount = useCallback(async () => {
-    const data = await apiFetch("/unread-count");
-    if (data === null) return;
-    const c = Number(typeof data === "number" ? data : data.unreadCount ?? 0);
-    if (c > prevCount.current) {
-      setRing(true);
-      setTimeout(() => setRing(false), 600);
-    }
-    prevCount.current = c;
-    setUnreadCount(c);
-  }, []);
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
 
   useEffect(() => {
+    const fetchCount = async () => {
+      const data = await apiFetch("/unread-count");
+      if (data === null) return;
+      const c = Number(
+        typeof data === "number" ? data : (data.unreadCount ?? 0),
+      );
+      if (c > prevCount.current) {
+        setRing(true);
+        setTimeout(() => setRing(false), 600);
+      }
+      prevCount.current = c;
+      setUnreadCount(c);
+    };
+
     fetchCount();
     const id = setInterval(fetchCount, 30000);
     return () => clearInterval(id);
-  }, [fetchCount]);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -198,20 +214,33 @@ export default function NotificationBell({ onViewAll }) {
 
   useEffect(() => {
     const fn = (e) => {
-      if (panelRef.current && !panelRef.current.contains(e.target)) setOpen(false);
+      if (panelRef.current && !panelRef.current.contains(e.target))
+        setOpen(false);
     };
     document.addEventListener("mousedown", fn);
     return () => document.removeEventListener("mousedown", fn);
   }, []);
 
+  const handleToggleOpen = () => {
+    setOpen((prev) => {
+      const nextState = !prev;
+      if (nextState) {
+        setCurrentTime(Date.now());
+      }
+      return nextState;
+    });
+  };
+
   const handleItemClick = async (n) => {
     if (!n.read) {
       const ok = await apiFetch(`/${n.id}/read`, { method: "PATCH" });
       if (ok !== null) {
-        setNotifications(prev =>
-          prev.map(item => item.id === n.id ? { ...item, read: true } : item)
+        setNotifications((prev) =>
+          prev.map((item) =>
+            item.id === n.id ? { ...item, read: true } : item,
+          ),
         );
-        setUnreadCount(c => Math.max(0, c - 1));
+        setUnreadCount((c) => Math.max(0, c - 1));
       }
     }
     setOpen(false);
@@ -221,16 +250,24 @@ export default function NotificationBell({ onViewAll }) {
   const markAll = async () => {
     const ok = await apiFetch("/read-all", { method: "PATCH" });
     if (ok !== null) {
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setUnreadCount(0);
     }
   };
 
-  const shown = tab === "unread" ? notifications.filter(n => !n.read) : notifications;
-  const DAY = 86400000;
-  const now = Date.now();
-  const recent = shown.filter(n => n.createdAt && now - new Date(n.createdAt) < DAY);
-  const earlier = shown.filter(n => !n.createdAt || now - new Date(n.createdAt) >= DAY);
+  const { shown, recent, earlier } = useMemo(() => {
+    const shown =
+      tab === "unread" ? notifications.filter((n) => !n.read) : notifications;
+    const DAY = 86400000;
+
+    const recent = shown.filter(
+      (n) => n.createdAt && currentTime - new Date(n.createdAt) < DAY,
+    );
+    const earlier = shown.filter(
+      (n) => !n.createdAt || currentTime - new Date(n.createdAt) >= DAY,
+    );
+    return { shown, recent, earlier };
+  }, [tab, notifications, currentTime]);
 
   const handleViewAll = () => {
     setOpen(false);
@@ -240,9 +277,14 @@ export default function NotificationBell({ onViewAll }) {
   function Item({ n }) {
     const cfg = TYPE_CONFIG[n.type] || TYPE_CONFIG.default;
     return (
-      <div className={`nb-item${n.read ? "" : " unread"}`} onClick={() => handleItemClick(n)}>
+      <div
+        className={`nb-item${n.read ? "" : " unread"}`}
+        onClick={() => handleItemClick(n)}
+      >
         <div className="nb-av">
-          <div className="nb-av-circle" style={{ background: cfg.bg }}>{cfg.icon}</div>
+          <div className="nb-av-circle" style={{ background: cfg.bg }}>
+            {cfg.icon}
+          </div>
         </div>
         <div className="nb-body">
           <div className="nb-title">{n.title || n.message}</div>
@@ -258,23 +300,43 @@ export default function NotificationBell({ onViewAll }) {
     <>
       <style>{CSS}</style>
       <div ref={panelRef} className="nb-wrap">
-        <button className={`nb-btn${ring ? " ring" : ""}`} onClick={() => setOpen(o => !o)} aria-label="Thông báo">
+        <button
+          className={`nb-btn${ring ? " ring" : ""}`}
+          onClick={handleToggleOpen}
+          aria-label="Thông báo"
+        >
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6V11a6 6 0 0 0-5-5.92V4a1 1 0 1 0-2 0v1.08A6 6 0 0 0 6 11v5l-2 2v1h16v-1l-2-2z" />
           </svg>
-          {unreadCount > 0 && <span className="nb-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>}
+          {unreadCount > 0 && (
+            <span className="nb-badge">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
         </button>
 
         {open && (
           <div className="nb-panel">
             <div className="nb-hd">
               <span className="nb-hd-title">Thông báo</span>
-              {unreadCount > 0 && <button className="nb-mark-all" onClick={markAll}>Đánh dấu tất cả đã đọc</button>}
+              {unreadCount > 0 && (
+                <button className="nb-mark-all" onClick={markAll}>
+                  Đánh dấu tất cả đã đọc
+                </button>
+              )}
             </div>
 
             <div className="nb-tabs">
-              <button className={`nb-tab${tab === "all" ? " on" : ""}`} onClick={() => setTab("all")}>Tất cả</button>
-              <button className={`nb-tab${tab === "unread" ? " on" : ""}`} onClick={() => setTab("unread")}>
+              <button
+                className={`nb-tab${tab === "all" ? " on" : ""}`}
+                onClick={() => setTab("all")}
+              >
+                Tất cả
+              </button>
+              <button
+                className={`nb-tab${tab === "unread" ? " on" : ""}`}
+                onClick={() => setTab("unread")}
+              >
                 Chưa đọc{unreadCount > 0 ? ` (${unreadCount})` : ""}
               </button>
             </div>
@@ -283,8 +345,13 @@ export default function NotificationBell({ onViewAll }) {
 
             <div className="nb-list">
               {shown.length === 0 ? (
-                <div className="nb-empty" style={{ padding: "44px 20px", textAlign: "center" }}>
-                  <div style={{ fontSize: "44px", marginBottom: "12px" }}>🔔</div>
+                <div
+                  className="nb-empty"
+                  style={{ padding: "44px 20px", textAlign: "center" }}
+                >
+                  <div style={{ fontSize: "44px", marginBottom: "12px" }}>
+                    🔔
+                  </div>
                   <div>Chưa có thông báo nào</div>
                 </div>
               ) : (
@@ -292,13 +359,17 @@ export default function NotificationBell({ onViewAll }) {
                   {recent.length > 0 && (
                     <>
                       <div className="nb-sec">Mới</div>
-                      {recent.map(n => <Item key={n.id} n={n} />)}
+                      {recent.map((n) => (
+                        <Item key={n.id} n={n} />
+                      ))}
                     </>
                   )}
                   {earlier.length > 0 && (
                     <>
                       <div className="nb-sec">Trước đó</div>
-                      {earlier.map(n => <Item key={n.id} n={n} />)}
+                      {earlier.map((n) => (
+                        <Item key={n.id} n={n} />
+                      ))}
                     </>
                   )}
                 </>
@@ -307,7 +378,9 @@ export default function NotificationBell({ onViewAll }) {
 
             {shown.length > 0 && (
               <div className="nb-footer">
-                <button className="nb-view-all" onClick={handleViewAll}>Xem tất cả thông báo</button>
+                <button className="nb-view-all" onClick={handleViewAll}>
+                  Xem tất cả thông báo
+                </button>
               </div>
             )}
           </div>
