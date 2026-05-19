@@ -18,17 +18,15 @@ import "../styles/ImportExportSection.css";
 const MAX_SIZE_MB = 10;
 
 function normalizeStr(str) {
-  return (
-    String(str)
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/đ/g, "d")
-      .replace(/Đ/g, "d")
-      .replace(/[^a-z0-9/\s]/g, "")
-      .replace(/\s+/g, " ")
-      .trim()
-  );
+  return String(str)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "d")
+    .replace(/[^a-z0-9/\s]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 const FIELD_KEYWORDS = [
@@ -88,34 +86,40 @@ const FIELD_KEYWORDS = [
       "packaging",
       "quy cach",
       "cach dong",
-      "size",
       "nhua",
       "thuy tinh",
-      "vi du",
       "loai chai",
       "binh",
     ],
   },
   {
     field: "unit",
-    keywords: ["don vi", "unit", "ml/l", "kg/g", "dvt", "don vi tinh"],
+    keywords: [
+      "ml/l/kg/g",
+      "don vi tinh",
+      "don vi",
+      "unit",
+      "ml/l",
+      "kg/g",
+      "dvt",
+    ],
   },
   {
+    // FIX: Bỏ các keyword mơ hồ như "so luong", "sl", "kl", "luong", "nang"
+    // vì chúng khớp nhầm với cột "SỐ LƯỢNG (Chai)".
+    // Chỉ giữ các keyword đặc trưng cho khối lượng / dung tích mỗi gói.
     field: "amountPerPackage",
     keywords: [
       "khoi luong",
-      "luong/goi",
       "luong moi goi",
-      "sl/goi",
-      "tong khoi",
+      "luong/goi",
+      "tong khoi luong",
       "amountperpackage",
-      "kl",
-      "so luong",
       "trong luong",
       "the tich",
-      "luong",
-      "sl",
-      "nang",
+      "kl/goi",
+      "ml/goi",
+      "g/goi",
     ],
   },
 ];
