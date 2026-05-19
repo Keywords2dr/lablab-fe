@@ -6,7 +6,7 @@ import { roomApi } from "../../../../api/roomApi";
 const normalizeChemical = (item = {}) => ({
   itemId: item.itemId ?? "",
   itemCode: item.itemCode ?? "",
-  itemName: item.name ?? "",
+  itemName: item.name ?? item.itemName ?? "",
   unit: item.unit ?? "",
   packaging: item.packaging ?? "",
   amountPerPackage: item.amountPerPackage ?? null,
