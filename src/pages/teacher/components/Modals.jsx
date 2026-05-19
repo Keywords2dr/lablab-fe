@@ -6,6 +6,8 @@ import {
   TaskAlt,
   Science,
   AssignmentReturn,
+  Block,
+  StickyNote2,
 } from "@mui/icons-material";
 import { rentTicketApi } from "../../../api/rentTicketApi";
 import { TICKET_STATUS_MAP } from "../hooks/useRoomManagement";
@@ -46,6 +48,7 @@ export function DetailModal({
 
   const isChemical = detailItem.ticketType === "CHEMICAL_ONLY";
   const isRoom = detailItem.ticketType === "ROOM_ONLY";
+  const isRejected = detailItem.status === "REJECTED";
 
   const showReturnInfo = ["PENDING_RETURN", "RETURNED"].includes(
     detailItem.status,
@@ -205,6 +208,101 @@ export function DetailModal({
             </div>
           </div>
 
+          {/* GHI CHÚ CỦA NGƯỜI MượN */}
+          {detailItem.note && (
+            <div
+              className="trm-detail-item full-width bg-slate"
+              style={{ marginTop: "16px" }}
+            >
+              <span className="trm-detail-label">
+                <StickyNote2
+                  sx={{
+                    fontSize: 14,
+                    verticalAlign: "middle",
+                    marginRight: "4px",
+                    color: "#7c3aed",
+                  }}
+                />
+                Ghi chú từ người mượn
+              </span>
+              <span className="trm-detail-value" style={{ fontWeight: 500 }}>
+                {detailItem.note}
+              </span>
+            </div>
+          )}
+
+          {/* THÔNG TIN TỪ CHỐI */}
+          {isRejected && (
+            <div
+              style={{
+                marginTop: "16px",
+                padding: "16px",
+                borderRadius: "12px",
+                background: "#fff1f2",
+                border: "1px solid #fecdd3",
+                display: "flex",
+                flexDirection: "column",
+                gap: "10px",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  fontWeight: 700,
+                  fontSize: "14px",
+                  color: "#be123c",
+                }}
+              >
+                <Block sx={{ fontSize: 16 }} />
+                Phiếu đã bị từ chối
+              </div>
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: "6px" }}
+              >
+                <div style={{ display: "flex", gap: "8px", fontSize: "13px" }}>
+                  <span style={{ color: "#94a3b8", minWidth: "110px" }}>
+                    Người từ chối:
+                  </span>
+                  <span style={{ fontWeight: 600, color: "#1e293b" }}>
+                    {detailItem.rejectedByName || "—"}
+                  </span>
+                </div>
+                <div style={{ display: "flex", gap: "8px", fontSize: "13px" }}>
+                  <span style={{ color: "#94a3b8", minWidth: "110px" }}>
+                    Thời điểm:
+                  </span>
+                  <span style={{ color: "#1e293b" }}>
+                    {formatDate(detailItem.rejectedAt)}
+                  </span>
+                </div>
+                <div style={{ display: "flex", gap: "8px", fontSize: "13px" }}>
+                  <span
+                    style={{
+                      color: "#94a3b8",
+                      minWidth: "110px",
+                      flexShrink: 0,
+                    }}
+                  >
+                    Lý do:
+                  </span>
+                  <span
+                    style={{
+                      fontWeight: 500,
+                      color: "#be123c",
+                      fontStyle: detailItem.rejectedReason
+                        ? "normal"
+                        : "italic",
+                    }}
+                  >
+                    {detailItem.rejectedReason || "Không có lý do cụ thể."}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* BẢNG CHI TIẾT VẬT TƯ — thông tin mượn ban đầu */}
           {isChemical && (
             <div className="trm-items-section" style={{ marginTop: "24px" }}>
@@ -314,6 +412,7 @@ export function DetailModal({
             </div>
           )}
 
+          {/* BẢNG THÔNG TIN HOÀN TRẢ */}
           {showReturnInfo &&
             isChemical &&
             detailItem.items &&
@@ -446,18 +545,6 @@ export function DetailModal({
               </span>
             </div>
           )}
-
-          {detailItem.note && (
-            <div
-              className="trm-detail-item full-width bg-slate"
-              style={{ marginTop: "16px" }}
-            >
-              <span className="trm-detail-label">Ghi chú từ sinh viên</span>
-              <span className="trm-detail-value" style={{ fontWeight: 500 }}>
-                {detailItem.note}
-              </span>
-            </div>
-          )}
         </div>
 
         <div className="trm-modal-footer">
@@ -526,6 +613,10 @@ export function RejectModal({ rejectTarget, setRejectTarget, refreshData }) {
   if (!rejectTarget) return null;
 
   const handleReject = async () => {
+    if (!rejectNote.trim()) {
+      toast.warning("Vui lòng nhập lý do từ chối!");
+      return;
+    }
     setIsSubmitting(true);
     try {
       await rentTicketApi.teacherApprove(rejectTarget.ticketId, {
@@ -561,12 +652,12 @@ export function RejectModal({ rejectTarget, setRejectTarget, refreshData }) {
               fontWeight: 500,
             }}
           >
-            Lý do từ chối:
+            Lý do từ chối: <span style={{ color: "#ef4444" }}>*</span>
           </p>
           <textarea
             className="trm-textarea"
             rows={4}
-            placeholder="Nhập lý do..."
+            placeholder="Nhập lý do từ chối (bắt buộc)..."
             value={rejectNote}
             onChange={(e) => setRejectNote(e.target.value)}
           />
@@ -582,7 +673,7 @@ export function RejectModal({ rejectTarget, setRejectTarget, refreshData }) {
           <button
             className="trm-btn danger"
             onClick={handleReject}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !rejectNote.trim()}
           >
             {isSubmitting ? "Đang xử lý..." : "Xác nhận từ chối"}
           </button>

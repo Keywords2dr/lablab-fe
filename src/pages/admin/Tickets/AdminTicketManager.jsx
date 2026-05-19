@@ -170,7 +170,7 @@ const AdminTicketManager = () => {
                                 placeholder="Tất cả trạng thái"
                                 style={{ width: 180 }}
                                 allowClear
-                                classNames={{ popup: 'atm-select-dropdown' }}   // ← Sửa ở đây
+                                classNames={{ popup: 'atm-select-dropdown' }}
                             >
                                 {Object.entries(TICKET_STATUS).map(([key, val]) => (
                                     <Select.Option key={key} value={key}>
@@ -185,7 +185,7 @@ const AdminTicketManager = () => {
                                 placeholder="Loại phiếu"
                                 style={{ width: 170 }}
                                 allowClear
-                                classNames={{ popup: 'atm-select-dropdown' }}   // ← Sửa ở đây
+                                classNames={{ popup: 'atm-select-dropdown' }}
                             >
                                 {Object.entries(TICKET_TYPE).map(([key, val]) => (
                                     <Select.Option key={key} value={key}>

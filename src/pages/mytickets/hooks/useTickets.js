@@ -109,6 +109,7 @@ export function buildFullDetail(data) {
     classCode: data.classCode,
     lessonContent: data.lessonDetail || data.lessonContent,
     purpose: mapPurpose(data.purposeType) || data.purpose,
+    note: data.note ?? null,
     ownerName: ownerNameStr,
     chemicals,
   };
@@ -134,16 +135,12 @@ const ACTIVE_STATUSES = [
 ];
 const HISTORY_STATUSES = ["RETURNED", "REJECTED", "CANCELLED"];
 
-// ─────────────────────────────────────────────────────────────────
-// Hook chính
-// ─────────────────────────────────────────────────────────────────
 export function useTickets(mode = "tracking") {
   const [tickets, setTickets] = useState([]);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [loading, setLoading] = useState(true);
 
-  // Cache chi tiết phiếu để không fetch lại khi mở modal lần 2
   const detailCache = useRef(new Map());
 
   const fetchTickets = useCallback(async () => {
@@ -161,15 +158,10 @@ export function useTickets(mode = "tracking") {
 
       const rawData = res.data?.content || res.data || [];
 
-      // FIX 1: Không còn N+1 query — map đồng bộ, không gọi thêm API
-      // Nếu backend đã trả classCode thì dùng luôn.
-      // Nếu backend CHƯA trả, gom tất cả ticketId thiếu classCode rồi
-      // fetch song song (Promise.all) thay vì tuần tự (await trong loop).
       const missingIds = rawData
         .filter((t) => !t.classCode)
         .map((t) => t.ticketId);
 
-      // Fetch tất cả ticket thiếu classCode song song (1 round-trip thay vì N)
       let extraMap = {};
       if (missingIds.length > 0) {
         const results = await Promise.allSettled(
@@ -191,7 +183,6 @@ export function useTickets(mode = "tracking") {
         cancelReason: t.status === "CANCELLED" ? "Đã hủy bởi người mượn" : null,
       }));
 
-      // Xóa cache detail cũ khi refresh danh sách
       detailCache.current.clear();
       setTickets(hydratedTickets);
     } catch (error) {
@@ -206,7 +197,6 @@ export function useTickets(mode = "tracking") {
     fetchTickets();
   }, [fetchTickets]);
 
-  // FIX 2: getTicketDetail có cache — mở lại modal không fetch lại
   const getTicketDetail = useCallback(async (ticketId) => {
     if (detailCache.current.has(ticketId)) {
       return detailCache.current.get(ticketId);

@@ -23,6 +23,7 @@ import {
   CloseCircleOutlined,
   CheckCircleOutlined,
   UserSwitchOutlined,
+  FileTextOutlined,
 } from "@ant-design/icons";
 import ticketApi from "../../../api/ticketApi";
 import "./AdminTicketDetail.css";
@@ -295,6 +296,33 @@ const AdminTicketDetail = () => {
                   "—"}
               </span>
             </div>
+
+            {/* ── Ghi chú người mượn ── */}
+            {ticket.note && (
+              <div className="atd-info-item full-span">
+                <span className="atd-info-label">
+                  <FileTextOutlined
+                    style={{ color: "#7c3aed", marginRight: 6 }}
+                  />
+                  Ghi chú từ người mượn
+                </span>
+                <span
+                  className="atd-info-value"
+                  style={{
+                    color: "var(--text-primary)",
+                    fontWeight: 500,
+                    background: "#f5f3ff",
+                    border: "1px solid #ede9fe",
+                    borderRadius: 8,
+                    padding: "8px 12px",
+                    display: "block",
+                    marginTop: 4,
+                  }}
+                >
+                  {ticket.note}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* ── Section: Thời gian ── */}

@@ -6,12 +6,12 @@ import {
   MeetingRoom,
   ReportProblemOutlined,
   AssignmentReturn,
+  StickyNote2,
 } from "@mui/icons-material";
 import { TICKET_STATUS_MAP, TICKET_TYPE_MAP } from "../hooks/useTickets";
 import TicketStatusTimeline from "./TicketStatusTimeline";
 import "../styles/ticketDetailModal.css";
 
-// Map trạng thái trả từng item hóa chất
 const RETURN_STATUS_MAP = {
   RETURNED: { label: "Đã trả đủ", color: "#059669" },
   PARTIAL: { label: "Trả thiếu", color: "#f59e0b" },
@@ -38,12 +38,8 @@ export default function TicketDetailModal({ ticket, onClose }) {
 
   const isChemical = ticket.ticketType === "CHEMICAL_ONLY";
   const isRoom = ticket.ticketType === "ROOM_ONLY";
-
-  // Hiển thị thông tin trả khi status là PENDING_RETURN hoặc RETURNED
+  const isRejected = ticket.status === "REJECTED";
   const showReturnInfo = ["PENDING_RETURN", "RETURNED"].includes(ticket.status);
-
-  // items từ buildFullDetail (useTickets) — dùng cho bảng hoàn trả
-  // buildFullDetail map items thành chemicals, nhưng items gốc (có returnStatus) nằm ở ticket.items
   const returnItems = ticket.items || [];
 
   return (
@@ -84,13 +80,29 @@ export default function TicketDetailModal({ ticket, onClose }) {
             </span>
           </div>
 
-          {/* Reject reason */}
-          {ticket.rejectReason && (
+          {/* Reject reason — FIX: đổi ticket.rejectReason → ticket.rejectedReason */}
+          {isRejected && (
             <div className="tdm-reject-box">
               <ReportProblemOutlined />
               <div>
                 <div className="tdm-reject-label">Lý do từ chối</div>
-                <div className="tdm-reject-text">{ticket.rejectReason}</div>
+                <div className="tdm-reject-text">
+                  {ticket.rejectedReason || "Không có lý do cụ thể."}
+                </div>
+                {ticket.rejectedByName && (
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      color: "#94a3b8",
+                      marginTop: "4px",
+                    }}
+                  >
+                    Từ chối bởi: <strong>{ticket.rejectedByName}</strong>
+                    {ticket.rejectedAt && (
+                      <> — {formatDate(ticket.rejectedAt)}</>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -115,12 +127,6 @@ export default function TicketDetailModal({ ticket, onClose }) {
 
           {/* ── THÔNG TIN CHUNG ── */}
           <div className="tdm-info-grid">
-            {/*
-              FIX 1: Label "Phòng" giữ nguyên nhưng thêm context:
-              - ROOM_ONLY → "Phòng sử dụng"
-              - CHEMICAL_ONLY → "Lấy từ kho phòng" (mượn hóa chất từ kho phòng này,
-                dùng ở nơi khác là chuyện bình thường)
-            */}
             <div className="tdm-info-item">
               <div className="tdm-info-label">
                 {isRoom ? "Phòng sử dụng" : "Lấy từ kho phòng"}
@@ -128,7 +134,6 @@ export default function TicketDetailModal({ ticket, onClose }) {
               <div className="tdm-info-value">{ticket.roomName || "—"}</div>
             </div>
 
-            {/* Quản lý phòng — chỉ hiện cho ROOM_ONLY */}
             {isRoom && (
               <div className="tdm-info-item">
                 <div className="tdm-info-label">Quản lý phòng</div>
@@ -168,6 +173,30 @@ export default function TicketDetailModal({ ticket, onClose }) {
                 {ticket.lessonContent || "—"}
               </div>
             </div>
+
+            {/* GHI CHÚ NGƯỜI MượN — thêm mới */}
+            {ticket.note && (
+              <div className="tdm-info-item span-2">
+                <div
+                  className="tdm-info-label"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    color: "#7c3aed",
+                  }}
+                >
+                  <StickyNote2 sx={{ fontSize: 14 }} />
+                  Ghi chú từ người mượn
+                </div>
+                <div
+                  className="tdm-info-value"
+                  style={{ fontWeight: 500, color: "#1e293b" }}
+                >
+                  {ticket.note}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ── PHÒNG: thông tin bổ sung cho ROOM_ONLY ── */}
@@ -312,11 +341,7 @@ export default function TicketDetailModal({ ticket, onClose }) {
             </div>
           )}
 
-          {/*
-            FIX 2: Bảng thông tin hoàn trả — hiện khi PENDING_RETURN hoặc RETURNED.
-            Lấy từ ticket.items (raw từ API) để có returnStatus, quantityReturned, returnNote.
-            Áp dụng cho cả CHEMICAL_ONLY (từng item) lẫn ROOM_ONLY (returnNote chung).
-          */}
+          {/* ── BẢNG THÔNG TIN HOÀN TRẢ ── */}
           {showReturnInfo && isChemical && returnItems.length > 0 && (
             <div style={{ marginTop: "20px" }}>
               <div className="tdm-section-title">
