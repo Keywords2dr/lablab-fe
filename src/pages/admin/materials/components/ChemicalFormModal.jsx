@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { Close, Save } from "@mui/icons-material";
+import { Close, Save, Inventory } from "@mui/icons-material";
 import { chemicalApi } from "../../../../api/chemicalApi";
+import { roomApi } from "../../../../api/roomApi";
 import "../styles/ChemicalFormModal.css";
 
 const emptyForm = {
@@ -12,6 +13,8 @@ const emptyForm = {
   packaging: "",
   amountPerPackage: "",
   supplier: "",
+  roomName: "",
+  packageCount: "",
 };
 
 const NAV_KEYS = [
@@ -54,30 +57,6 @@ const handleNumberKeyDown = (e) => {
   if (!/^[0-9.]$/.test(e.key)) e.preventDefault();
 };
 
-const handleCodePaste = (e) => {
-  const pasted = e.clipboardData.getData("text");
-  if (!/^[a-zA-Z0-9_-]+$/.test(pasted)) {
-    e.preventDefault();
-    toast.warning("Mã chỉ được chứa chữ cái, số, dấu gạch dưới và gạch ngang!");
-  }
-};
-
-const handleFormulaPaste = (e) => {
-  const pasted = e.clipboardData.getData("text");
-  if (!/^[a-zA-Z0-9()+\-.]+$/.test(pasted)) {
-    e.preventDefault();
-    toast.warning("Công thức chỉ được chứa chữ cái, số và ký hiệu hóa học!");
-  }
-};
-
-const handleNumberPaste = (e) => {
-  const pasted = e.clipboardData.getData("text");
-  if (!/^\d+(\.\d+)?$/.test(pasted)) {
-    e.preventDefault();
-    toast.warning("Lượng mỗi gói phải là số dương!");
-  }
-};
-
 export default function ChemicalFormModal({
   open,
   editingItem,
@@ -88,6 +67,7 @@ export default function ChemicalFormModal({
   const [formData, setFormData] = useState(emptyForm);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const [roomOptions, setRoomOptions] = useState([]);
 
   useEffect(() => {
     if (!open) return;
@@ -103,9 +83,22 @@ export default function ChemicalFormModal({
             ? String(editingItem.amountPerPackage)
             : "",
         supplier: editingItem.supplier || "",
+        roomName: "",
+        packageCount: "",
       });
     } else {
       setFormData(emptyForm);
+
+      const fetchRooms = async () => {
+        try {
+          const res = await roomApi.getRooms({ size: 500 });
+          const roomList = res.data?.content || res.data || [];
+          setRoomOptions(roomList);
+        } catch (error) {
+          console.error("Không tải được danh sách phòng", error);
+        }
+      };
+      fetchRooms();
     }
     setErrors({});
   }, [open, editingItem]);
@@ -126,15 +119,36 @@ export default function ChemicalFormModal({
 
     const name = formData.name.trim();
     if (!name) errs.name = "Tên hóa chất không được để trống!";
-    else if (name.length < 2 || name.length > 100)
-      errs.name = "Tên phải từ 2 đến 100 ký tự!";
 
     const unit = formData.unit.trim();
     if (!unit) errs.unit = "Đơn vị tính không được để trống!";
 
     const amt = formData.amountPerPackage.trim();
-    if (amt !== "" && (isNaN(Number(amt)) || Number(amt) < 0))
-      errs.amountPerPackage = "Lượng mỗi gói phải là số dương!";
+    if (!amt) {
+      errs.amountPerPackage = "Lượng/Dung tích 1 gói không được để trống!";
+    } else if (isNaN(Number(amt)) || Number(amt) <= 0) {
+      errs.amountPerPackage = "Phải là số dương > 0!";
+    }
+
+    if (!editingItem) {
+      const pCount = formData.packageCount.trim();
+      const rName = formData.roomName.trim();
+
+      if (pCount && !rName) {
+        errs.roomName = "Vui lòng nhập Phòng lưu chứa nếu có nhập số lượng!";
+      }
+      if (rName && !pCount) {
+        errs.packageCount = "Vui lòng nhập Số lượng nếu đã chọn Phòng!";
+      }
+      if (
+        pCount &&
+        (isNaN(Number(pCount)) ||
+          Number(pCount) <= 0 ||
+          !Number.isInteger(Number(pCount)))
+      ) {
+        errs.packageCount = "Số lượng phải là số nguyên dương!";
+      }
+    }
 
     return errs;
   };
@@ -150,11 +164,12 @@ export default function ChemicalFormModal({
       unit: formData.unit.trim(),
       formula: formData.formula.trim() || null,
       packaging: formData.packaging.trim() || null,
-      amountPerPackage:
-        formData.amountPerPackage.trim() !== ""
-          ? Number(formData.amountPerPackage)
-          : null,
+      amountPerPackage: Number(formData.amountPerPackage),
       supplier: formData.supplier.trim() || null,
+      roomName: formData.roomName.trim() || null,
+      packageCount: formData.packageCount.trim()
+        ? Number(formData.packageCount)
+        : null,
     };
 
     setSaving(true);
@@ -165,6 +180,11 @@ export default function ChemicalFormModal({
       } else {
         await chemicalApi.createChemical(payload);
         toast.success("Thêm hóa chất mới thành công!");
+        if (payload.packageCount) {
+          toast.info(
+            `📦 Đã tự động nhập ${payload.packageCount} gói vào phòng ${payload.roomName}`,
+          );
+        }
       }
       onSaved();
     } catch (err) {
@@ -187,14 +207,14 @@ export default function ChemicalFormModal({
 
   return (
     <div className="mm-overlay">
-      <div className="mm-modal">
+      <div className="mm-modal" style={{ maxWidth: 650 }}>
         <div className="mm-modal-header">
           <div className="mm-modal-title">
-            {editingItem ? "Chỉnh sửa hóa chất" : "Thêm hóa chất mới"}
+            {editingItem ? "Chỉnh sửa Danh mục Hóa chất" : "Thêm mới Hóa chất"}
             <span>
               {editingItem
-                ? "Cập nhật thông tin"
-                : "Điền đầy đủ thông tin bên dưới"}
+                ? "Cập nhật thông tin gốc của hóa chất"
+                : "Điền thông tin định danh cho hóa chất mới"}
             </span>
           </div>
           <button className="mm-modal-close" onClick={onClose}>
@@ -202,7 +222,10 @@ export default function ChemicalFormModal({
           </button>
         </div>
 
-        <div className="mm-modal-body">
+        <div
+          className="mm-modal-body"
+          style={{ maxHeight: "70vh", overflowY: "auto", paddingRight: "10px" }}
+        >
           <div className="mm-form-grid">
             <div className="mm-field">
               <label>
@@ -214,36 +237,11 @@ export default function ChemicalFormModal({
                 value={formData.itemCode}
                 onChange={handleChange}
                 onKeyDown={handleCodeKeyDown}
-                onPaste={handleCodePaste}
                 className={errors.itemCode ? "error" : ""}
                 maxLength={30}
               />
               {errors.itemCode && (
                 <div className="mm-field-error">{errors.itemCode}</div>
-              )}
-            </div>
-
-            <div className="mm-field">
-              <label>
-                Đơn vị tính <span className="req">*</span>
-              </label>
-              <input
-                list="dl-unit"
-                name="unit"
-                placeholder="Chọn hoặc nhập..."
-                value={formData.unit}
-                onChange={handleChange}
-                onKeyDown={handleTextKeyDown}
-                className={errors.unit ? "error" : ""}
-                maxLength={20}
-              />
-              <datalist id="dl-unit">
-                {(formOptions?.units || []).map((u) => (
-                  <option key={u} value={u} />
-                ))}
-              </datalist>
-              {errors.unit && (
-                <div className="mm-field-error">{errors.unit}</div>
               )}
             </div>
 
@@ -273,9 +271,26 @@ export default function ChemicalFormModal({
                 value={formData.formula}
                 onChange={handleChange}
                 onKeyDown={handleFormulaKeyDown}
-                onPaste={handleFormulaPaste}
                 maxLength={50}
               />
+            </div>
+
+            <div className="mm-field">
+              <label>Nhà cung cấp</label>
+              <input
+                list="dl-supplier"
+                name="supplier"
+                placeholder="Chọn hoặc nhập..."
+                value={formData.supplier}
+                onChange={handleChange}
+                onKeyDown={handleTextKeyDown}
+                maxLength={100}
+              />
+              <datalist id="dl-supplier">
+                {(formOptions?.suppliers || []).map((s) => (
+                  <option key={s} value={s} />
+                ))}
+              </datalist>
             </div>
 
             <div className="mm-field">
@@ -297,16 +312,18 @@ export default function ChemicalFormModal({
             </div>
 
             <div className="mm-field">
-              <label>Lượng mỗi gói</label>
+              <label>
+                Lượng mỗi gói/chai <span className="req">*</span>
+              </label>
               <input
                 type="number"
                 name="amountPerPackage"
-                min="0"
-                placeholder="0"
+                min="0.01"
+                step="0.01"
+                placeholder="VD: 500"
                 value={formData.amountPerPackage}
                 onChange={handleChange}
                 onKeyDown={handleNumberKeyDown}
-                onPaste={handleNumberPaste}
                 className={errors.amountPerPackage ? "error" : ""}
               />
               {errors.amountPerPackage && (
@@ -315,23 +332,104 @@ export default function ChemicalFormModal({
             </div>
 
             <div className="mm-field">
-              <label>Nhà cung cấp</label>
+              <label>
+                Đơn vị tính <span className="req">*</span>
+              </label>
               <input
-                list="dl-supplier"
-                name="supplier"
-                placeholder="Chọn hoặc nhập..."
-                value={formData.supplier}
+                list="dl-unit"
+                name="unit"
+                placeholder="VD: ml, g..."
+                value={formData.unit}
                 onChange={handleChange}
                 onKeyDown={handleTextKeyDown}
-                maxLength={100}
+                className={errors.unit ? "error" : ""}
+                maxLength={20}
               />
-              <datalist id="dl-supplier">
-                {(formOptions?.suppliers || []).map((s) => (
-                  <option key={s} value={s} />
+              <datalist id="dl-unit">
+                {(formOptions?.units || []).map((u) => (
+                  <option key={u} value={u} />
                 ))}
               </datalist>
+              {errors.unit && (
+                <div className="mm-field-error">{errors.unit}</div>
+              )}
             </div>
           </div>
+
+          {!editingItem && (
+            <div
+              style={{
+                marginTop: "20px",
+                padding: "15px",
+                background: "#f8fafc",
+                border: "1px dashed #cbd5e1",
+                borderRadius: "8px",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  marginBottom: "12px",
+                  color: "#334155",
+                  fontWeight: 600,
+                }}
+              >
+                <Inventory style={{ fontSize: 18, color: "#0ea5e9" }} />
+                Nhập kho ban đầu (Tùy chọn)
+              </div>
+              <div
+                style={{
+                  fontSize: "0.8rem",
+                  color: "#64748b",
+                  marginBottom: "15px",
+                }}
+              >
+                Nếu bạn có sẵn hàng thực tế, hãy điền phòng và số lượng để hệ
+                thống tự động cộng vào kho. Bỏ trống nếu chỉ muốn tạo danh mục.
+              </div>
+
+              <div className="mm-form-grid">
+                <div className="mm-field">
+                  <label>Phòng lưu chứa (Chọn hoặc nhập)</label>
+                  <input
+                    list="dl-rooms"
+                    name="roomName"
+                    placeholder="VD: 310"
+                    value={formData.roomName}
+                    onChange={handleChange}
+                    className={errors.roomName ? "error" : ""}
+                  />
+                  <datalist id="dl-rooms">
+                    {roomOptions.map((r) => (
+                      <option key={r.roomId} value={r.roomName} />
+                    ))}
+                  </datalist>
+                  {errors.roomName && (
+                    <div className="mm-field-error">{errors.roomName}</div>
+                  )}
+                </div>
+
+                <div className="mm-field">
+                  <label>Số lượng (Chai/Hộp)</label>
+                  <input
+                    type="number"
+                    name="packageCount"
+                    min="1"
+                    placeholder="VD: 5"
+                    value={formData.packageCount}
+                    onChange={handleChange}
+                    onKeyDown={handleNumberKeyDown}
+                    className={errors.packageCount ? "error" : ""}
+                  />
+                  {errors.packageCount && (
+                    <div className="mm-field-error">{errors.packageCount}</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="mm-divider" />
@@ -347,7 +445,11 @@ export default function ChemicalFormModal({
             <Save
               style={{ fontSize: 16, marginRight: 6, verticalAlign: "middle" }}
             />
-            {saving ? "Đang lưu..." : editingItem ? "Cập nhật" : "Thêm mới"}
+            {saving
+              ? "Đang xử lý..."
+              : editingItem
+                ? "Cập nhật danh mục"
+                : "Lưu hệ thống"}
           </button>
         </div>
       </div>

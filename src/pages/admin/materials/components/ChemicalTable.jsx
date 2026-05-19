@@ -292,7 +292,9 @@ export default function ChemicalTable({
                 <th className="center">Đóng gói</th>
                 <th className="right">Lượng/gói</th>
                 <th className="right">Tổng tồn kho</th>
-                <th className="center">Phòng lưu trữ</th>
+                <th className="center" style={{ minWidth: 160 }}>
+                  Phòng lưu trữ (Tồn thực tế)
+                </th>
                 <th className="center">Nhà CC</th>
                 <th className="center">Thao tác</th>
               </tr>
@@ -320,8 +322,7 @@ export default function ChemicalTable({
                 chemicals.map((item) => {
                   const inv = inventory[item.itemId];
                   const grandTotal = inv?.grandTotal ?? "—";
-                  const rooms =
-                    inv?.roomDetails?.map((r) => r.roomName).join(", ") || "—";
+
                   return (
                     <tr key={item.itemId}>
                       <td>
@@ -378,16 +379,45 @@ export default function ChemicalTable({
                           ? `${grandTotal} ${item.unit}`
                           : "—"}
                       </td>
-                      <td
-                        className="center"
-                        style={{
-                          fontSize: "0.78rem",
-                          color: "#64748b",
-                          maxWidth: 120,
-                        }}
-                      >
-                        {rooms}
+
+                      {/* ── CẢI TIẾN LOGIC: HIỂN THỊ CHI TIẾT TỒN KHO THEO PHÒNG ── */}
+                      <td className="center">
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "4px",
+                            alignItems: "center",
+                          }}
+                        >
+                          {inv?.roomDetails && inv.roomDetails.length > 0 ? (
+                            inv.roomDetails.map((room, idx) => (
+                              <span
+                                key={idx}
+                                style={{
+                                  display: "inline-block",
+                                  background: "rgba(14, 165, 233, 0.1)",
+                                  color: "#0369a1",
+                                  border: "1px solid rgba(14, 165, 233, 0.2)",
+                                  padding: "2px 6px",
+                                  borderRadius: "4px",
+                                  fontSize: "0.75rem",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {room.roomName} (
+                                <strong style={{ color: "#0f172a" }}>
+                                  {room.quantity}
+                                </strong>{" "}
+                                {item.unit})
+                              </span>
+                            ))
+                          ) : (
+                            <span style={{ color: "#94a3b8" }}>—</span>
+                          )}
+                        </div>
                       </td>
+
                       <td
                         className="center"
                         style={{ fontSize: "0.82rem", color: "#64748b" }}

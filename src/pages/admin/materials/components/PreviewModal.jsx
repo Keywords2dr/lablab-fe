@@ -36,7 +36,7 @@ export default function PreviewModal({
 
     return (
       <div className="mm-overlay">
-        <div className="mm-preview-modal">
+        <div className="mm-preview-modal" style={{ maxWidth: 1000 }}>
           <div className="mm-preview-header">
             <div className="mm-preview-title">
               Xem trước dữ liệu nhập
@@ -93,6 +93,8 @@ export default function PreviewModal({
                       <th>Đóng gói</th>
                       <th>Lượng/gói</th>
                       <th>Nhà CC</th>
+                      <th>Nơi lưu chứa</th>
+                      <th>Số lượng (Chai)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -126,6 +128,12 @@ export default function PreviewModal({
                         <td>{row.amountPerPackage || "—"}</td>
                         <td style={{ fontSize: "0.8rem", color: "#64748b" }}>
                           {row.supplier || "—"}
+                        </td>
+                        <td style={{ fontWeight: 600, color: "#0ea5e9" }}>
+                          {row.roomName || "—"}
+                        </td>
+                        <td style={{ fontWeight: 600, color: "#10b981" }}>
+                          {row.packageCount || "—"}
                         </td>
                       </tr>
                     ))}
@@ -190,6 +198,8 @@ export default function PreviewModal({
     packaging: f.data?.packaging ?? f.packaging ?? "—",
     amountPerPackage: f.data?.amountPerPackage ?? f.amountPerPackage ?? "—",
     supplier: f.data?.supplier ?? f.supplier ?? "—",
+    roomName: f.data?.roomName ?? f.roomName ?? "—",
+    packageCount: f.data?.packageCount ?? f.packageCount ?? "—",
     _status: "error",
     _msg: f.reason ?? f.message ?? "Lỗi không xác định",
   }));
@@ -205,7 +215,7 @@ export default function PreviewModal({
 
   return (
     <div className="mm-overlay">
-      <div className="mm-preview-modal">
+      <div className="mm-preview-modal" style={{ maxWidth: 1000 }}>
         <div className="mm-preview-header">
           <div className="mm-preview-title">
             Kết quả nhập dữ liệu
@@ -267,6 +277,8 @@ export default function PreviewModal({
                       <th>Đóng gói</th>
                       <th>Lượng/gói</th>
                       <th>Nhà CC</th>
+                      <th>Nơi lưu chứa</th>
+                      <th>Số lượng</th>
                       <th>Lý do lỗi</th>
                     </tr>
                   </thead>
@@ -305,6 +317,8 @@ export default function PreviewModal({
                         <td style={{ fontSize: "0.8rem", color: "#64748b" }}>
                           {row.supplier || "—"}
                         </td>
+                        <td>{row.roomName || "—"}</td>
+                        <td>{row.packageCount ?? "—"}</td>
                         <td>
                           <span
                             className="mm-row-badge err"

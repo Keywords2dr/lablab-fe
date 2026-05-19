@@ -105,9 +105,6 @@ const FIELD_KEYWORDS = [
     ],
   },
   {
-    // FIX: Bỏ các keyword mơ hồ như "so luong", "sl", "kl", "luong", "nang"
-    // vì chúng khớp nhầm với cột "SỐ LƯỢNG (Chai)".
-    // Chỉ giữ các keyword đặc trưng cho khối lượng / dung tích mỗi gói.
     field: "amountPerPackage",
     keywords: [
       "khoi luong",
@@ -121,6 +118,15 @@ const FIELD_KEYWORDS = [
       "ml/goi",
       "g/goi",
     ],
+  },
+  // --- BỔ SUNG 2 CỘT MỚI ---
+  {
+    field: "roomName",
+    keywords: ["noi luu chua", "phong", "vi tri", "kho"],
+  },
+  {
+    field: "packageCount",
+    keywords: ["so luong", "sl", "so chai", "so hop", "soluong"],
   },
 ];
 
