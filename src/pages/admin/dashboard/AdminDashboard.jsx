@@ -6,8 +6,6 @@ import {
   MeetingRoom,
   Inventory2,
   PeopleAlt,
-  TrendingUp,
-  TrendingDown,
   FiberManualRecord,
   AccessTime,
   Science,
@@ -16,6 +14,9 @@ import {
   Cancel,
   BarChart,
   Refresh,
+  InfoOutlined,
+  OpenInNew,
+  History,
 } from "@mui/icons-material";
 import { rentTicketApi } from "../../../api/rentTicketApi";
 import { roomApi } from "../../../api/roomApi";
@@ -23,7 +24,11 @@ import { userApi } from "../../../api/userApi";
 import { chemicalApi } from "../../../api/chemicalApi";
 import "./AdminDashboard.css";
 
-// ── Data tĩnh giữ nguyên ────────────────────────────────────
+// ── Mock / Placeholder data ─────────────────────────────────
+// TODO: Biểu đồ phiếu 7 ngày — cần backend bổ sung endpoint:
+//   GET /tickets/admin/stats?startDate=...&endDate=...
+//   hoặc GET /tickets/admin/stats/weekly
+//   Trả về: [{ date, approved, rejected, pending }]
 const WEEKLY_DATA = [
   { day: "T2", approved: 8, rejected: 2, pending: 3 },
   { day: "T3", approved: 12, rejected: 1, pending: 5 },
@@ -35,7 +40,12 @@ const WEEKLY_DATA = [
 ];
 const MAX_WEEKLY = Math.max(...WEEKLY_DATA.map((d) => d.approved + d.rejected + d.pending));
 
-const ROOMS = [
+// TODO: Phòng Lab hôm nay — cần backend bổ sung endpoint:
+//   GET /tickets/admin/active-borrowings
+//   Trả về: [{ roomId, roomName, userId, userName, endTime }]
+//   Hoặc: GET /rooms/current-usage
+//   Hiện tại chỉ có isActive (hoạt động/ngừng) không có real-time occupancy
+const ROOMS_MOCK = [
   { name: "TH Hóa 01", status: "occupied", user: "Nguyễn Văn An", until: "11:30" },
   { name: "TH Hóa 02", status: "available", user: null, until: null },
   { name: "Vật Lý B101", status: "occupied", user: "Lê Hoàng Nam", until: "14:00" },
@@ -114,11 +124,9 @@ export default function AdminDashboard() {
           data?.totalElements ?? data?.data?.totalElements ?? 0;
       }
 
-      // 4. Vật tư cảnh báo (grandTotal === 0)
       let lowStockCount = 0;
       if (inventoryRes.status === "fulfilled") {
         const inv = inventoryRes.value?.data;
-        // inv là object { chemicalId: { grandTotal, ... } }
         if (inv && typeof inv === "object") {
           lowStockCount = Object.values(inv).filter(
             (item) => (item?.grandTotal ?? 1) === 0
@@ -142,27 +150,6 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchDashboardData();
   }, [fetchDashboardData]);
-
-  // ── Approve / Reject phiếu (gọi API) ─────────────────────
-  const handleApprove = async (ticketId) => {
-    try {
-      await rentTicketApi.adminApprove(ticketId, { approved: true });
-      setTickets((prev) => prev.filter((t) => t.ticketId !== ticketId));
-      setStats((prev) => ({ ...prev, pendingCount: Math.max(0, prev.pendingCount - 1) }));
-    } catch (err) {
-      console.error("Approve error:", err);
-    }
-  };
-
-  const handleReject = async (ticketId) => {
-    try {
-      await rentTicketApi.adminApprove(ticketId, { approved: false, rejectedReason: "Admin từ chối" });
-      setTickets((prev) => prev.filter((t) => t.ticketId !== ticketId));
-      setStats((prev) => ({ ...prev, pendingCount: Math.max(0, prev.pendingCount - 1) }));
-    } catch (err) {
-      console.error("Reject error:", err);
-    }
-  };
 
   // ── STATS config (dùng data real) ─────────────────────────
   const STATS_CONFIG = [
@@ -308,7 +295,12 @@ export default function AdminDashboard() {
             ) : (
               <div className="adnew-ticket-list">
                 {tickets.slice(0, 5).map((t, idx) => (
-                  <div key={t.ticketId} className="adnew-ticket">
+                  <div
+                    key={t.ticketId}
+                    className="adnew-ticket adnew-ticket-clickable"
+                    onClick={() => navigate(`/admin/tickets/${t.ticketId}`)}
+                    title="Bấm để xem chi tiết phiếu này"
+                  >
                     <div
                       className="adnew-ticket-avatar"
                       style={{ background: AVATAR_COLORS[idx % AVATAR_COLORS.length] }}
@@ -341,22 +333,14 @@ export default function AdminDashboard() {
                         </div>
                       )}
                     </div>
-                    <div className="adnew-ticket-actions">
+                    <div className="adnew-ticket-actions"  onClick={(e) => e.stopPropagation()}>
                       <button
-                        className="adnew-btn-reject"
-                        onClick={() => handleReject(t.ticketId)}
-                        title="Từ chối"
+                        className="adnew-btn-detail"
+                        onClick={() => navigate(`/admin/tickets/${t.ticketId}`)}
+                        title="Xem chi tiết & duyệt phiếu"
                       >
-                        <Cancel style={{ fontSize: 16 }} />
-                        Từ chối
-                      </button>
-                      <button
-                        className="adnew-btn-approve"
-                        onClick={() => handleApprove(t.ticketId)}
-                        title="Phê duyệt"
-                      >
-                        <CheckCircle style={{ fontSize: 16 }} />
-                        Duyệt
+                        <OpenInNew style={{ fontSize: 15 }} />
+                        Chi tiết
                       </button>
                     </div>
                   </div>
@@ -373,26 +357,43 @@ export default function AdminDashboard() {
             )}
           </div>
 
-          {/* Activity Feed - giữ dữ liệu tĩnh placeholder */}
+          {/* Activity Feed — dùng audit-logs API nhưng format feed không có sẵn */}
           <div className="adnew-card">
             <div className="adnew-card-header">
               <div className="adnew-card-title-wrap">
-                <AccessTime className="adnew-card-icon" style={{ color: "#3b82f6" }} />
+                <History className="adnew-card-icon" style={{ color: "#3b82f6" }} />
                 <h2 className="adnew-card-title">Hoạt động gần đây</h2>
               </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span
+                  className="adnew-mock-badge"
+                  title="Dữ liệu mẫu — cần backend bổ sung endpoint GET /audit-logs/feed trả về activity feed thân thiện"
+                >
+                  <InfoOutlined style={{ fontSize: 12 }} />
+                  Dữ liệu mẫu
+                </span>
+                <button className="adnew-btn-link" onClick={() => navigate("/admin/audit-logs")}>
+                  Xem logs <ArrowForward style={{ fontSize: 14 }} />
+                </button>
+              </div>
             </div>
-            <div className="adnew-activity-list">
-              {[
-                { id: 1, text: "Dữ liệu hoạt động sẽ được tích hợp ở giai đoạn sau", time: "Sắp có", status: "system" },
-              ].map((act) => (
-                <div key={act.id} className="adnew-activity-item">
-                  <div className={`adnew-activity-dot adnew-dot-${act.status}`} />
-                  <div className="adnew-activity-content">
-                    <span className="adnew-activity-text">{act.text}</span>
-                    <span className="adnew-activity-time">{act.time}</span>
-                  </div>
-                </div>
-              ))}
+            <div className="adnew-activity-explain">
+              <History style={{ fontSize: 28, color: "#cbd5e1" }} />
+              <div>
+                <p className="adnew-activity-explain-title">Cần API rêtng</p>
+                <p className="adnew-activity-explain-sub">
+                  Hiện có <code>GET /audit-logs</code> nhưng trả về log kỹ thuật (action, entity, oldData/newData).
+                  Cần backend bổ sung <code>GET /audit-logs/feed</code> để hiện
+                  activity thân thiện cho dashboard.
+                </p>
+                <button
+                  className="adnew-btn-link"
+                  style={{ marginTop: 8 }}
+                  onClick={() => navigate("/admin/audit-logs")}
+                >
+                  Xem Nhật ký Hệ thống ày →
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -437,6 +438,10 @@ export default function AdminDashboard() {
                 <BarChart className="adnew-card-icon" style={{ color: "#6366f1" }} />
                 <h2 className="adnew-card-title">Phiếu mượn 7 ngày qua</h2>
               </div>
+              <span className="adnew-mock-badge" title="Dữ liệu mẫu — cần backend bổ sung API /tickets/admin/stats/weekly">
+                <InfoOutlined style={{ fontSize: 12 }} />
+                Dữ liệu mẫu
+              </span>
             </div>
 
             {/* Legend */}
@@ -501,25 +506,31 @@ export default function AdminDashboard() {
                 <MeetingRoom className="adnew-card-icon" style={{ color: "#10b981" }} />
                 <h2 className="adnew-card-title">Phòng Lab hôm nay</h2>
               </div>
-              <button className="adnew-btn-link" onClick={() => navigate("/admin/rooms")}>
-                Quản lý <ArrowForward style={{ fontSize: 14 }} />
-              </button>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span className="adnew-mock-badge" title="Dữ liệu mẫu — cần backend: GET /rooms/current-usage trả về trạng thái real-time">
+                  <InfoOutlined style={{ fontSize: 12 }} />
+                  Dữ liệu mẫu
+                </span>
+                <button className="adnew-btn-link" onClick={() => navigate("/admin/rooms")}>
+                  Quản lý <ArrowForward style={{ fontSize: 14 }} />
+                </button>
+              </div>
             </div>
 
             <div className="adnew-room-summary">
               <span className="adnew-room-pill occupied">
-                {ROOMS.filter((r) => r.status === "occupied").length} đang dùng
+                {ROOMS_MOCK.filter((r) => r.status === "occupied").length} đang dùng
               </span>
               <span className="adnew-room-pill available">
-                {ROOMS.filter((r) => r.status === "available").length} trống
+                {ROOMS_MOCK.filter((r) => r.status === "available").length} trống
               </span>
               <span className="adnew-room-pill maintenance">
-                {ROOMS.filter((r) => r.status === "maintenance").length} bảo trì
+                {ROOMS_MOCK.filter((r) => r.status === "maintenance").length} bảo trì
               </span>
             </div>
 
             <div className="adnew-room-list">
-              {ROOMS.map((room, i) => (
+              {ROOMS_MOCK.map((room, i) => (
                 <div key={i} className={`adnew-room-item adnew-room-${room.status}`}>
                   <div className="adnew-room-indicator" />
                   <div className="adnew-room-info">
