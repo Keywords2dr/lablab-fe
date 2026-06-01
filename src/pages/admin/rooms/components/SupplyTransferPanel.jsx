@@ -46,6 +46,7 @@ function StepDot({ num, status }) {
 }
 
 function ItemCard({ item, selected, packageCount, onToggle, onChangeCount }) {
+  const uid = item.itemId || item.id || item.itemCode;
   const error = selected ? validatePackageCount(packageCount) : false;
 
   const handleCardClick = (e) => {
@@ -70,7 +71,6 @@ function ItemCard({ item, selected, packageCount, onToggle, onChangeCount }) {
         </div>
       )}
 
-      {/* Tên + mã hóa chất */}
       <div className="stp-item-card__name">{item.itemName}</div>
       <div className="stp-item-card__code">{item.itemCode}</div>
 
@@ -94,10 +94,7 @@ function ItemCard({ item, selected, packageCount, onToggle, onChangeCount }) {
           <button
             className="stp-qty-btn"
             onClick={() =>
-              onChangeCount(
-                item.itemId,
-                Math.max(1, (Number(packageCount) || 1) - 1),
-              )
+              onChangeCount(uid, Math.max(1, (Number(packageCount) || 1) - 1))
             }
             disabled={Number(packageCount) <= 1}
             aria-label="Giảm"
@@ -106,25 +103,26 @@ function ItemCard({ item, selected, packageCount, onToggle, onChangeCount }) {
           </button>
 
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
             className={`stp-qty-input stp-qty-input--inline ${error ? "stp-qty-input--error" : ""}`}
-            value={packageCount}
-            min={1}
-            onChange={(e) => onChangeCount(item.itemId, e.target.value)}
-            aria-label={`Số gói ${item.itemName}`}
+            style={{ minWidth: "30px", flexGrow: 1, textAlign: "center" }}
+            value={packageCount !== undefined ? packageCount : ""}
+            onClick={(e) => e.stopPropagation()}
+            onChange={(e) => {
+              const val = e.target.value.replace(/[^0-9]/g, "");
+              onChangeCount(uid, val);
+            }}
+            aria-label={`Số lượng ${item.itemName}`}
           />
 
           <button
             className="stp-qty-btn"
-            onClick={() =>
-              onChangeCount(item.itemId, (Number(packageCount) || 0) + 1)
-            }
+            onClick={() => onChangeCount(uid, (Number(packageCount) || 0) + 1)}
             aria-label="Tăng"
           >
             <AddOutlined style={{ fontSize: 12 }} />
           </button>
-
-          <span className="stp-qty-label">{item.packaging || "gói"}</span>
         </div>
       )}
 
@@ -140,7 +138,7 @@ export default function SupplyTransferPanel({ rooms = [] }) {
 
   const [mode, setMode] = useState("allocate");
   const [itemSearch, setItemSearch] = useState("");
-  const [selectedItems, setSelectedItems] = useState({}); // { itemId: packageCount }
+  const [selectedItems, setSelectedItems] = useState({});
   const [roomSearch, setRoomSearch] = useState("");
   const [selectedRoomIds, setSelectedRoomIds] = useState(new Set());
   const [note, setNote] = useState("");
@@ -166,15 +164,23 @@ export default function SupplyTransferPanel({ rooms = [] }) {
 
   const filteredItems = useMemo(() => {
     const q = itemSearch.trim().toLowerCase();
-    return q
+    const arr = q
       ? globalItems.filter(
           (i) =>
-            i.itemName.toLowerCase().includes(q) ||
-            i.itemCode.toLowerCase().includes(q) ||
-            (i.formula && i.formula.toLowerCase().includes(q)) ||
-            (i.supplier && i.supplier.toLowerCase().includes(q)),
+            i.itemName?.toLowerCase().includes(q) ||
+            i.itemCode?.toLowerCase().includes(q) ||
+            i.formula?.toLowerCase().includes(q) ||
+            i.supplier?.toLowerCase().includes(q),
         )
       : globalItems;
+
+    const seen = new Set();
+    return arr.filter((i) => {
+      const id = i.itemId || i.id || i.itemCode;
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
   }, [globalItems, itemSearch]);
 
   const filteredRooms = useMemo(() => {
@@ -201,19 +207,20 @@ export default function SupplyTransferPanel({ rooms = [] }) {
     !submitting;
 
   const toggleItem = (item) => {
+    const uid = item.itemId || item.id || item.itemCode;
     setSelectedItems((prev) => {
       const next = { ...prev };
-      if (next[item.itemId] !== undefined) {
-        delete next[item.itemId];
+      if (next[uid] !== undefined) {
+        delete next[uid];
       } else {
-        next[item.itemId] = 1;
+        next[uid] = 1;
       }
       return next;
     });
   };
 
-  const setCount = (itemId, val) => {
-    setSelectedItems((prev) => ({ ...prev, [itemId]: val }));
+  const setCount = (uid, val) => {
+    setSelectedItems((prev) => ({ ...prev, [uid]: val }));
   };
 
   const toggleRoom = (roomId) => {
@@ -350,10 +357,15 @@ export default function SupplyTransferPanel({ rooms = [] }) {
               <div className="stp-item-grid">
                 {filteredItems.map((item) => (
                   <ItemCard
-                    key={item.itemId}
+                    key={item.itemId || item.id || item.itemCode}
                     item={item}
-                    selected={selectedItems[item.itemId] !== undefined}
-                    packageCount={selectedItems[item.itemId]}
+                    selected={
+                      selectedItems[item.itemId || item.id || item.itemCode] !==
+                      undefined
+                    }
+                    packageCount={
+                      selectedItems[item.itemId || item.id || item.itemCode]
+                    }
                     onToggle={toggleItem}
                     onChangeCount={setCount}
                   />
@@ -523,7 +535,10 @@ export default function SupplyTransferPanel({ rooms = [] }) {
               {selectedItemCount > 0 && allCountsValid && (
                 <div className="stp-summary__items stp-summary__items--expanded">
                   {selectedItemIds.map((id) => {
-                    const item = globalItems.find((i) => i.itemId === id);
+                    const item = globalItems.find(
+                      (i) =>
+                        i.itemId === id || i.id === id || i.itemCode === id,
+                    );
                     if (!item) return null;
                     return (
                       <div
@@ -633,7 +648,9 @@ export default function SupplyTransferPanel({ rooms = [] }) {
               </div>
               <div className="stp-dialog__list">
                 {selectedItemIds.map((id) => {
-                  const item = globalItems.find((i) => i.itemId === id);
+                  const item = globalItems.find(
+                    (i) => i.itemId === id || i.id === id || i.itemCode === id,
+                  );
                   if (!item) return null;
                   return (
                     <div key={id} className="stp-dialog__row">
