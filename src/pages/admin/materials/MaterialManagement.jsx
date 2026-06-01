@@ -76,6 +76,7 @@ export default function MaterialManagement() {
 
   const handlePreviewClose = () => setPreviewOpen(false);
 
+  // CẬP NHẬT LOGIC: Xử lý newCount và updatedCount từ Backend
   const handlePreviewConfirm = async (file) => {
     if (!file) {
       handlePreviewClose();
@@ -85,10 +86,16 @@ export default function MaterialManagement() {
     try {
       const res = await chemicalApi.importChemicals(file);
       const d = res.data;
-      const ok = d?.successCount ?? 0;
+
+      const newCount = d?.newCount || 0;
+      const updatedCount = d?.updatedCount || 0;
+      const ok = newCount + updatedCount;
       const fails = Array.isArray(d?.failures) ? d.failures : [];
+
       setPreviewResult({
         successCount: ok,
+        newCount: newCount,
+        updatedCount: updatedCount,
         failures: fails,
         message: d?.message,
       });

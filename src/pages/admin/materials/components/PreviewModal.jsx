@@ -178,7 +178,11 @@ export default function PreviewModal({
     );
   }
 
+  // CẬP NHẬT LOGIC: Tách biến newCount và updatedCount
   const successCount = result?.successCount ?? 0;
+  const newCount = result?.newCount ?? 0;
+  const updatedCount = result?.updatedCount ?? 0;
+
   const failures = Array.isArray(result?.failures) ? result.failures : [];
   const errCount = failures.length;
   const total = successCount + errCount;
@@ -232,10 +236,34 @@ export default function PreviewModal({
             <div className="mm-preview-stat">
               <strong>{total}</strong> Tổng dòng
             </div>
-            <div className="mm-preview-stat">
-              <strong style={{ color: "#16a34a" }}>{successCount}</strong> Thành
-              công
+
+            {/* CẬP NHẬT UI: Hiển thị chi tiết số lượng tạo mới và cộng dồn */}
+            <div
+              className="mm-preview-stat"
+              style={{
+                flexDirection: "column",
+                alignItems: "flex-start",
+                gap: 0,
+              }}
+            >
+              <div>
+                <strong style={{ color: "#16a34a" }}>{successCount}</strong>{" "}
+                Thành công
+              </div>
+              {successCount > 0 && (
+                <div
+                  style={{
+                    fontSize: "0.75rem",
+                    color: "#64748b",
+                    marginTop: 4,
+                    fontWeight: "normal",
+                  }}
+                >
+                  ({newCount} tạo mới, {updatedCount} cộng dồn)
+                </div>
+              )}
             </div>
+
             <div className="mm-preview-stat">
               <strong style={{ color: "#dc2626" }}>{errCount}</strong> Lỗi / Bỏ
               qua
@@ -248,7 +276,8 @@ export default function PreviewModal({
               <div className="banner-icon">✅</div>
               <div className="banner-text">
                 <strong>
-                  {successCount} dòng đã được nhập thành công vào hệ thống
+                  {successCount} dòng đã được xử lý ({newCount} tạo mới,{" "}
+                  {updatedCount} cộng dồn)
                 </strong>
                 <span>
                   {result?.message ??
