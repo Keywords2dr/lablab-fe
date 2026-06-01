@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowForward,
@@ -15,106 +15,15 @@ import {
   HourglassEmpty,
   Cancel,
   BarChart,
-  Circle,
+  Refresh,
 } from "@mui/icons-material";
+import { rentTicketApi } from "../../../api/rentTicketApi";
+import { roomApi } from "../../../api/roomApi";
+import { userApi } from "../../../api/userApi";
+import { chemicalApi } from "../../../api/chemicalApi";
 import "./AdminDashboard.css";
 
-// ── Mock Data ────────────────────────────────────────────────
-const STATS = [
-  {
-    id: "tickets",
-    label: "Phiếu chờ duyệt",
-    value: "12",
-    change: "+3",
-    up: true,
-    icon: <Receipt />,
-    color: "blue",
-    path: "/admin/tickets",
-  },
-  {
-    id: "rooms",
-    label: "Phòng đang hoạt động",
-    value: "8",
-    change: "+1",
-    up: true,
-    icon: <MeetingRoom />,
-    color: "green",
-    path: "/admin/rooms",
-  },
-  {
-    id: "materials",
-    label: "Vật tư cảnh báo",
-    value: "5",
-    change: "+2",
-    up: false,
-    icon: <Inventory2 />,
-    color: "orange",
-    path: "/admin/materials",
-  },
-  {
-    id: "users",
-    label: "Người dùng",
-    value: "124",
-    change: "+7",
-    up: true,
-    icon: <PeopleAlt />,
-    color: "purple",
-    path: "/admin/users",
-  },
-];
-
-const PENDING_TICKETS = [
-  {
-    id: 1,
-    user: "Nguyễn Văn An",
-    role: "Giảng viên",
-    type: "room",
-    detail: "Phòng Thực Hành Hóa 01",
-    time: "10 phút trước",
-    avatar: "A",
-    avatarColor: "#3b82f6",
-  },
-  {
-    id: 2,
-    user: "Trần Thị Bình",
-    role: "Sinh viên",
-    type: "material",
-    detail: "Axit Sunfuric (2 Lít)",
-    time: "25 phút trước",
-    avatar: "B",
-    avatarColor: "#8b5cf6",
-  },
-  {
-    id: 3,
-    user: "Lê Minh Cường",
-    role: "Giảng viên",
-    type: "room",
-    detail: "Phòng Vật Lý B202",
-    time: "1 giờ trước",
-    avatar: "C",
-    avatarColor: "#10b981",
-  },
-  {
-    id: 4,
-    user: "Phạm Thị Duyên",
-    role: "Sinh viên",
-    type: "material",
-    detail: "NaOH (500g), HCl (1L)",
-    time: "2 giờ trước",
-    avatar: "D",
-    avatarColor: "#f59e0b",
-  },
-];
-
-const RECENT_ACTIVITY = [
-  { id: 1, text: "Nguyễn Văn An được phê duyệt mượn phòng TH Hóa 01", time: "5 phút trước", status: "approved" },
-  { id: 2, text: "Phiếu mượn Acetic Anhydride bị từ chối (hết hàng)", time: "20 phút trước", status: "rejected" },
-  { id: 3, text: "Lê Hoàng Nam trả lại Phòng Vật Lý B101", time: "45 phút trước", status: "returned" },
-  { id: 4, text: "Thêm 10 Lọ NaOH vào kho vật tư Lab 3", time: "1 giờ trước", status: "added" },
-  { id: 5, text: "Phân quyền: TS. Trần Minh quản lý Phòng TH Hóa", time: "2 giờ trước", status: "system" },
-];
-
-// Biểu đồ phiếu 7 ngày — [T2..CN]
+// ── Data tĩnh giữ nguyên ────────────────────────────────────
 const WEEKLY_DATA = [
   { day: "T2", approved: 8, rejected: 2, pending: 3 },
   { day: "T3", approved: 12, rejected: 1, pending: 5 },
@@ -126,7 +35,6 @@ const WEEKLY_DATA = [
 ];
 const MAX_WEEKLY = Math.max(...WEEKLY_DATA.map((d) => d.approved + d.rejected + d.pending));
 
-// Trạng thái phòng Lab
 const ROOMS = [
   { name: "TH Hóa 01", status: "occupied", user: "Nguyễn Văn An", until: "11:30" },
   { name: "TH Hóa 02", status: "available", user: null, until: null },
@@ -136,13 +44,178 @@ const ROOMS = [
   { name: "Điện tử E301", status: "occupied", user: "Trần Minh Tú", until: "16:30" },
 ];
 
+// Loại phiếu map
+const TICKET_TYPE_LABEL = {
+  ROOM_ONLY: "Phòng Lab",
+  CHEMICAL_ONLY: "Vật tư",
+  ROOM_AND_CHEMICAL: "Phòng & Vật tư",
+};
+
+// Avatar màu cố định theo index
+const AVATAR_COLORS = ["#3b82f6", "#8b5cf6", "#10b981", "#f59e0b", "#ef4444", "#6366f1"];
+
 // ── Component chính ──────────────────────────────────────────
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const [tickets, setTickets] = useState(PENDING_TICKETS);
 
-  const handleApprove = (id) => setTickets((prev) => prev.filter((t) => t.id !== id));
-  const handleReject = (id) => setTickets((prev) => prev.filter((t) => t.id !== id));
+  // ── State: Stats ─────────────────────────────────────────
+  const [stats, setStats] = useState({
+    pendingCount: 0,
+    activeRooms: 0,
+    totalUsers: 0,
+    lowStockCount: 0,
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  // ── State: Phiếu chờ duyệt ───────────────────────────────
+  const [tickets, setTickets] = useState([]);
+  const [ticketsLoading, setTicketsLoading] = useState(true);
+
+  // ── Fetch tất cả stats song song ──────────────────────────
+  const fetchDashboardData = useCallback(async () => {
+    setStatsLoading(true);
+    setTicketsLoading(true);
+
+    try {
+      const [pendingRes, roomsRes, usersRes, inventoryRes] = await Promise.allSettled([
+        rentTicketApi.getAdminPending(),
+        roomApi.getRooms({ status: "active", size: 1 }),
+        userApi.getUsers({ size: 1 }),
+        chemicalApi.getInventoryGlobal(),
+      ]);
+
+      // 1. Phiếu chờ duyệt (list + count)
+      let pendingList = [];
+      if (pendingRes.status === "fulfilled") {
+        const data = pendingRes.value?.data;
+        // API trả về array trực tiếp hoặc { content: [...] }
+        pendingList = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.content)
+          ? data.content
+          : [];
+      }
+      setTickets(pendingList);
+      setTicketsLoading(false);
+
+      // 2. Phòng đang hoạt động
+      let activeRooms = 0;
+      if (roomsRes.status === "fulfilled") {
+        const data = roomsRes.value?.data;
+        activeRooms =
+          data?.totalElements ?? data?.data?.totalElements ?? 0;
+      }
+
+      // 3. Tổng người dùng
+      let totalUsers = 0;
+      if (usersRes.status === "fulfilled") {
+        const data = usersRes.value?.data;
+        totalUsers =
+          data?.totalElements ?? data?.data?.totalElements ?? 0;
+      }
+
+      // 4. Vật tư cảnh báo (grandTotal === 0)
+      let lowStockCount = 0;
+      if (inventoryRes.status === "fulfilled") {
+        const inv = inventoryRes.value?.data;
+        // inv là object { chemicalId: { grandTotal, ... } }
+        if (inv && typeof inv === "object") {
+          lowStockCount = Object.values(inv).filter(
+            (item) => (item?.grandTotal ?? 1) === 0
+          ).length;
+        }
+      }
+
+      setStats({
+        pendingCount: pendingList.length,
+        activeRooms,
+        totalUsers,
+        lowStockCount,
+      });
+    } catch (err) {
+      console.error("Dashboard fetch error:", err);
+    } finally {
+      setStatsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  // ── Approve / Reject phiếu (gọi API) ─────────────────────
+  const handleApprove = async (ticketId) => {
+    try {
+      await rentTicketApi.adminApprove(ticketId, { approved: true });
+      setTickets((prev) => prev.filter((t) => t.ticketId !== ticketId));
+      setStats((prev) => ({ ...prev, pendingCount: Math.max(0, prev.pendingCount - 1) }));
+    } catch (err) {
+      console.error("Approve error:", err);
+    }
+  };
+
+  const handleReject = async (ticketId) => {
+    try {
+      await rentTicketApi.adminApprove(ticketId, { approved: false, rejectedReason: "Admin từ chối" });
+      setTickets((prev) => prev.filter((t) => t.ticketId !== ticketId));
+      setStats((prev) => ({ ...prev, pendingCount: Math.max(0, prev.pendingCount - 1) }));
+    } catch (err) {
+      console.error("Reject error:", err);
+    }
+  };
+
+  // ── STATS config (dùng data real) ─────────────────────────
+  const STATS_CONFIG = [
+    {
+      id: "tickets",
+      label: "Phiếu chờ duyệt",
+      value: statsLoading ? "—" : String(stats.pendingCount),
+      icon: <Receipt />,
+      color: "blue",
+      path: "/admin/tickets",
+    },
+    {
+      id: "rooms",
+      label: "Phòng đang hoạt động",
+      value: statsLoading ? "—" : String(stats.activeRooms),
+      icon: <MeetingRoom />,
+      color: "green",
+      path: "/admin/rooms",
+    },
+    {
+      id: "materials",
+      label: "Vật tư hết hàng",
+      value: statsLoading ? "—" : String(stats.lowStockCount),
+      icon: <Inventory2 />,
+      color: "orange",
+      path: "/admin/materials",
+    },
+    {
+      id: "users",
+      label: "Tổng người dùng",
+      value: statsLoading ? "—" : String(stats.totalUsers),
+      icon: <PeopleAlt />,
+      color: "purple",
+      path: "/admin/users",
+    },
+  ];
+
+  // ── Helper: render type badge ──────────────────────────────
+  const getTicketTypeClass = (type) => {
+    if (!type) return "material";
+    if (type === "ROOM_ONLY" || type === "ROOM_AND_CHEMICAL") return "room";
+    return "material";
+  };
+
+  const getTicketTypeLabel = (type) =>
+    TICKET_TYPE_LABEL[type] || type || "—";
+
+  const getTicketTypeIcon = (type) =>
+    type === "ROOM_ONLY" ? (
+      <MeetingRoom style={{ fontSize: 12 }} />
+    ) : (
+      <Science style={{ fontSize: 12 }} />
+    );
 
   return (
     <div className="adnew-root">
@@ -158,33 +231,37 @@ export default function AdminDashboard() {
             Chào mừng trở lại, Admin! Dưới đây là tình trạng hệ thống hôm nay.
           </p>
         </div>
-        <div className="adnew-header-time">
-          <AccessTime style={{ fontSize: 16 }} />
-          {new Date().toLocaleDateString("vi-VN", {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button className="adnew-refresh-btn" onClick={fetchDashboardData} title="Tải lại dữ liệu">
+            <Refresh style={{ fontSize: 16 }} />
+            Làm mới
+          </button>
+          <div className="adnew-header-time">
+            <AccessTime style={{ fontSize: 16 }} />
+            {new Date().toLocaleDateString("vi-VN", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </div>
         </div>
       </div>
 
       {/* ── STATS GRID ── */}
       <div className="adnew-stats-grid">
-        {STATS.map((s) => (
+        {STATS_CONFIG.map((s) => (
           <div
             key={s.id}
-            className={`adnew-stat-card adnew-stat-${s.color}`}
+            className={`adnew-stat-card adnew-stat-${s.color} ${statsLoading ? "adnew-stat-loading" : ""}`}
             onClick={() => navigate(s.path)}
           >
             <div className="adnew-stat-icon">{s.icon}</div>
             <div className="adnew-stat-body">
               <span className="adnew-stat-label">{s.label}</span>
-              <span className="adnew-stat-value">{s.value}</span>
-            </div>
-            <div className={`adnew-stat-badge ${s.up ? "up" : "down"}`}>
-              {s.up ? <TrendingUp style={{ fontSize: 14 }} /> : <TrendingDown style={{ fontSize: 14 }} />}
-              {s.change}
+              <span className="adnew-stat-value">
+                {statsLoading ? <span className="adnew-skeleton" /> : s.value}
+              </span>
             </div>
           </div>
         ))}
@@ -201,7 +278,9 @@ export default function AdminDashboard() {
                 <HourglassEmpty className="adnew-card-icon" style={{ color: "#f59e0b" }} />
                 <h2 className="adnew-card-title">
                   Phiếu chờ duyệt
-                  <span className="adnew-badge-count">{tickets.length}</span>
+                  {!ticketsLoading && (
+                    <span className="adnew-badge-count">{tickets.length}</span>
+                  )}
                 </h2>
               </div>
               <button className="adnew-btn-link" onClick={() => navigate("/admin/tickets")}>
@@ -209,42 +288,63 @@ export default function AdminDashboard() {
               </button>
             </div>
 
-            {tickets.length === 0 ? (
+            {ticketsLoading ? (
+              <div className="adnew-ticket-list">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="adnew-ticket adnew-ticket-skeleton">
+                    <div className="adnew-skeleton adnew-skeleton-avatar" />
+                    <div className="adnew-skeleton-lines">
+                      <div className="adnew-skeleton adnew-skeleton-line" />
+                      <div className="adnew-skeleton adnew-skeleton-line short" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : tickets.length === 0 ? (
               <div className="adnew-empty-state">
                 <CheckCircle style={{ fontSize: 40, color: "#10b981", marginBottom: 8 }} />
                 <p>Không còn phiếu nào cần xử lý!</p>
               </div>
             ) : (
               <div className="adnew-ticket-list">
-                {tickets.map((t) => (
-                  <div key={t.id} className="adnew-ticket">
+                {tickets.slice(0, 5).map((t, idx) => (
+                  <div key={t.ticketId} className="adnew-ticket">
                     <div
                       className="adnew-ticket-avatar"
-                      style={{ background: t.avatarColor }}
+                      style={{ background: AVATAR_COLORS[idx % AVATAR_COLORS.length] }}
                     >
-                      {t.avatar}
+                      {(t.requesterName || t.userName || "?").charAt(0).toUpperCase()}
                     </div>
                     <div className="adnew-ticket-meta">
                       <div className="adnew-ticket-user">
-                        {t.user}
-                        <span className="adnew-ticket-role">{t.role}</span>
+                        {t.requesterName || t.userName || "Người dùng"}
+                        <span className="adnew-ticket-role">
+                          {t.requesterRole || t.role || ""}
+                        </span>
                       </div>
                       <div className="adnew-ticket-detail">
-                        <span className={`adnew-ticket-type ${t.type}`}>
-                          {t.type === "room" ? <MeetingRoom style={{ fontSize: 12 }} /> : <Science style={{ fontSize: 12 }} />}
-                          {t.type === "room" ? "Phòng Lab" : "Vật tư"}
+                        <span className={`adnew-ticket-type ${getTicketTypeClass(t.ticketType)}`}>
+                          {getTicketTypeIcon(t.ticketType)}
+                          {getTicketTypeLabel(t.ticketType)}
                         </span>
-                        {t.detail}
+                        {t.roomName ? t.roomName : t.ticketType === "CHEMICAL_ONLY" ? "Yêu cầu vật tư" : "—"}
                       </div>
-                      <div className="adnew-ticket-time">
-                        <AccessTime style={{ fontSize: 11 }} />
-                        {t.time}
-                      </div>
+                      {t.createdAt && (
+                        <div className="adnew-ticket-time">
+                          <AccessTime style={{ fontSize: 11 }} />
+                          {new Date(t.createdAt).toLocaleString("vi-VN", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            day: "2-digit",
+                            month: "2-digit",
+                          })}
+                        </div>
+                      )}
                     </div>
                     <div className="adnew-ticket-actions">
                       <button
                         className="adnew-btn-reject"
-                        onClick={() => handleReject(t.id)}
+                        onClick={() => handleReject(t.ticketId)}
                         title="Từ chối"
                       >
                         <Cancel style={{ fontSize: 16 }} />
@@ -252,7 +352,7 @@ export default function AdminDashboard() {
                       </button>
                       <button
                         className="adnew-btn-approve"
-                        onClick={() => handleApprove(t.id)}
+                        onClick={() => handleApprove(t.ticketId)}
                         title="Phê duyệt"
                       >
                         <CheckCircle style={{ fontSize: 16 }} />
@@ -261,11 +361,19 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 ))}
+                {tickets.length > 5 && (
+                  <button
+                    className="adnew-btn-link adnew-view-more"
+                    onClick={() => navigate("/admin/tickets")}
+                  >
+                    Xem thêm {tickets.length - 5} phiếu khác <ArrowForward style={{ fontSize: 14 }} />
+                  </button>
+                )}
               </div>
             )}
           </div>
 
-          {/* Activity Feed */}
+          {/* Activity Feed - giữ dữ liệu tĩnh placeholder */}
           <div className="adnew-card">
             <div className="adnew-card-header">
               <div className="adnew-card-title-wrap">
@@ -274,7 +382,9 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div className="adnew-activity-list">
-              {RECENT_ACTIVITY.map((act) => (
+              {[
+                { id: 1, text: "Dữ liệu hoạt động sẽ được tích hợp ở giai đoạn sau", time: "Sắp có", status: "system" },
+              ].map((act) => (
                 <div key={act.id} className="adnew-activity-item">
                   <div className={`adnew-activity-dot adnew-dot-${act.status}`} />
                   <div className="adnew-activity-content">
@@ -293,20 +403,22 @@ export default function AdminDashboard() {
           <div className="adnew-hero-card">
             <div className="adnew-hero-bg-orb" />
             <div className="adnew-hero-content">
-              <p className="adnew-hero-label">Tổng phiếu hôm nay</p>
-              <div className="adnew-hero-number">28</div>
+              <p className="adnew-hero-label">Phiếu chờ Admin duyệt</p>
+              <div className="adnew-hero-number">
+                {statsLoading ? "—" : stats.pendingCount}
+              </div>
               <div className="adnew-hero-stats">
                 <div className="adnew-hero-stat">
-                  <CheckCircle style={{ fontSize: 14 }} />
-                  <span>18 đã duyệt</span>
+                  <MeetingRoom style={{ fontSize: 14 }} />
+                  <span>{statsLoading ? "—" : stats.activeRooms} phòng đang hoạt động</span>
                 </div>
                 <div className="adnew-hero-stat">
-                  <HourglassEmpty style={{ fontSize: 14 }} />
-                  <span>7 đang xử lý</span>
+                  <PeopleAlt style={{ fontSize: 14 }} />
+                  <span>{statsLoading ? "—" : stats.totalUsers} người dùng</span>
                 </div>
                 <div className="adnew-hero-stat red">
-                  <Cancel style={{ fontSize: 14 }} />
-                  <span>3 từ chối</span>
+                  <Inventory2 style={{ fontSize: 14 }} />
+                  <span>{statsLoading ? "—" : stats.lowStockCount} vật tư hết hàng</span>
                 </div>
               </div>
               <button
@@ -351,7 +463,6 @@ export default function AdminDashboard() {
                 return (
                   <div key={d.day} className="adnew-chart-col">
                     <div className="adnew-bar-wrap">
-                      {/* khoảng trống trên cùng */}
                       <div className="adnew-bar-empty" style={{ flex: empty > 0 ? empty : 0.01 }} />
                       {d.pending > 0 && (
                         <div
@@ -395,7 +506,6 @@ export default function AdminDashboard() {
               </button>
             </div>
 
-            {/* Summary pills */}
             <div className="adnew-room-summary">
               <span className="adnew-room-pill occupied">
                 {ROOMS.filter((r) => r.status === "occupied").length} đang dùng
@@ -408,7 +518,6 @@ export default function AdminDashboard() {
               </span>
             </div>
 
-            {/* Room List */}
             <div className="adnew-room-list">
               {ROOMS.map((room, i) => (
                 <div key={i} className={`adnew-room-item adnew-room-${room.status}`}>
