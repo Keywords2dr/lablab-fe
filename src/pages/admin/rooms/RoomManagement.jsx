@@ -6,6 +6,7 @@ import RoomTable from "./components/RoomTable";
 import RoomFormModal from "./components/RoomFormModal";
 import RoomDeactivateModal from "./components/RoomDeactivateModal";
 import RoomActivateModal from "./components/RoomActivateModal";
+import RoomInventoryModal from "./components/RoomInventoryModal";
 import "./styles/base.css";
 import "./styles/table.css";
 import "./styles/modal.css";
@@ -31,6 +32,7 @@ export default function RoomManagement() {
   const [editingItem, setEditingItem] = useState(null);
   const [deactivateTarget, setDeactivateTarget] = useState(null);
   const [activateTarget, setActivateTarget] = useState(null);
+  const [inventoryRoom, setInventoryRoom] = useState(null);
 
   const handleOpenAdd = () => {
     setEditingItem(null);
@@ -66,7 +68,6 @@ export default function RoomManagement() {
         </div>
 
         <div className="rm-stats">
-          {/* Tổng — click bỏ filter */}
           <div
             className={`rm-stat-badge${filters.status === "" ? " rm-stat-badge--selected" : ""}`}
             onClick={() => applyFilters({ status: "" })}
@@ -112,6 +113,7 @@ export default function RoomManagement() {
         onAdd={handleOpenAdd}
         onReload={reload}
         onPageChange={goToPage}
+        onViewInventory={setInventoryRoom}
       />
 
       {/* ── Form Modal (Thêm / Sửa) ── */}
@@ -138,6 +140,12 @@ export default function RoomManagement() {
         onClose={() => setActivateTarget(null)}
         onConfirm={() => setActivateTarget(null)}
         onActivateRoom={activateRoom}
+      />
+
+      {/* ── Inventory Modal ── */}
+      <RoomInventoryModal
+        room={inventoryRoom}
+        onClose={() => setInventoryRoom(null)}
       />
     </div>
   );

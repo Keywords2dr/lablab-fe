@@ -12,6 +12,7 @@ import {
   ChevronRight,
   PowerSettingsNew,
   DoNotDisturb,
+  Inventory2,
 } from "@mui/icons-material";
 
 const RE_SEARCH = /^[\p{L}\p{N}\s]*$/u;
@@ -31,6 +32,7 @@ export default function RoomTable({
   onAdd,
   onReload,
   onPageChange,
+  onViewInventory,
 }) {
   const roomsList = Array.isArray(rooms) ? rooms : [];
   const kwTimer = useRef(null);
@@ -157,7 +159,7 @@ export default function RoomTable({
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5}>
+                  <td colSpan={6}>
                     <div className="rm-empty">
                       <MeetingRoom />
                       <p>Đang tải dữ liệu...</p>
@@ -166,7 +168,7 @@ export default function RoomTable({
                 </tr>
               ) : roomsList.length === 0 ? (
                 <tr>
-                  <td colSpan={5}>
+                  <td colSpan={6}>
                     <div className="rm-empty">
                       <MeetingRoom />
                       <p>Không tìm thấy phòng phù hợp</p>
@@ -222,6 +224,14 @@ export default function RoomTable({
                     </td>
                     <td>
                       <div className="rm-actions">
+                        <button
+                          className="rm-act-btn"
+                          title="Xem kho vật tư"
+                          onClick={() => onViewInventory(room)}
+                          style={{ color: "#0ea5e9", borderColor: "#0ea5e9" }}
+                        >
+                          <Inventory2 />
+                        </button>
                         <button
                           className="rm-act-btn edit"
                           title="Chỉnh sửa"
