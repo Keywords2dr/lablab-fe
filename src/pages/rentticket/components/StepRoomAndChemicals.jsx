@@ -574,21 +574,6 @@ export default function StepRoomAndChemicals({
                                     CTHH: <strong>{chem.formula}</strong>
                                   </span>
                                 )}
-                                <span
-                                  className="rac-hazard"
-                                  style={{
-                                    color: hazard.color,
-                                    background: hazard.bg,
-                                    border: `1px solid ${hazard.border}`,
-                                  }}
-                                >
-                                  {chem.hazardLevel === "HIGH" && (
-                                    <WarningAmberOutlined
-                                      style={{ fontSize: 10 }}
-                                    />
-                                  )}
-                                  {hazard.label}
-                                </span>
                               </div>
                               <div className="rac-chem-avail">
                                 Khả dụng:{" "}
