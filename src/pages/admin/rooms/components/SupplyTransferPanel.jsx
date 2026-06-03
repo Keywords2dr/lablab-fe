@@ -12,11 +12,14 @@ import {
   StickyNote2Outlined,
   WarningAmberOutlined,
   DeleteSweepOutlined,
+  ExpandMoreOutlined,
+  ExpandLessOutlined,
 } from "@mui/icons-material";
 
 import { useInventory } from "../hooks/useInventory";
 import "../styles/supply.css";
 
+/* ── helpers ─────────────────────────────────────────────────── */
 const RE_NOTE_ALLOWED = /[^a-zA-Z0-9À-ỹ\s.,\-_]/g;
 const sanitizeNote = (val) => val.replace(RE_NOTE_ALLOWED, "");
 
@@ -31,6 +34,7 @@ function validatePackageCount(val) {
   return "";
 }
 
+/* ── sub-components ──────────────────────────────────────────── */
 function CountBadge({ count }) {
   if (!count) return null;
   return <span className="stp-badge">{count}</span>;
@@ -54,7 +58,7 @@ function ItemCard({ item, selected, packageCount, onToggle, onChangeCount }) {
 
   const handleCardClick = (e) => {
     if (e.target.closest(".stp-inline-qty")) return;
-    onToggle(item);
+    onToggle(uid);
   };
 
   return (
@@ -136,38 +140,113 @@ function ItemCard({ item, selected, packageCount, onToggle, onChangeCount }) {
   );
 }
 
+function RoomItemSection({
+  room,
+  items,
+  roomItems,
+  onToggleItem,
+  onChangeCount,
+  onRemoveRoom,
+}) {
+  const [expanded, setExpanded] = useState(true);
+
+  const selectedCount = Object.keys(roomItems).length;
+  const allValid = Object.entries(roomItems).every(
+    ([, cnt]) => !validatePackageCount(cnt),
+  );
+
+  return (
+    <div className="stp-room-section">
+      {/* ── Room header bar ── */}
+      <div
+        className={`stp-room-section__header ${!allValid && selectedCount > 0 ? "stp-room-section__header--warn" : ""}`}
+      >
+        <button
+          className="stp-room-section__toggle"
+          onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded}
+        >
+          <DomainOutlined style={{ fontSize: 16, flexShrink: 0 }} />
+          <span className="stp-room-section__name">{room.roomName}</span>
+          {selectedCount > 0 && (
+            <span className="stp-room-section__count">
+              {selectedCount} hóa chất
+              {!allValid && (
+                <WarningAmberOutlined
+                  style={{ fontSize: 13, color: "#d97706", marginLeft: 3 }}
+                />
+              )}
+            </span>
+          )}
+          {expanded ? (
+            <ExpandLessOutlined style={{ fontSize: 18, marginLeft: "auto" }} />
+          ) : (
+            <ExpandMoreOutlined style={{ fontSize: 18, marginLeft: "auto" }} />
+          )}
+        </button>
+
+        <button
+          className="stp-room-section__remove"
+          onClick={() => onRemoveRoom(room.roomId)}
+          title="Xoá phòng này"
+          aria-label={`Xoá phòng ${room.roomName}`}
+        >
+          <CloseOutlined style={{ fontSize: 14 }} />
+        </button>
+      </div>
+
+      {/* ── Item grid ── */}
+      {expanded && (
+        <div className="stp-room-section__body">
+          {items.length === 0 ? (
+            <div className="stp-empty stp-empty--sm">
+              Không tìm thấy hóa chất
+            </div>
+          ) : (
+            <div className="stp-item-grid stp-item-grid--compact">
+              {items.map((item) => {
+                const uid = item.itemId || item.itemCode;
+                return (
+                  <ItemCard
+                    key={uid}
+                    item={item}
+                    selected={roomItems[uid] !== undefined}
+                    packageCount={roomItems[uid]}
+                    onToggle={onToggleItem}
+                    onChangeCount={onChangeCount}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Main component ──────────────────────────────────────────── */
 export default function SupplyTransferPanel({ rooms = [] }) {
   const { globalItems, loading, submitting, allocate, revoke } = useInventory();
 
   const [mode, setMode] = useState("allocate");
   const [itemSearch, setItemSearch] = useState("");
-  const [selectedItems, setSelectedItems] = useState({});
   const [roomSearch, setRoomSearch] = useState("");
-  const [selectedRoomIds, setSelectedRoomIds] = useState(new Set());
+
+  const [roomItems, setRoomItems] = useState({});
   const [note, setNote] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
 
+  /* ── reset khi đổi mode ── */
   const switchMode = useCallback((m) => {
     setMode(m);
-    setSelectedItems({});
-    setSelectedRoomIds(new Set());
+    setRoomItems({});
     setNote("");
     setItemSearch("");
     setRoomSearch("");
   }, []);
 
-  const handleItemSearchChange = (e) => {
-    setItemSearch(filterSearchInput(e.target.value));
-  };
-
-  const handleRoomSearchChange = (e) => {
-    setRoomSearch(filterSearchInput(e.target.value));
-  };
-
-  const handleNoteChange = (e) => {
-    setNote(sanitizeNote(e.target.value));
-  };
-
+  /* ── filter helpers ── */
   const filteredItems = useMemo(() => {
     const q = itemSearch.trim().toLowerCase();
     const arr = q
@@ -179,7 +258,6 @@ export default function SupplyTransferPanel({ rooms = [] }) {
             i.supplier?.toLowerCase().includes(q),
         )
       : globalItems;
-
     const seen = new Set();
     return arr.filter((i) => {
       const id = i.itemId || i.itemCode;
@@ -196,96 +274,116 @@ export default function SupplyTransferPanel({ rooms = [] }) {
       : rooms;
   }, [rooms, roomSearch]);
 
-  const selectedItemIds = Object.keys(selectedItems);
-  const selectedItemCount = selectedItemIds.length;
-  const selectedRoomCount = selectedRoomIds.size;
+  /* ── derived state ── */
+  const selectedRoomIds = Object.keys(roomItems);
+  const selectedRoomCount = selectedRoomIds.length;
+
+  const totalSelectedItems = useMemo(
+    () =>
+      selectedRoomIds.reduce(
+        (sum, rid) => sum + Object.keys(roomItems[rid]).length,
+        0,
+      ),
+    [roomItems, selectedRoomIds],
+  );
 
   const allCountsValid = useMemo(
     () =>
-      selectedItemIds.every((id) => !validatePackageCount(selectedItems[id])),
-    [selectedItems, selectedItemIds],
+      selectedRoomIds.every((rid) =>
+        Object.values(roomItems[rid]).every(
+          (cnt) => !validatePackageCount(cnt),
+        ),
+      ),
+    [roomItems, selectedRoomIds],
   );
 
+  const hasAnyItem = totalSelectedItems > 0;
+
   const canConfirm =
-    selectedItemCount > 0 &&
-    selectedRoomCount > 0 &&
-    allCountsValid &&
-    !submitting;
+    selectedRoomCount > 0 && hasAnyItem && allCountsValid && !submitting;
 
-  const toggleItem = (item) => {
-    const uid = item.itemId || item.itemCode;
-    setSelectedItems((prev) => {
-      const next = { ...prev };
-      if (next[uid] !== undefined) {
-        delete next[uid];
-      } else {
-        next[uid] = 1;
+  /* ── room actions ── */
+  const toggleRoom = useCallback((roomId) => {
+    setRoomItems((prev) => {
+      if (prev[roomId] !== undefined) {
+        const next = { ...prev };
+        delete next[roomId];
+        return next;
       }
+      return { ...prev, [roomId]: {} };
+    });
+  }, []);
+
+  const removeRoom = useCallback((roomId) => {
+    setRoomItems((prev) => {
+      const next = { ...prev };
+      delete next[roomId];
       return next;
     });
-  };
+  }, []);
 
-  const setCount = (uid, val) => {
-    setSelectedItems((prev) => ({ ...prev, [uid]: val }));
-  };
+  const clearAllRooms = () => setRoomItems({});
 
-  const toggleRoom = (roomId) => {
-    setSelectedRoomIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(roomId)) next.delete(roomId);
-      else next.add(roomId);
-      return next;
+  /* ── item actions per room ── */
+  const toggleItemInRoom = useCallback((roomId, itemId) => {
+    setRoomItems((prev) => {
+      const room = { ...(prev[roomId] || {}) };
+      if (room[itemId] !== undefined) {
+        delete room[itemId];
+      } else {
+        room[itemId] = 1;
+      }
+      return { ...prev, [roomId]: room };
     });
-  };
+  }, []);
 
-  const clearAllItems = () => setSelectedItems({});
-  const clearAllRooms = () => setSelectedRoomIds(new Set());
+  const setCountInRoom = useCallback((roomId, itemId, val) => {
+    setRoomItems((prev) => ({
+      ...prev,
+      [roomId]: { ...(prev[roomId] || {}), [itemId]: val },
+    }));
+  }, []);
 
+  /* ── confirm / submit ── */
   const handleConfirm = () => {
     if (!canConfirm) return;
     setConfirmOpen(true);
   };
 
-
   const handleFinalConfirm = async () => {
-    // Mảng items chung cho mọi phòng
-    const itemsPayload = selectedItemIds.map((id) => ({
-      itemId: id,
-      packageCount: Number(selectedItems[id]),
-    }));
-
-    // Mỗi phòng nhận cùng bộ items
-    const roomTargets = Array.from(selectedRoomIds).map((roomId) => ({
+    const roomTargets = selectedRoomIds.map((roomId) => ({
       roomId,
-      items: itemsPayload,
+      items: Object.entries(roomItems[roomId]).map(([itemId, cnt]) => ({
+        itemId,
+        packageCount: Number(cnt),
+      })),
     }));
 
     let success;
     if (mode === "allocate") {
-      // key "allocations" khớp với AllocateRequestDTO
       success = await allocate(roomTargets, note);
     } else {
-      // key "revocations" khớp với RevokeRequestDTO
       success = await revoke(roomTargets, note);
     }
 
     if (success) {
-      setSelectedItems({});
-      setSelectedRoomIds(new Set());
+      setRoomItems({});
       setNote("");
       setConfirmOpen(false);
     }
   };
 
-  const step1Status =
-    selectedItemCount > 0 && allCountsValid ? "done" : "active";
-  const step2Status = !selectedItemCount
-    ? "idle"
-    : selectedRoomCount > 0
-      ? "done"
-      : "active";
+  /* ── step status ── */
+  const step1Status = selectedRoomCount > 0 ? "done" : "active";
+  const step2Status =
+    selectedRoomCount === 0
+      ? "idle"
+      : hasAnyItem && allCountsValid
+        ? "done"
+        : "active";
   const step3Status = !canConfirm ? "idle" : "active";
 
+  /* ── render ── */
   return (
     <div className="stp-root">
       {/* ── Mode tabs ── */}
@@ -308,89 +406,11 @@ export default function SupplyTransferPanel({ rooms = [] }) {
 
       {/* ── Body: 3-column layout ── */}
       <div className="stp-body stp-body--3col">
-        {/* ══ COL 1: Chọn hóa chất ══ */}
-        <div className="stp-col stp-col--items">
-          <div className="stp-card">
+        {/* ══ COL 1: Chọn phòng ══ */}
+        <div className="stp-col stp-col--rooms" style={{ gridColumn: "1" }}>
+          <div className="stp-card stp-card--full-height">
             <div className="stp-card__header">
               <StepDot num={1} status={step1Status} />
-              <div className="stp-card__title">
-                <span>Chọn hóa chất</span>
-                <CountBadge count={selectedItemCount} />
-              </div>
-              <span className="stp-card__sub">
-                Nhập số{" "}
-                {mode === "allocate" ? "chai/gói" : "chai/gói cần thu hồi"} sau
-                khi chọn
-              </span>
-              {selectedItemCount > 0 && (
-                <button
-                  className="stp-clear-all-btn"
-                  onClick={clearAllItems}
-                  title="Xoá tất cả hóa chất đã chọn"
-                >
-                  <DeleteSweepOutlined style={{ fontSize: 15 }} />
-                  Xoá tất cả
-                </button>
-              )}
-            </div>
-
-            <div className="stp-search-row">
-              <SearchOutlined
-                style={{ fontSize: 16, color: "var(--stp-muted)" }}
-              />
-              <input
-                className="stp-input"
-                placeholder="Tìm theo tên, mã, công thức, nhà cung cấp..."
-                value={itemSearch}
-                onChange={handleItemSearchChange}
-              />
-              {itemSearch && (
-                <button
-                  className="stp-clear-btn"
-                  onClick={() => setItemSearch("")}
-                  aria-label="Xoá tìm kiếm"
-                >
-                  <CloseOutlined style={{ fontSize: 14 }} />
-                </button>
-              )}
-            </div>
-
-            {loading ? (
-              <div className="stp-loading">
-                <span className="stp-spinner" /> Đang tải hóa chất...
-              </div>
-            ) : filteredItems.length === 0 ? (
-              <div className="stp-empty">
-                <Inventory2Outlined style={{ fontSize: 32, opacity: 0.3 }} />
-                <span>Không tìm thấy hóa chất</span>
-              </div>
-            ) : (
-              <div className="stp-item-grid">
-                {filteredItems.map((item) => {
-                  const uid = item.itemId || item.itemCode;
-                  return (
-                    <ItemCard
-                      key={uid}
-                      item={item}
-                      selected={selectedItems[uid] !== undefined}
-                      packageCount={selectedItems[uid]}
-                      onToggle={toggleItem}
-                      onChangeCount={setCount}
-                    />
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ══ COL 2: Chọn phòng ══ */}
-        <div className="stp-col stp-col--rooms">
-          <div
-            className={`stp-card stp-card--full-height ${selectedItemCount === 0 ? "stp-card--dim" : ""}`}
-          >
-            <div className="stp-card__header">
-              <StepDot num={2} status={step2Status} />
               <div className="stp-card__title">
                 <span>
                   {mode === "allocate"
@@ -404,7 +424,7 @@ export default function SupplyTransferPanel({ rooms = [] }) {
                 <button
                   className="stp-clear-all-btn"
                   onClick={clearAllRooms}
-                  title="Xoá tất cả phòng đã chọn"
+                  title="Xoá tất cả phòng"
                 >
                   <DeleteSweepOutlined style={{ fontSize: 15 }} />
                   Xoá tất cả
@@ -420,7 +440,9 @@ export default function SupplyTransferPanel({ rooms = [] }) {
                 className="stp-input"
                 placeholder="Tìm phòng..."
                 value={roomSearch}
-                onChange={handleRoomSearchChange}
+                onChange={(e) =>
+                  setRoomSearch(filterSearchInput(e.target.value))
+                }
               />
               {roomSearch && (
                 <button
@@ -440,16 +462,15 @@ export default function SupplyTransferPanel({ rooms = [] }) {
             ) : (
               <div className="stp-room-list stp-room-list--full">
                 {filteredRooms.map((room) => {
-                  const sel = selectedRoomIds.has(room.roomId);
+                  const sel = roomItems[room.roomId] !== undefined;
+                  const cnt = sel
+                    ? Object.keys(roomItems[room.roomId]).length
+                    : 0;
                   return (
                     <button
                       key={room.roomId}
-                      className={`stp-room-item ${sel ? "stp-room-item--selected" : ""} ${
-                        selectedItemCount === 0 ? "stp-room-item--dim" : ""
-                      }`}
-                      onClick={() =>
-                        selectedItemCount > 0 && toggleRoom(room.roomId)
-                      }
+                      className={`stp-room-item ${sel ? "stp-room-item--selected" : ""}`}
+                      onClick={() => toggleRoom(room.roomId)}
                       aria-pressed={sel}
                     >
                       <DomainOutlined style={{ fontSize: 18, flexShrink: 0 }} />
@@ -464,13 +485,25 @@ export default function SupplyTransferPanel({ rooms = [] }) {
                         )}
                       </div>
                       {sel && (
-                        <CheckCircleOutlined
-                          style={{
-                            fontSize: 16,
-                            marginLeft: "auto",
-                            flexShrink: 0,
-                          }}
-                        />
+                        <>
+                          {cnt > 0 && (
+                            <span
+                              style={{
+                                fontSize: 11,
+                                fontWeight: 700,
+                                color: "#059669",
+                                marginLeft: "auto",
+                                marginRight: 4,
+                                flexShrink: 0,
+                              }}
+                            >
+                              {cnt} HC
+                            </span>
+                          )}
+                          <CheckCircleOutlined
+                            style={{ fontSize: 16, flexShrink: 0 }}
+                          />
+                        </>
                       )}
                     </button>
                   );
@@ -480,10 +513,88 @@ export default function SupplyTransferPanel({ rooms = [] }) {
           </div>
         </div>
 
-        {/* ══ COL 3: Xác nhận ══ */}
-        <div className="stp-col stp-col--confirm">
+        {/* ══ COL 2: Hóa chất cho từng phòng ══ */}
+        <div
+          className={`stp-col stp-col--items ${selectedRoomCount === 0 ? "" : ""}`}
+          style={{ gridColumn: "2" }}
+        >
           <div
-            className={`stp-card stp-card--full-height stp-confirm-card ${!selectedItemCount ? "stp-card--dim" : ""}`}
+            className={`stp-card ${selectedRoomCount === 0 ? "stp-card--dim" : ""}`}
+          >
+            <div className="stp-card__header">
+              <StepDot num={2} status={step2Status} />
+              <div className="stp-card__title">
+                <span>Chọn hóa chất theo phòng</span>
+                {hasAnyItem && <CountBadge count={totalSelectedItems} />}
+              </div>
+              <span className="stp-card__sub">Mỗi phòng có số lượng riêng</span>
+            </div>
+
+            {/* search bar hóa chất */}
+            <div className="stp-search-row">
+              <SearchOutlined
+                style={{ fontSize: 16, color: "var(--stp-muted)" }}
+              />
+              <input
+                className="stp-input"
+                placeholder="Tìm theo tên, mã, công thức, nhà cung cấp..."
+                value={itemSearch}
+                onChange={(e) =>
+                  setItemSearch(filterSearchInput(e.target.value))
+                }
+              />
+              {itemSearch && (
+                <button
+                  className="stp-clear-btn"
+                  onClick={() => setItemSearch("")}
+                  aria-label="Xoá tìm kiếm"
+                >
+                  <CloseOutlined style={{ fontSize: 14 }} />
+                </button>
+              )}
+            </div>
+
+            {selectedRoomCount === 0 ? (
+              <div className="stp-empty">
+                <DomainOutlined style={{ fontSize: 32, opacity: 0.3 }} />
+                <span>Vui lòng chọn ít nhất 1 phòng trước</span>
+              </div>
+            ) : loading ? (
+              <div className="stp-loading">
+                <span className="stp-spinner" /> Đang tải hóa chất...
+              </div>
+            ) : (
+              <div className="stp-room-sections">
+                {selectedRoomIds.map((roomId) => {
+                  const room = rooms.find((r) => r.roomId === roomId);
+                  if (!room) return null;
+                  return (
+                    <RoomItemSection
+                      key={roomId}
+                      room={room}
+                      items={filteredItems}
+                      roomItems={roomItems[roomId]}
+                      onToggleItem={(itemId) =>
+                        toggleItemInRoom(roomId, itemId)
+                      }
+                      onChangeCount={(itemId, val) =>
+                        setCountInRoom(roomId, itemId, val)
+                      }
+                      onRemoveRoom={removeRoom}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ══ COL 3: Xác nhận ══ */}
+        <div className="stp-col stp-col--confirm" style={{ gridColumn: "3" }}>
+          <div
+            className={`stp-card stp-card--full-height stp-confirm-card ${
+              !hasAnyItem ? "stp-card--dim" : ""
+            }`}
           >
             <div className="stp-card__header">
               <StepDot num={3} status={step3Status} />
@@ -493,19 +604,7 @@ export default function SupplyTransferPanel({ rooms = [] }) {
             {/* Summary */}
             <div className="stp-summary">
               <div className="stp-summary__row">
-                <span className="stp-summary__label">Hóa chất</span>
-                <span className="stp-summary__val">
-                  {selectedItemCount > 0 ? (
-                    `${selectedItemCount} loại`
-                  ) : (
-                    <span className="stp-summary__missing">Chưa chọn</span>
-                  )}
-                </span>
-              </div>
-              <div className="stp-summary__row">
-                <span className="stp-summary__label">
-                  {mode === "allocate" ? "Phòng nhận" : "Phòng thu hồi"}
-                </span>
+                <span className="stp-summary__label">Phòng</span>
                 <span className="stp-summary__val">
                   {selectedRoomCount > 0 ? (
                     `${selectedRoomCount} phòng`
@@ -514,58 +613,70 @@ export default function SupplyTransferPanel({ rooms = [] }) {
                   )}
                 </span>
               </div>
+              <div className="stp-summary__row">
+                <span className="stp-summary__label">Hóa chất</span>
+                <span className="stp-summary__val">
+                  {hasAnyItem ? (
+                    `${totalSelectedItems} lượt`
+                  ) : (
+                    <span className="stp-summary__missing">Chưa chọn</span>
+                  )}
+                </span>
+              </div>
 
-              {selectedRoomCount > 0 && (
+              {/* Chi tiết từng phòng */}
+              {selectedRoomCount > 0 && hasAnyItem && (
                 <div className="stp-summary__items stp-summary__items--expanded">
-                  {Array.from(selectedRoomIds).map((roomId) => {
+                  {selectedRoomIds.map((roomId) => {
                     const room = rooms.find((r) => r.roomId === roomId);
                     if (!room) return null;
+                    const items = roomItems[roomId];
+                    const itemIds = Object.keys(items);
+                    if (itemIds.length === 0) return null;
                     return (
-                      <div
-                        key={roomId}
-                        className="stp-summary__chip stp-summary__chip--lg stp-summary__chip--room"
-                      >
-                        <DomainOutlined
-                          style={{
-                            fontSize: 13,
-                            flexShrink: 0,
-                            color: "#059669",
-                          }}
-                        />
-                        <span className="stp-summary__chip-name">
+                      <div key={roomId} className="stp-summary__room-block">
+                        <div className="stp-summary__room-label">
+                          <DomainOutlined
+                            style={{ fontSize: 12, color: "#059669" }}
+                          />
                           {room.roomName}
-                        </span>
+                        </div>
+                        {itemIds.map((itemId) => {
+                          const item = globalItems.find(
+                            (i) => i.itemId === itemId || i.itemCode === itemId,
+                          );
+                          if (!item) return null;
+                          const cnt = items[itemId];
+                          const err = validatePackageCount(cnt);
+                          return (
+                            <div
+                              key={itemId}
+                              className={`stp-summary__chip stp-summary__chip--lg ${err ? "stp-summary__chip--err" : ""}`}
+                            >
+                              <span className="stp-summary__chip-name">
+                                {item.itemName}
+                              </span>
+                              {err ? (
+                                <span
+                                  style={{ color: "#dc2626", fontSize: 11 }}
+                                >
+                                  {err}
+                                </span>
+                              ) : (
+                                <span className="stp-summary__chip-qty">
+                                  {cnt} {item.packaging || "gói"}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     );
                   })}
                 </div>
               )}
 
-              {selectedItemCount > 0 && allCountsValid && (
-                <div className="stp-summary__items stp-summary__items--expanded">
-                  {selectedItemIds.map((id) => {
-                    const item = globalItems.find(
-                      (i) => i.itemId === id || i.itemCode === id,
-                    );
-                    if (!item) return null;
-                    return (
-                      <div
-                        key={id}
-                        className="stp-summary__chip stp-summary__chip--lg"
-                      >
-                        <span className="stp-summary__chip-name">
-                          {item.itemName}
-                        </span>
-                        <span className="stp-summary__chip-qty">
-                          {selectedItems[id]} {item.packaging || "gói"}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {!allCountsValid && selectedItemCount > 0 && (
+              {!allCountsValid && hasAnyItem && (
                 <div className="stp-warn">
                   <WarningAmberOutlined style={{ fontSize: 14 }} />
                   Vui lòng nhập đủ số gói hợp lệ
@@ -586,7 +697,7 @@ export default function SupplyTransferPanel({ rooms = [] }) {
                 className="stp-input"
                 placeholder="Ghi chú (không bắt buộc)..."
                 value={note}
-                onChange={handleNoteChange}
+                onChange={(e) => setNote(sanitizeNote(e.target.value))}
                 maxLength={255}
               />
             </div>
@@ -650,63 +761,53 @@ export default function SupplyTransferPanel({ rooms = [] }) {
               </div>
             </div>
 
-            {/* Body */}
+            {/* Body — hiển thị theo từng phòng */}
             <div className="stp-dialog__body">
-              {/* Hóa chất */}
-              <div className="stp-dialog__section-label">
-                <Inventory2Outlined style={{ fontSize: 14 }} />
-                Hóa chất ({selectedItemCount} loại)
-              </div>
-              <div className="stp-dialog__list">
-                {selectedItemIds.map((id) => {
-                  const item = globalItems.find(
-                    (i) => i.itemId === id || i.itemCode === id,
-                  );
-                  if (!item) return null;
-                  return (
-                    <div key={id} className="stp-dialog__row">
-                      <span className="stp-dialog__row-name">
-                        {item.itemName}
-                      </span>
-                      <span className="stp-dialog__row-qty">
-                        {selectedItems[id]} {item.packaging || "gói"}
-                      </span>
+              {selectedRoomIds.map((roomId) => {
+                const room = rooms.find((r) => r.roomId === roomId);
+                if (!room) return null;
+                const items = roomItems[roomId];
+                const itemIds = Object.keys(items);
+                return (
+                  <div key={roomId} style={{ marginBottom: 14 }}>
+                    <div className="stp-dialog__section-label">
+                      <DomainOutlined style={{ fontSize: 14 }} />
+                      {room.roomName}
                     </div>
-                  );
-                })}
-              </div>
-
-              {/* Phòng */}
-              <div
-                className="stp-dialog__section-label"
-                style={{ marginTop: 12 }}
-              >
-                <DomainOutlined style={{ fontSize: 14 }} />
-                {mode === "allocate" ? "Phòng nhận" : "Phòng thu hồi"} (
-                {selectedRoomCount} phòng)
-              </div>
-              <div className="stp-dialog__list">
-                {Array.from(selectedRoomIds).map((roomId) => {
-                  const room = rooms.find((r) => r.roomId === roomId);
-                  if (!room) return null;
-                  return (
-                    <div key={roomId} className="stp-dialog__row">
-                      <DomainOutlined
-                        style={{
-                          fontSize: 13,
-                          color: "#059669",
-                          flexShrink: 0,
-                        }}
-                      />
-                      <span className="stp-dialog__row-name">
-                        {room.roomName}
-                      </span>
+                    <div className="stp-dialog__list">
+                      {itemIds.length === 0 ? (
+                        <div
+                          style={{
+                            padding: "4px 0",
+                            fontSize: 12,
+                            color: "#94a3b8",
+                          }}
+                        >
+                          Không có hóa chất
+                        </div>
+                      ) : (
+                        itemIds.map((itemId) => {
+                          const item = globalItems.find(
+                            (i) => i.itemId === itemId || i.itemCode === itemId,
+                          );
+                          if (!item) return null;
+                          return (
+                            <div key={itemId} className="stp-dialog__row">
+                              <span className="stp-dialog__row-name">
+                                {item.itemName}
+                              </span>
+                              <span className="stp-dialog__row-qty">
+                                {items[itemId]} {item.packaging || "gói"}
+                              </span>
+                            </div>
+                          );
+                        })
+                      )}
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+                );
+              })}
 
-              {/* Ghi chú */}
               {note && (
                 <div className="stp-dialog__note">
                   <StickyNote2Outlined
@@ -717,7 +818,7 @@ export default function SupplyTransferPanel({ rooms = [] }) {
               )}
             </div>
 
-            {/* Footer buttons */}
+            {/* Footer */}
             <div className="stp-dialog__footer">
               <button
                 className="stp-dialog__cancel-btn"
