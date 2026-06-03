@@ -19,6 +19,7 @@ import {
   ExpandLess,
   HourglassEmpty,
   LibraryBooks,
+  NotificationsActive,
 } from "@mui/icons-material";
 
 import NotificationBell from "../../components/common/NotificationBell";
@@ -40,6 +41,7 @@ const NAV_ITEMS = [
         ],
       },
       { label: "Quản lý Hóa chất", icon: <Inventory fontSize="small" />, path: "/admin/materials" },
+      { label: "Ngưỡng Cảnh Báo Kho", icon: <NotificationsActive fontSize="small" />, path: "/admin/stock-alerts" },
       {
         label: "Quản lý Phòng Lab",
         icon: <MeetingRoom fontSize="small" />,

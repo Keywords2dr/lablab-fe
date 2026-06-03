@@ -21,6 +21,7 @@ import RoomManagement from "./pages/admin/rooms/RoomManagement";
 import RoomManagerAssignment from "./pages/admin/rooms/RoomManagerAssignment";
 import RoomSupplyDistribution from "./pages/admin/rooms/RoomSupplyDistribution";
 import UserManagementPage from "./pages/admin/users/UserManagementPage";
+import StockAlertPage from "./pages/admin/stockAlerts/StockAlertPage";
 
 // --- TICKETS (ADMIN) ---
 import AdminTicketManager from "./pages/admin/Tickets/AdminTicketManager";
@@ -109,8 +110,8 @@ function App() {
               <Route path="/admin/tickets" element={<AdminTicketManager />} />
               <Route path="/admin/borrow-history" element={<AdminBorrowHistory />} />
               <Route path="/admin/tickets/:id" element={<AdminTicketDetail />} />
-              {/* Báo cáo sự cố (admin) */}
               <Route path="/admin/reports" element={<AdminReportPage />} />
+              <Route path="/admin/stock-alerts" element={<StockAlertPage />} />
             </Route>
           </Route>
 
