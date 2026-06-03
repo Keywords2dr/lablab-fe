@@ -24,6 +24,7 @@ const SORT_OPTIONS = [
 export default function ChemicalTable({
   chemicals,
   inventory,
+  thresholds = {},
   loading,
   filters,
   onFilterChange,
@@ -330,24 +331,6 @@ export default function ChemicalTable({
                       </td>
                       <td>
                         <span className="mm-name">{item.name}</span>
-                        {grandTotal === 0 && (
-                          <span
-                            style={{
-                              display: "inline-block",
-                              marginLeft: 6,
-                              background: "#fef2f2",
-                              color: "#dc2626",
-                              border: "1px solid #fecaca",
-                              borderRadius: 4,
-                              fontSize: "0.68rem",
-                              fontWeight: 700,
-                              padding: "1px 5px",
-                              verticalAlign: "middle",
-                            }}
-                          >
-                            Hết hàng
-                          </span>
-                        )}
                       </td>
                       <td
                         style={{
@@ -368,16 +351,65 @@ export default function ChemicalTable({
                       <td className="right" style={{ fontWeight: 600 }}>
                         {item.amountPerPackage ?? "—"}
                       </td>
-                      <td
-                        className="right"
-                        style={{
-                          fontWeight: 700,
-                          color: grandTotal === 0 ? "#dc2626" : "#1e293b",
-                        }}
-                      >
-                        {grandTotal !== "—"
-                          ? `${grandTotal} ${item.unit}`
-                          : "—"}
+                      <td className="right" style={{ fontWeight: 700 }}>
+                        <div style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "flex-end",
+                          gap: 6,
+                          flexWrap: "nowrap",
+                        }}>
+                          {(() => {
+                            const t = thresholds[item.itemId];
+                            if (!t) return null;
+                            const qty = parseFloat(grandTotal);
+                            const min = parseFloat(t.minQuantity);
+                            if (qty === 0) return (
+                              <span style={{
+                                background: "#fef2f2",
+                                color: "#dc2626",
+                                border: "1px solid #fecaca",
+                                borderRadius: 4,
+                                fontSize: "0.63rem",
+                                fontWeight: 700,
+                                padding: "1px 5px",
+                                whiteSpace: "nowrap",
+                                flexShrink: 0,
+                              }}>
+                                🚨 Hết hàng
+                              </span>
+                            );
+                            if (qty < min) return (
+                              <span style={{
+                                background: "#fffbeb",
+                                color: "#d97706",
+                                border: "1px solid #fde68a",
+                                borderRadius: 4,
+                                fontSize: "0.63rem",
+                                fontWeight: 700,
+                                padding: "1px 5px",
+                                whiteSpace: "nowrap",
+                                flexShrink: 0,
+                              }}>
+                                ⚠️ Sắp hết
+                              </span>
+                            );
+                            return null;
+                          })()}
+                          <span style={{
+                            whiteSpace: "nowrap",
+                            color: (() => {
+                              if (grandTotal === "—") return "#1e293b";
+                              const t = thresholds[item.itemId];
+                              const qty = parseFloat(grandTotal);
+                              if (qty === 0) return "#dc2626";
+                              if (t && qty < parseFloat(t.minQuantity)) return "#d97706";
+                              return "#1e293b";
+                            })(),
+                          }}>
+                            {grandTotal !== "—" ? `${grandTotal} ${item.unit}` : "—"}
+                          </span>
+                        </div>
                       </td>
 
                       {/* ── CẢI TIẾN LOGIC: HIỂN THỊ CHI TIẾT TỒN KHO THEO PHÒNG ── */}

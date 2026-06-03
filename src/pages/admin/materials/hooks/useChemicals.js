@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import { chemicalApi } from "../../../../api/chemicalApi";
+import { stockAlertApi } from "../../../../api/stockAlertApi";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -16,6 +17,7 @@ export function useChemicals() {
   // ── Data state ──────────────────────────────────────
   const [chemicals, setChemicals] = useState([]);
   const [inventory, setInventory] = useState({});
+  const [thresholds, setThresholds] = useState({}); // keyed by itemId
   const [loading, setLoading] = useState(false);
   const [serverPage, setServerPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -48,9 +50,23 @@ export function useChemicals() {
       .catch((err) => console.warn("[inventory]", err.message));
   }, []);
 
+  const fetchThresholds = useCallback(() => {
+    stockAlertApi
+      .getAllThresholds()
+      .then((res) => {
+        const map = {};
+        (res.data || []).forEach((t) => {
+          map[t.itemId] = t;
+        });
+        setThresholds(map);
+      })
+      .catch((err) => console.warn("[thresholds]", err.message));
+  }, []);
+
   useEffect(() => {
     fetchInventory();
-  }, [fetchInventory]);
+    fetchThresholds();
+  }, [fetchInventory, fetchThresholds]);
 
 
   useEffect(() => {
@@ -138,6 +154,7 @@ export function useChemicals() {
   return {
     chemicals,
     inventory,
+    thresholds,
     loading,
     serverPage,
     totalPages,

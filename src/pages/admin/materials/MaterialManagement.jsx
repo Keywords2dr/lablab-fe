@@ -17,6 +17,7 @@ export default function MaterialManagement() {
   const {
     chemicals,
     inventory,
+    thresholds,
     loading,
     serverPage,
     totalPages,
@@ -185,6 +186,7 @@ export default function MaterialManagement() {
       <ChemicalTable
         chemicals={chemicals}
         inventory={inventory}
+        thresholds={thresholds}
         loading={loading}
         filters={filters}
         onFilterChange={applyFilters}
