@@ -57,4 +57,3 @@ export function useHistoryTickets() {
 
   return { data, loading, pg, filters, apply, reset, goPage, fetchData };
 }
-// Hook quản lý lịch sử phiếu mượn, bao gồm trạng thái lọc, dữ liệu, và các hàm thao tác. --- IGNORE ---
