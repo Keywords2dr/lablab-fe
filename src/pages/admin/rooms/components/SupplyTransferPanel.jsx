@@ -17,6 +17,9 @@ import {
 import { useInventory } from "../hooks/useInventory";
 import "../styles/supply.css";
 
+const RE_NOTE_ALLOWED = /[^a-zA-Z0-9À-ỹ\s.,\-_]/g;
+const sanitizeNote = (val) => val.replace(RE_NOTE_ALLOWED, "");
+
 const RE_SEARCH = /^[\p{L}\p{N}\s]*$/u;
 const filterSearchInput = (val) =>
   [...val].filter((ch) => RE_SEARCH.test(ch)).join("");
@@ -46,7 +49,7 @@ function StepDot({ num, status }) {
 }
 
 function ItemCard({ item, selected, packageCount, onToggle, onChangeCount }) {
-  const uid = item.itemId || item.id || item.itemCode;
+  const uid = item.itemId || item.itemCode;
   const error = selected ? validatePackageCount(packageCount) : false;
 
   const handleCardClick = (e) => {
@@ -142,7 +145,6 @@ export default function SupplyTransferPanel({ rooms = [] }) {
   const [roomSearch, setRoomSearch] = useState("");
   const [selectedRoomIds, setSelectedRoomIds] = useState(new Set());
   const [note, setNote] = useState("");
-
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const switchMode = useCallback((m) => {
@@ -162,6 +164,10 @@ export default function SupplyTransferPanel({ rooms = [] }) {
     setRoomSearch(filterSearchInput(e.target.value));
   };
 
+  const handleNoteChange = (e) => {
+    setNote(sanitizeNote(e.target.value));
+  };
+
   const filteredItems = useMemo(() => {
     const q = itemSearch.trim().toLowerCase();
     const arr = q
@@ -176,7 +182,7 @@ export default function SupplyTransferPanel({ rooms = [] }) {
 
     const seen = new Set();
     return arr.filter((i) => {
-      const id = i.itemId || i.id || i.itemCode;
+      const id = i.itemId || i.itemCode;
       if (!id || seen.has(id)) return false;
       seen.add(id);
       return true;
@@ -194,11 +200,11 @@ export default function SupplyTransferPanel({ rooms = [] }) {
   const selectedItemCount = selectedItemIds.length;
   const selectedRoomCount = selectedRoomIds.size;
 
-  const allCountsValid = useMemo(() => {
-    return selectedItemIds.every(
-      (id) => !validatePackageCount(selectedItems[id]),
-    );
-  }, [selectedItems, selectedItemIds]);
+  const allCountsValid = useMemo(
+    () =>
+      selectedItemIds.every((id) => !validatePackageCount(selectedItems[id])),
+    [selectedItems, selectedItemIds],
+  );
 
   const canConfirm =
     selectedItemCount > 0 &&
@@ -207,7 +213,7 @@ export default function SupplyTransferPanel({ rooms = [] }) {
     !submitting;
 
   const toggleItem = (item) => {
-    const uid = item.itemId || item.id || item.itemCode;
+    const uid = item.itemId || item.itemCode;
     setSelectedItems((prev) => {
       const next = { ...prev };
       if (next[uid] !== undefined) {
@@ -240,22 +246,27 @@ export default function SupplyTransferPanel({ rooms = [] }) {
     setConfirmOpen(true);
   };
 
+
   const handleFinalConfirm = async () => {
-    const items = selectedItemIds.map((id) => ({
+    // Mảng items chung cho mọi phòng
+    const itemsPayload = selectedItemIds.map((id) => ({
       itemId: id,
       packageCount: Number(selectedItems[id]),
     }));
 
-    const targets = Array.from(selectedRoomIds).map((roomId) => ({
+    // Mỗi phòng nhận cùng bộ items
+    const roomTargets = Array.from(selectedRoomIds).map((roomId) => ({
       roomId,
-      items,
+      items: itemsPayload,
     }));
 
     let success;
     if (mode === "allocate") {
-      success = await allocate(targets, note);
+      // key "allocations" khớp với AllocateRequestDTO
+      success = await allocate(roomTargets, note);
     } else {
-      success = await revoke(targets, note);
+      // key "revocations" khớp với RevokeRequestDTO
+      success = await revoke(roomTargets, note);
     }
 
     if (success) {
@@ -355,21 +366,19 @@ export default function SupplyTransferPanel({ rooms = [] }) {
               </div>
             ) : (
               <div className="stp-item-grid">
-                {filteredItems.map((item) => (
-                  <ItemCard
-                    key={item.itemId || item.id || item.itemCode}
-                    item={item}
-                    selected={
-                      selectedItems[item.itemId || item.id || item.itemCode] !==
-                      undefined
-                    }
-                    packageCount={
-                      selectedItems[item.itemId || item.id || item.itemCode]
-                    }
-                    onToggle={toggleItem}
-                    onChangeCount={setCount}
-                  />
-                ))}
+                {filteredItems.map((item) => {
+                  const uid = item.itemId || item.itemCode;
+                  return (
+                    <ItemCard
+                      key={uid}
+                      item={item}
+                      selected={selectedItems[uid] !== undefined}
+                      packageCount={selectedItems[uid]}
+                      onToggle={toggleItem}
+                      onChangeCount={setCount}
+                    />
+                  );
+                })}
               </div>
             )}
           </div>
@@ -536,8 +545,7 @@ export default function SupplyTransferPanel({ rooms = [] }) {
                 <div className="stp-summary__items stp-summary__items--expanded">
                   {selectedItemIds.map((id) => {
                     const item = globalItems.find(
-                      (i) =>
-                        i.itemId === id || i.id === id || i.itemCode === id,
+                      (i) => i.itemId === id || i.itemCode === id,
                     );
                     if (!item) return null;
                     return (
@@ -578,7 +586,7 @@ export default function SupplyTransferPanel({ rooms = [] }) {
                 className="stp-input"
                 placeholder="Ghi chú (không bắt buộc)..."
                 value={note}
-                onChange={(e) => setNote(e.target.value)}
+                onChange={handleNoteChange}
                 maxLength={255}
               />
             </div>
@@ -612,7 +620,10 @@ export default function SupplyTransferPanel({ rooms = [] }) {
 
       {/* ── Confirmation Dialog ── */}
       {confirmOpen && (
-        <div className="stp-dialog-overlay">
+        <div
+          className="stp-dialog-overlay"
+          onClick={() => setConfirmOpen(false)}
+        >
           <div className="stp-dialog" onClick={(e) => e.stopPropagation()}>
             {/* Header */}
             <div
@@ -649,7 +660,7 @@ export default function SupplyTransferPanel({ rooms = [] }) {
               <div className="stp-dialog__list">
                 {selectedItemIds.map((id) => {
                   const item = globalItems.find(
-                    (i) => i.itemId === id || i.id === id || i.itemCode === id,
+                    (i) => i.itemId === id || i.itemCode === id,
                   );
                   if (!item) return null;
                   return (

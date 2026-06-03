@@ -6,15 +6,16 @@ import { roomApi } from "../../../../api/roomApi";
 const normalizeChemical = (item = {}) => ({
   itemId: item.itemId ?? "",
   itemCode: item.itemCode ?? "",
-  itemName: item.name ?? item.itemName ?? "",
+  itemName: item.name ?? "",
   unit: item.unit ?? "",
   packaging: item.packaging ?? "",
   amountPerPackage: item.amountPerPackage ?? null,
   supplier: item.supplier ?? "",
   formula: item.formula ?? "",
-  packageHint: item.amountPerPackage
-    ? `1 ${item.packaging || "chai"} = ${item.amountPerPackage} ${item.unit}`
-    : null,
+  packageHint:
+    item.amountPerPackage != null
+      ? `1 ${item.packaging || "chai"} = ${item.amountPerPackage} ${item.unit}`
+      : null,
 });
 
 export function useInventory() {
@@ -24,7 +25,6 @@ export function useInventory() {
 
   const abortRef = useRef(null);
 
-  // ── Lấy danh sách hóa chất từ GET /api/chemicals ────────────────────
   const fetchGlobalInventory = useCallback(async (keyword = "") => {
     if (abortRef.current) abortRef.current.abort();
     abortRef.current = new AbortController();
@@ -34,7 +34,7 @@ export function useInventory() {
         {
           keyword: keyword.trim() || undefined,
           page: 0,
-          size: 200,
+          size: 500,
           sortBy: "name",
           sortDir: "asc",
         },
@@ -58,15 +58,11 @@ export function useInventory() {
   }, [fetchGlobalInventory]);
 
   // ── Phân phối ────────────────────────────────────────────────────────
-  /**
-   * @param {Array<{ roomId: string, items: Array<{ itemId: string, packageCount: number }> }>} allocations
-   * @param {string} note
-   */
   const allocate = useCallback(
     async (allocations, note = "") => {
       setSubmitting(true);
       try {
-        await roomApi.allocateSupply({ allocations, note });
+        await roomApi.allocateSupply({ allocations, note: note.trim() });
         toast.success("Đã phân phối vật tư thành công vào các phòng Lab.");
         await fetchGlobalInventory();
         return true;
@@ -85,15 +81,11 @@ export function useInventory() {
   );
 
   // ── Thu hồi ──────────────────────────────────────────────────────────
-  /**
-   * @param {Array<{ roomId: string, items: Array<{ itemId: string, packageCount: number }> }>} revocations
-   * @param {string} note
-   */
   const revoke = useCallback(
     async (revocations, note = "") => {
       setSubmitting(true);
       try {
-        await roomApi.revokeSupply({ revocations, note });
+        await roomApi.revokeSupply({ revocations, note: note.trim() });
         toast.success("Đã thu hồi vật tư khỏi phòng Lab thành công.");
         await fetchGlobalInventory();
         return true;
