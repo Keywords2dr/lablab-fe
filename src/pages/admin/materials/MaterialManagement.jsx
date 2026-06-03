@@ -122,7 +122,7 @@ export default function MaterialManagement() {
             <InventoryIcon />
           </div>
           <div>
-            <div className="mm-header-title">Quản lý Hóa chất &amp; Vật tư</div>
+            <div className="mm-header-title">Quản lý Hóa chất</div>
             <div className="mm-header-sub">
               Theo dõi và quản lý toàn bộ hóa chất trong phòng thí nghiệm
             </div>

@@ -226,7 +226,7 @@ export default function AdminDashboard() {
     },
     {
       id: "materials",
-      label: "Vật tư hết hàng",
+      label: "Hóa chất hết hàng",
       value: statsLoading ? "—" : String(stats.lowStockCount),
       icon: <Inventory2 />,
       color: "orange",
@@ -547,7 +547,7 @@ export default function AdminDashboard() {
                 <div className="adnew-hero-stat red">
                   <Inventory2 style={{ fontSize: 14 }} />
                   <span>
-                    {statsLoading ? "—" : stats.lowStockCount} vật tư hết hàng
+                    {statsLoading ? "—" : stats.lowStockCount} hóa chất hết hàng
                   </span>
                 </div>
               </div>
@@ -568,7 +568,7 @@ export default function AdminDashboard() {
                   className="adnew-card-icon"
                   style={{ color: "#6366f1" }}
                 />
-                <h2 className="adnew-card-title">Phiếu mượn 7 ngày qua</h2>
+                <h2 className="adnew-card-title">Phiếu mượn trong tuần</h2>
               </div>
             </div>
 

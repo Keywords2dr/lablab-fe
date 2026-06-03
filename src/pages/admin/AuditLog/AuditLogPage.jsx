@@ -4,6 +4,23 @@ import axiosInstance from '../../../api/axiosInstance';
 import './AuditLogPage.css';
 
 // ==================== CONFIG ====================
+const MODULE_LABELS = {
+  RENT_TICKET:    'Phiếu mượn',
+  ROOM:           'Phòng Lab',
+  ROOM_STAFF:     'Nhân viên phòng',
+  ROOM_INVENTORY: 'Kho hóa chất phòng',
+  CHEMICAL:       'Hóa chất',
+  USER:           'Người dùng',
+};
+
+const ROLE_LABELS = {
+  ADMIN:   'Quản trị viên',
+  TEACHER: 'Giảng viên',
+  STUDENT: 'Sinh viên',
+  MANAGER: 'Quản lý phòng',
+  STAFF:   'Nhân viên',
+};
+
 const ACTION_COLORS = {
   CREATE: { bg: '#dcfce7', color: '#15803d' },
   UPDATE: { bg: '#dbeafe', color: '#1d4ed8' },
@@ -142,9 +159,46 @@ function parseSafe(jsonString) {
   catch { return jsonString; }
 }
 
+// Map dịch giá trị theo từng field key
+const VALUE_LABELS = {
+  ticketType: {
+    ROOM_ONLY:         'Đặt phòng Lab',
+    CHEMICAL_ONLY:     'Mượn hóa chất',
+    ROOM_AND_CHEMICAL: 'Phòng & Hóa chất',
+  },
+  status: {
+    PENDING_OWNER:  'Chờ giảng viên duyệt',
+    PENDING_ADMIN:  'Chờ Admin duyệt',
+    PENDING_RETURN: 'Chờ trả',
+    APPROVED:       'Đã duyệt',
+    REJECTED:       'Bị từ chối',
+    RETURNED:       'Đã trả',
+    CANCELLED:      'Đã hủy',
+  },
+  returnStatus: {
+    PENDING_OWNER:  'Chờ giảng viên duyệt',
+    PENDING_ADMIN:  'Chờ Admin duyệt',
+    PENDING_RETURN: 'Chờ trả',
+    APPROVED:       'Đã duyệt',
+    REJECTED:       'Bị từ chối',
+    RETURNED:       'Đã trả',
+    CANCELLED:      'Đã hủy',
+  },
+  purposeType: {
+    TEACHING: 'Giảng dạy',
+    RESEARCH: 'Nghiên cứu',
+    EXAM:     'Kiểm tra / Thi',
+  },
+};
+
 const formatValue = (key, val) => {
   if (val === null || val === undefined || val === '' || val === 'null') return null;
-  
+
+  // Dịch giá trị enum sang tiếng Việt nếu có trong map
+  if (VALUE_LABELS[key] && VALUE_LABELS[key][val]) {
+    return VALUE_LABELS[key][val];
+  }
+
   const isDateKey = /date|at$/i.test(key);
   const isIsoDate = typeof val === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(val);
 
@@ -250,7 +304,7 @@ function AuditLogModal({ log, isOpen, onClose }) {
               { label: 'Thời gian', value: log.createdAt ? new Date(log.createdAt).toLocaleString('vi-VN') : '—' },
               { label: 'Người thực hiện', value: log.actorUsername || '—' },
               { label: 'Hành động', value: <span className="al-badge" style={{ background: actionStyle.bg, color: actionStyle.color }}>{log.action}</span> },
-              { label: 'Entity', value: <span className="al-badge" style={{ background: '#ede9fe', color: '#6d28d9' }}>{log.entityName || '—'}</span> },
+              { label: 'Phân hệ', value: <span className="al-badge" style={{ background: '#ede9fe', color: '#6d28d9' }}>{MODULE_LABELS[log.entityName] || log.entityName || '—'}</span> },
               { label: 'Vai trò', value: <span className="al-badge" style={{ background: getRoleStyle(log.actorRole).bg, color: getRoleStyle(log.actorRole).color }}>{log.actorRole || '—'}</span> },
             ].map(({ label, value }) => (
               <div key={label} className="al-meta-cell">
@@ -421,11 +475,11 @@ export default function AuditLogPage() {
           </div>
 
           <div className="al-filter-item">
-            <label>Module</label>
+            <label>Phân hệ</label>
             <div className="al-select-wrap">
               <select value={filters.module} onChange={e => handleFilterChange('module', e.target.value)}>
                 <option value="">Tất cả</option>
-                {modules.map((mod, i) => <option key={i} value={mod}>{mod}</option>)}
+                {modules.map((mod, i) => <option key={i} value={mod}>{MODULE_LABELS[mod] || mod}</option>)}
               </select>
             </div>
           </div>
@@ -434,9 +488,9 @@ export default function AuditLogPage() {
             <div className="al-select-wrap">
               <select value={filters.role} onChange={e => handleFilterChange('role', e.target.value)}>
                 <option value="">Tất cả</option>
-                <option value="ADMIN">ADMIN</option>
-                <option value="TEACHER">TEACHER</option>
-                <option value="STUDENT">STUDENT</option>
+                <option value="ADMIN">Quản trị viên</option>
+                <option value="TEACHER">Giảng viên</option>
+                <option value="STUDENT">Sinh viên</option>
               </select>
             </div>
           </div>
@@ -451,7 +505,7 @@ export default function AuditLogPage() {
                 <th>Thời gian</th>
                 <th>Người dùng</th>
                 <th>Hành động</th>
-                <th>Entity</th>
+                <th>Phân hệ</th>
                 <th>Vai trò</th>
               </tr>
             </thead>
@@ -479,7 +533,7 @@ export default function AuditLogPage() {
                     <td>
                       <span className="al-badge" style={{ background: actionStyle.bg, color: actionStyle.color }}>{log.action}</span>
                     </td>
-                    <td><span className="al-module-tag">{log.entityName}</span></td>
+                    <td><span className="al-module-tag">{MODULE_LABELS[log.entityName] || log.entityName}</span></td>
                     <td>
                       <span className="al-badge" style={{ background: getRoleStyle(log.actorRole).bg, color: getRoleStyle(log.actorRole).color }}>{log.actorRole}</span>
                     </td>

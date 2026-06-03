@@ -17,6 +17,7 @@ import {
   DomainOutlined,
   ExpandMore,
   ExpandLess,
+  LibraryBooks,
 } from "@mui/icons-material";
 
 import NotificationBell from "../../components/common/NotificationBell";
@@ -28,7 +29,8 @@ const NAV_ITEMS = [
     items: [
       { label: "Tổng Quan", icon: <Dashboard fontSize="small" />, path: "/admin" },
       { label: "Duyệt Phiếu Mượn", icon: <Receipt fontSize="small" />, path: "/admin/tickets" },
-      { label: "Quản lý Vật tư", icon: <Inventory fontSize="small" />, path: "/admin/materials" },
+      { label: "Lịch sử mượn", icon: <LibraryBooks fontSize="small" />, path: "/admin/borrow-history" },
+      { label: "Quản lý Hóa chất", icon: <Inventory fontSize="small" />, path: "/admin/materials" },
       {
         label: "Quản lý Phòng Lab",
         icon: <MeetingRoom fontSize="small" />,
