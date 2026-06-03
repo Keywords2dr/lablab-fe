@@ -1,256 +1,108 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { 
-    Table, Tag, Button, Space, Select, 
-    Form, Typography, message 
-} from 'antd';
-import { 
-    EyeOutlined, SearchOutlined, ReloadOutlined, 
-    ExclamationCircleOutlined, AuditOutlined
-} from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
-import ticketApi from '../../../api/ticketApi';
-import './AdminTicketManager.css';
+import React from "react";
+import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import { HourglassEmpty, Refresh, AccessTime } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
+import { useApproveTickets } from "./hooks/useApproveTickets";
+import TicketTable from "./components/TicketTable";
+import { TICKET_TYPE, fmtDateTime } from "./components/ticketConstants";
+import "../../admin/rooms/styles/base.css";
+import "./styles/tickets.css";
+import "./styles/ticketManager.css";
 
-const { Text } = Typography;
+export default function AdminTicketManager() {
+  const navigate = useNavigate();
+  const { data, loading, pg, filters, apply, reset, goPage } =
+    useApproveTickets();
 
-// Định nghĩa mức độ ưu tiên
-const STATUS_PRIORITY = {
-    PENDING_ADMIN: 1,
-    PENDING_OWNER: 2,
-    PENDING_RETURN: 3,
-    BORROWED: 4,
-    APPROVED: 10,
-    REJECTED: 11,
-    RETURNED: 12,
-    CANCELLED: 13,
-};
+  const pendingCount = data.filter((d) =>
+    ["PENDING_ADMIN", "PENDING_OWNER"].includes(d.status),
+  ).length;
 
-const TICKET_STATUS = {
-    PENDING_OWNER:  { label: 'Chờ GV Duyệt',   color: 'orange'   },
-    PENDING_ADMIN:  { label: 'Chờ Admin Duyệt', color: 'cyan'     },
-    APPROVED:       { label: 'Đã Duyệt',       color: 'green'    },
-    BORROWED:       { label: 'Đang Mượn',       color: 'blue'     },
-    PENDING_RETURN: { label: 'Chờ Trả',         color: 'purple'   },
-    RETURNED:       { label: 'Đã Trả',          color: 'default'  },
-    REJECTED:       { label: 'Bị Từ Chối',      color: 'red'      },
-    CANCELLED:      { label: 'Đã Hủy',          color: 'default'  },
-};
-
-const TICKET_TYPE = {
-    ROOM_ONLY:         { label: 'Chỉ Mượn Phòng',   color: 'blue'     },
-    CHEMICAL_ONLY:     { label: 'Mượn Hóa Chất',    color: 'geekblue' },
-    ROOM_AND_CHEMICAL: { label: 'Phòng & Hóa Chất', color: 'purple'   },
-};
-
-const AdminTicketManager = () => {
-    const [form] = Form.useForm();
-    const navigate = useNavigate();
-    const [loading, setLoading] = useState(false);
-    const [data, setData] = useState([]);
-    const [pagination, setPagination] = useState({
-        current: 1,
-        pageSize: 10,
-        total: 0,
-    });
-
-    const fetchTickets = useCallback(async (page = 1, size = 10, filters = {}) => {
-        setLoading(true);
-        try {
-            const finalFilters = {
-                ...filters,
-                status: filters.status || 'PENDING_ADMIN'
-            };
-
-            const params = { page: page - 1, size, ...finalFilters };
-            const res = await ticketApi.getAllForAdmin(params);
-
-            const actualData = res?.content || res?.data?.content || [];
-            const total = res?.totalElements || res?.data?.totalElements || 0;
-
-            const sortedData = [...actualData].sort((a, b) => {
-                const priorityA = STATUS_PRIORITY[a.status] || 99;
-                const priorityB = STATUS_PRIORITY[b.status] || 99;
-
-                if (priorityA !== priorityB) return priorityA - priorityB;
-                return b.ticketId - a.ticketId;
-            });
-
-            setData(sortedData);
-            setPagination({ current: page, pageSize: size, total });
-        } catch (error) {
-            console.error('API Error:', error);
-            message.error('Không thể kết nối đến máy chủ.');
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        form.setFieldsValue({ status: 'PENDING_ADMIN' });
-        fetchTickets(1, 10, { status: 'PENDING_ADMIN' });
-    }, [fetchTickets, form]);
-
-    const columns = [
-        {
-            title: 'Người yêu cầu',
-            dataIndex: 'requesterName',
-            key: 'requesterName',
-            render: (text, record) => (
-                <div>
-                    <div className="atm-requester-name">{text || 'N/A'}</div>
-                    <div className="atm-requester-role">{record.requesterRole}</div>
-                </div>
-            ),
-        },
-        {
-            title: 'Phòng Lab',
-            dataIndex: 'roomName',
-            key: 'roomName',
-            render: (text) => <span className="atm-room-chip">{text || '—'}</span>,
-        },
-        {
-            title: 'Loại phiếu',
-            dataIndex: 'ticketType',
-            key: 'ticketType',
-            render: (type) => {
-                const config = TICKET_TYPE[type] || { label: type, color: 'default' };
-                return <Tag color={config.color}>{config.label}</Tag>;
-            },
-        },
-        {
-            title: 'Trạng thái',
-            dataIndex: 'status',
-            key: 'status',
-            render: (status) => {
-                const config = TICKET_STATUS[status] || { label: status, color: 'default' };
-                return <Tag color={config.color}>{config.label}</Tag>;
-            },
-        },
-        {
-            title: 'Thao tác',
-            key: 'action',
-            width: 110,
-            fixed: 'right',
-            render: (_, record) => (
-                <Button
-                    className="atm-btn-detail"
-                    icon={<EyeOutlined />}
-                    size="small"
-                    onClick={() => navigate(`/admin/tickets/${record.ticketId}`)}
-                >
-                    Chi tiết
-                </Button>
-            ),
-        },
-    ];
-
-    return (
-        <div className="atm-page">
-            {/* Banner */}
-            <div className="atm-banner">
-                <div className="atm-banner-icon">
-                    <AuditOutlined />
-                </div>
-                <div className="atm-banner-body">
-                    <div className="atm-banner-title">Quản lý Duyệt Phiếu Mượn</div>
-                    <div className="atm-banner-sub">ADMIN / TICKET MANAGER</div>
-                </div>
+  return (
+    <div className="rm-root">
+      {/* ── Header ── */}
+      <div className="rm-header rm-header--purple">
+        <div className="rm-header-left">
+          <div className="rm-header-icon rm-header-icon--purple">
+            <HourglassEmpty sx={{ color: "#fff", fontSize: 26 }} />
+          </div>
+          <div>
+            <div className="rm-header-title">Duyệt Phiếu Mượn</div>
+            <div className="rm-header-sub">
+              Xem xét và phê duyệt các yêu cầu mượn phòng Lab, hóa chất
             </div>
-
-            {/* Filter */}
-            <div className="atm-card">
-                <Form
-                    form={form}
-                    layout="inline"
-                    onFinish={(values) => fetchTickets(1, pagination.pageSize, values)}
-                >
-                    <div className="atm-filter-bar">
-                        <Form.Item name="status">
-                            <Select
-                                placeholder="Tất cả trạng thái"
-                                style={{ width: 180 }}
-                                allowClear
-                                classNames={{ popup: 'atm-select-dropdown' }}
-                            >
-                                {Object.entries(TICKET_STATUS).map(([key, val]) => (
-                                    <Select.Option key={key} value={key}>
-                                        {val.label}
-                                    </Select.Option>
-                                ))}
-                            </Select>
-                        </Form.Item>
-
-                        <Form.Item name="ticketType">
-                            <Select
-                                placeholder="Loại phiếu"
-                                style={{ width: 170 }}
-                                allowClear
-                                classNames={{ popup: 'atm-select-dropdown' }}
-                            >
-                                {Object.entries(TICKET_TYPE).map(([key, val]) => (
-                                    <Select.Option key={key} value={key}>
-                                        {val.label}
-                                    </Select.Option>
-                                ))}
-                            </Select>
-                        </Form.Item>
-
-                        <Form.Item>
-                            <Space>
-                                <Button
-                                    className="atm-btn-primary"
-                                    icon={<SearchOutlined />}
-                                    htmlType="submit"
-                                >
-                                    Lọc
-                                </Button>
-                                <Button
-                                    className="atm-btn-ghost"
-                                    icon={<ReloadOutlined />}
-                                    onClick={() => {
-                                        form.resetFields();
-                                        form.setFieldsValue({ status: 'PENDING_ADMIN' });
-                                        fetchTickets(1, 10, { status: 'PENDING_ADMIN' });
-                                    }}
-                                >
-                                    Làm mới
-                                </Button>
-                            </Space>
-                        </Form.Item>
-                    </div>
-                </Form>
-            </div>
-
-            {/* Table */}
-            <div className="atm-card atm-table-wrapper">
-                <Table
-                    columns={columns}
-                    dataSource={data}
-                    rowKey="ticketId"
-                    loading={loading}
-                    pagination={{
-                        ...pagination,
-                        showSizeChanger: true,
-                        showTotal: (total) => `Tổng cộng ${total} phiếu`,
-                    }}
-                    onChange={(p) => {
-                        const currentFilters = form.getFieldsValue();
-                        fetchTickets(p.current, p.pageSize, currentFilters);
-                    }}
-                    scroll={{ x: 800 }}
-                />
-
-                {data.length === 0 && !loading && (
-                    <div className="atm-empty">
-                        <ExclamationCircleOutlined className="atm-empty-icon" />
-                        <span className="atm-empty-text">
-                            Không tìm thấy phiếu mượn nào.
-                        </span>
-                    </div>
-                )}
-            </div>
+          </div>
         </div>
-    );
-};
 
-export default AdminTicketManager;
+        <div className="rm-stats">
+          <div className="rm-stat-badge" title="Tổng số phiếu chờ duyệt">
+            <div className="num">{pg.total}</div>
+            <div className="lbl">Tổng phiếu</div>
+          </div>
+          {pendingCount > 0 && (
+            <div
+              className="rm-stat-badge rm-stat-badge--amber"
+              title="Đang chờ duyệt"
+            >
+              <div className="num">{pendingCount}</div>
+              <div className="lbl">Chờ duyệt</div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Filter bar ── */}
+      <div className="tk-action-bar">
+        <div className="tk-filters-row">
+          <FormControl size="small" className="tk-filter-select">
+            <InputLabel>Loại phiếu</InputLabel>
+            <Select
+              value={filters.ticketType}
+              label="Loại phiếu"
+              onChange={(e) => apply("ticketType", e.target.value)}
+            >
+              <MenuItem value="">Tất cả loại</MenuItem>
+              {Object.entries(TICKET_TYPE).map(([k, v]) => (
+                <MenuItem key={k} value={k}>
+                  {v.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </div>
+        <button className="tk-btn-reset" onClick={reset}>
+          <Refresh sx={{ fontSize: 16 }} /> Làm mới
+        </button>
+      </div>
+
+      {/* ── Bảng phiếu ── */}
+      <TicketTable
+        data={data}
+        loading={loading}
+        page={pg.page}
+        size={pg.size}
+        total={pg.total}
+        totalPages={pg.totalPages}
+        extraHeaders={<th>Thời gian tạo</th>}
+        colsExtra={(t) => (
+          <td>
+            <div
+              className="tk-date"
+              style={{ display: "flex", alignItems: "center", gap: 4 }}
+            >
+              <AccessTime sx={{ fontSize: 12, color: "#94a3b8" }} />
+              {fmtDateTime(t.createdAt)}
+            </div>
+          </td>
+        )}
+        emptyIcon={
+          <HourglassEmpty
+            style={{ fontSize: "2.5rem", opacity: 0.25, color: "#94a3b8" }}
+          />
+        }
+        onNavigate={(id) => navigate(`/admin/tickets/${id}`)}
+        onPageChange={goPage}
+      />
+    </div>
+  );
+}

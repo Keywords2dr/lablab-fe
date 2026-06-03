@@ -1,0 +1,52 @@
+/* ── Mini stats bên dưới header ─────────────────────────────── */
+.tm-stats-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.tm-stat-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 22px;
+  text-align: center;
+  min-width: 100px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: transform 0.15s;
+}
+.tm-stat-card:hover { transform: translateY(-2px); }
+
+.tm-stat-num {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+.tm-stat-lbl {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #94a3b8;
+  margin-top: 5px;
+  white-space: nowrap;
+}
+
+.tm-stat-card--warn {
+  border-color: #fde68a;
+}
+.tm-stat-card--warn .tm-stat-num {
+  color: #d97706;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .tm-stats-bar { gap: 8px; }
+  .tm-stat-card { padding: 10px 16px; min-width: 80px; }
+  .tm-stat-num  { font-size: 1.3rem; }
+}

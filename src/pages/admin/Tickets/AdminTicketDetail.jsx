@@ -1,457 +1,335 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Tag, Button, Modal, Input, Skeleton, Result } from "antd";
 import {
-  Table,
-  Tag,
-  Button,
-  Space,
-  Typography,
-  Modal,
-  Input,
-  message,
-  Skeleton,
-  Result,
-} from "antd";
-import {
-  ArrowLeftOutlined,
-  AuditOutlined,
-  UserOutlined,
-  HomeOutlined,
-  ExperimentOutlined,
-  CalendarOutlined,
-  BookOutlined,
-  CloseCircleOutlined,
-  CheckCircleOutlined,
-  UserSwitchOutlined,
-  FileTextOutlined,
+  ArrowLeftOutlined, AuditOutlined, UserOutlined,
+  ExperimentOutlined, CalendarOutlined,
+  CloseCircleOutlined, CheckCircleOutlined, RollbackOutlined,
 } from "@ant-design/icons";
-import ticketApi from "../../../api/ticketApi";
-import "./AdminTicketDetail.css";
+import { useTicketDetail } from "./hooks/useTicketDetail";
+import "./styles/ticketDetail.css";
 
-const { Text } = Typography;
-
+/* ── Constants ──────────────────────────────────────────────── */
 const TICKET_STATUS = {
-  PENDING_OWNER: { label: "Chờ GV Duyệt", color: "orange" },
-  PENDING_ADMIN: { label: "Chờ Admin Duyệt", color: "cyan" },
-  APPROVED: { label: "Đã Duyệt", color: "green" },
-  BORROWED: { label: "Đang Mượn", color: "blue" },
-  PENDING_RETURN: { label: "Chờ Trả", color: "purple" },
-  RETURNED: { label: "Đã Trả", color: "gray" },
-  REJECTED: { label: "Bị Từ Chối", color: "red" },
-  CANCELLED: { label: "Đã Hủy", color: "default" },
+  PENDING_OWNER:  { label: "Chờ GV Duyệt",   dot: "#f59e0b" },
+  PENDING_ADMIN:  { label: "Chờ Admin Duyệt", dot: "#0ea5e9" },
+  APPROVED:       { label: "Đã Duyệt",        dot: "#10b981" },
+  BORROWED:       { label: "Đang Mượn",       dot: "#3b82f6" },
+  PENDING_RETURN: { label: "Chờ Trả",         dot: "#8b5cf6" },
+  RETURNED:       { label: "Đã Trả",          dot: "#94a3b8" },
+  REJECTED:       { label: "Bị Từ Chối",      dot: "#ef4444" },
+  CANCELLED:      { label: "Đã Hủy",          dot: "#94a3b8" },
 };
 
 const TICKET_TYPE = {
-  ROOM_ONLY: { label: "Chỉ Mượn Phòng", color: "blue" },
-  CHEMICAL_ONLY: { label: "Mượn Hóa Chất", color: "geekblue" },
-  ROOM_AND_CHEMICAL: { label: "Phòng & Hóa Chất", color: "purple" },
+  ROOM_ONLY:     { label: "Chỉ Mượn Phòng", antColor: "blue"     },
+  CHEMICAL_ONLY: { label: "Mượn Hóa Chất",  antColor: "geekblue" },
 };
 
-const PURPOSE_TYPE_MAP = {
-  TEACHING: "Giảng dạy",
-  RESEARCH: "Nghiên cứu",
-  EXAM: "Thi cử",
-  OTHER: "Khác",
+const RETURN_STATUS = {
+  RETURNED: { label: "Đã trả đủ", color: "#059669", bg: "#d1fae5" },
+  PARTIAL:  { label: "Trả thiếu", color: "#d97706", bg: "#fef3c7" },
+  DAMAGED:  { label: "Hư hỏng",   color: "#dc2626", bg: "#fee2e2" },
+  LOST:     { label: "Mất mát",   color: "#dc2626", bg: "#fee2e2" },
 };
 
-/* Helper: format ngày giờ */
-const fmtDate = (val) => (val ? new Date(val).toLocaleString("vi-VN") : "—");
+const PURPOSE_MAP = { TEACHING: "Giảng dạy", RESEARCH: "Nghiên cứu", EXAM: "Thi cử", OTHER: "Khác" };
+const ROLE_MAP    = { STUDENT: "Sinh viên",  TEACHER: "Giảng viên",  ADMIN: "Quản trị viên" };
 
-const AdminTicketDetail = () => {
+const fmt  = (v) => v ? new Date(v).toLocaleString("vi-VN", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" }) : "—";
+const dash = (v) => v || "—";
+
+/* ── Row helper ─────────────────────────────────────────────── */
+function Row({ label, highlight, highlightColor = "purple", children }) {
+  const cls = highlight
+    ? highlightColor === "blue" ? "atd-row atd-row--highlight-blue"
+    : highlightColor === "green" ? "atd-row atd-row--highlight-green"
+    : "atd-row atd-row--highlight"
+    : "atd-row";
+  return (
+    <div className={cls}>
+      <span className="atd-row-label">{label}</span>
+      <span className="atd-row-value">{children}</span>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════
+   AdminTicketDetail
+   ════════════════════════════════════════════════════════════════ */
+export default function AdminTicketDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [ticket, setTicket] = useState(null);
-  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+
+  const { ticket, loading, submitting, handleApproveAction } = useTicketDetail(id);
+  const [rejectOpen,   setRejectOpen]   = useState(false);
   const [rejectReason, setRejectReason] = useState("");
-  const [submitting, setSubmitting] = useState(false);
 
-  const loadDetail = async () => {
-    setLoading(true);
-    try {
-      const res = await ticketApi.getDetail(id);
-      setTicket(res?.data || res);
-    } catch {
-      message.error("Không thể tải chi tiết phiếu mượn!");
-    } finally {
-      setLoading(false);
-    }
+  const onConfirmReject = async () => {
+    const ok = await handleApproveAction(false, rejectReason);
+    if (ok) { setRejectOpen(false); setRejectReason(""); }
   };
 
-  useEffect(() => {
-    if (id) loadDetail();
-  }, [id]);
+  /* Loading */
+  if (loading) return (
+    <div className="atd-page">
+      <div className="atd-skeleton-wrap"><Skeleton active paragraph={{ rows: 10 }} /></div>
+    </div>
+  );
 
-  const handleApproveAction = async (approved) => {
-    if (!approved && !rejectReason.trim()) {
-      return message.warning("Vui lòng nhập lý do từ chối!");
-    }
-    setSubmitting(true);
-    try {
-      await ticketApi.adminApprove(id, {
-        approved,
-        rejectedReason: approved ? null : rejectReason,
-      });
-      message.success(approved ? "Đã duyệt thành công" : "Đã từ chối phiếu");
-      setIsRejectModalOpen(false);
-      loadDetail();
-    } catch {
-      message.error("Thao tác thất bại!");
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  /* Not found */
+  if (!ticket || !ticket.status) return (
+    <Result status="404" title="Không tìm thấy phiếu"
+      extra={<Button className="atd-btn-approve" onClick={() => navigate("/admin/tickets")}>Quay lại</Button>} />
+  );
 
-  /* ── Loading state ── */
-  if (loading) {
-    return (
-      <div className="atd-page">
-        <div className="atd-skeleton-wrap">
-          <Skeleton active paragraph={{ rows: 8 }} />
-        </div>
-      </div>
-    );
-  }
-
-  /* ── Not found ── */
-  if (!ticket || !ticket.status) {
-    return (
-      <Result
-        status="404"
-        title="Không tìm thấy phiếu"
-        extra={
-          <Button
-            className="atd-btn-approve"
-            onClick={() => navigate("/admin/tickets")}
-          >
-            Quay lại danh sách
-          </Button>
-        }
-      />
-    );
-  }
-
-  const statusCfg = TICKET_STATUS[ticket.status] || {
-    label: ticket.status,
-    color: "default",
-  };
-  const typeCfg = TICKET_TYPE[ticket.ticketType] || {
-    label: ticket.ticketType,
-    color: "default",
-  };
-
-  const roomManagerName = ticket.ownerApprovedByName || "—";
-
-  /* ── Columns cho bảng vật tư ── */
-  const itemColumns = [
-    {
-      title: "Tên vật tư / hóa chất",
-      dataIndex: "itemName",
-      key: "itemName",
-      render: (text) => <span className="atd-item-name">{text}</span>,
-    },
-    {
-      title: "Số lượng",
-      dataIndex: "quantityBorrowed",
-      key: "quantityBorrowed",
-      width: 160,
-      render: (val, record) => (
-        <span className="atd-item-qty">
-          {val} {record.itemUnit || ""}
-        </span>
-      ),
-    },
-  ];
+  const statusCfg = TICKET_STATUS[ticket.status]   || { label: ticket.status,     dot: "#94a3b8" };
+  const typeCfg   = TICKET_TYPE[ticket.ticketType] || { label: ticket.ticketType, antColor: "default" };
+  const isChemical     = ticket.ticketType === "CHEMICAL_ONLY";
+  const showReturnInfo = ["PENDING_RETURN", "RETURNED"].includes(ticket.status);
+  const items          = ticket.items || [];
 
   return (
     <div className="atd-page">
       {/* ── Back ── */}
-      <Button
-        className="atd-back-btn"
-        icon={<ArrowLeftOutlined />}
-        onClick={() => navigate("/admin/tickets")}
-      >
+      <Button className="atd-back-btn" icon={<ArrowLeftOutlined />} onClick={() => navigate("/admin/tickets")}>
         Quay lại danh sách
       </Button>
 
-      {/* ── Main card ── */}
-      <div className="atd-main-card ant-card">
-        {/* Card header */}
-        <div
-          style={{
-            background: "var(--bg-elevated)",
-            borderBottom: "1.5px solid var(--border)",
-            padding: "14px 24px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            borderRadius: "14px 14px 0 0",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div className="atd-section-title-icon">
-              <AuditOutlined />
+      {/* ── Header card ── */}
+      <div className="atd-header-card">
+        <div className="atd-header-left">
+          <div className="atd-header-icon"><AuditOutlined /></div>
+          <div>
+            <div className="atd-header-title">Chi tiết phiếu mượn</div>
+            <div className="atd-header-sub">
+              Mã&nbsp;<strong style={{ color: "#c7d2fe" }}>#{ticket.ticketId}</strong>
+              &nbsp;·&nbsp;{typeCfg.label}
             </div>
-            <span
-              style={{
-                fontFamily: "var(--font-body)",
-                fontSize: 16,
-                fontWeight: 700,
-                color: "var(--text-primary)",
-              }}
-            >
-              Chi tiết phiếu mượn
-            </span>
           </div>
-          <Tag className={`atd-tag atd-status-tag ${statusCfg.color}`}>
-            {statusCfg.label}
-          </Tag>
         </div>
-
-        <div style={{ padding: "24px" }}>
-          {/* ── Section: Thông tin chung ── */}
-          <div className="atd-section-title">
-            <div className="atd-section-title-icon">
-              <UserOutlined />
-            </div>
-            Thông tin chung
-          </div>
-
-          <div className="atd-info-grid">
-            <div className="atd-info-item">
-              <span className="atd-info-label">Mã phiếu</span>
-              <span className="atd-info-value mono">{ticket.ticketId}</span>
-            </div>
-            <div className="atd-info-item">
-              <span className="atd-info-label">Người mượn</span>
-              <span className="atd-info-value">
-                <strong>{ticket.requesterName}</strong>
-                {ticket.requesterRole && (
-                  <span
-                    style={{
-                      color: "var(--text-muted)",
-                      marginLeft: 6,
-                      fontSize: 12,
-                    }}
-                  >
-                    ({ticket.requesterRole})
-                  </span>
-                )}
-              </span>
-            </div>
-
-            <div className="atd-info-item">
-              <span className="atd-info-label">GV Quản lý phòng</span>
-              <span className="atd-info-value">
-                <UserSwitchOutlined
-                  style={{ color: "var(--accent)", marginRight: 6 }}
-                />
-                <strong>{roomManagerName}</strong>
-              </span>
-            </div>
-
-            <div className="atd-info-item">
-              <span className="atd-info-label">Phòng Lab</span>
-              <span className="atd-info-value">
-                <HomeOutlined
-                  style={{ color: "var(--accent)", marginRight: 6 }}
-                />
-                {ticket.roomName || "—"}
-              </span>
-            </div>
-            <div className="atd-info-item">
-              <span className="atd-info-label">Loại phiếu</span>
-              <span className="atd-info-value">
-                <Tag className={`atd-tag ${typeCfg.color}`}>
-                  {typeCfg.label}
-                </Tag>
-              </span>
-            </div>
-            <div className="atd-info-item">
-              <span className="atd-info-label">Môn học</span>
-              <span className="atd-info-value">
-                <BookOutlined
-                  style={{ color: "var(--text-muted)", marginRight: 6 }}
-                />
-                {ticket.subjectName || "—"}
-              </span>
-            </div>
-            <div className="atd-info-item">
-              <span className="atd-info-label">Mã lớp</span>
-              <span className="atd-info-value">{ticket.classCode || "—"}</span>
-            </div>
-            <div className="atd-info-item">
-              <span className="atd-info-label">Chi tiết bài học</span>
-              <span className="atd-info-value">
-                {ticket.lessonDetail && ticket.lessonDetail.trim() !== ""
-                  ? ticket.lessonDetail
-                  : "—"}
-              </span>
-            </div>
-            <div className="atd-info-item">
-              <span className="atd-info-label">Mục đích</span>
-              <span className="atd-info-value">
-                {PURPOSE_TYPE_MAP[ticket.purposeType] ||
-                  ticket.purposeType ||
-                  "—"}
-              </span>
-            </div>
-
-            {/* ── Ghi chú người mượn ── */}
-            {ticket.note && (
-              <div className="atd-info-item full-span">
-                <span className="atd-info-label">
-                  <FileTextOutlined
-                    style={{ color: "#7c3aed", marginRight: 6 }}
-                  />
-                  Ghi chú từ người mượn
-                </span>
-                <span
-                  className="atd-info-value"
-                  style={{
-                    color: "var(--text-primary)",
-                    fontWeight: 500,
-                    background: "#f5f3ff",
-                    border: "1px solid #ede9fe",
-                    borderRadius: 8,
-                    padding: "8px 12px",
-                    display: "block",
-                    marginTop: 4,
-                  }}
-                >
-                  {ticket.note}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* ── Section: Thời gian ── */}
-          <div className="atd-section-title" style={{ marginTop: 24 }}>
-            <div className="atd-section-title-icon">
-              <CalendarOutlined />
-            </div>
-            Thời gian
-          </div>
-
-          <div className="atd-info-grid">
-            <div className="atd-info-item">
-              <span className="atd-info-label">Ngày tạo phiếu</span>
-              <span className="atd-info-value">
-                {fmtDate(ticket.createdAt)}
-              </span>
-            </div>
-            <div className="atd-info-item">
-              <span className="atd-info-label">Ngày mượn</span>
-              <span className="atd-info-value">
-                {fmtDate(ticket.borrowDate)}
-              </span>
-            </div>
-            <div className="atd-info-item">
-              <span className="atd-info-label">Hạn trả dự kiến</span>
-              <span className="atd-info-value">
-                {fmtDate(ticket.expectedReturnDate)}
-              </span>
-            </div>
-            {ticket.ownerApprovedAt && (
-              <div className="atd-info-item">
-                <span className="atd-info-label">GV Duyệt lúc</span>
-                <span className="atd-info-value">
-                  {fmtDate(ticket.ownerApprovedAt)}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* ── Lý do từ chối (nếu có) ── */}
-          {ticket.rejectedReason && (
-            <>
-              <div className="atd-section-title" style={{ marginTop: 24 }}>
-                <div
-                  className="atd-section-title-icon"
-                  style={{ background: "var(--danger-light)" }}
-                >
-                  <CloseCircleOutlined style={{ color: "var(--danger)" }} />
-                </div>
-                Lý do từ chối
-              </div>
-              <div className="atd-info-grid">
-                <div className="atd-info-item full-span">
-                  <span className="atd-info-label">Chi tiết</span>
-                  <span className="atd-info-value danger">
-                    {ticket.rejectedReason}
-                  </span>
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* ── Danh sách hóa chất / dụng cụ ── */}
-          {ticket.ticketType !== "ROOM_ONLY" && (
-            <>
-              <div className="atd-section-title" style={{ marginTop: 24 }}>
-                <div className="atd-section-title-icon">
-                  <ExperimentOutlined />
-                </div>
-                Danh sách hóa chất &amp; dụng cụ
-              </div>
-              <div className="atd-items-table">
-                <Table
-                  dataSource={ticket.items || []}
-                  rowKey={(r) => r.detailId || r.itemId || Math.random()}
-                  pagination={false}
-                  columns={itemColumns}
-                />
-              </div>
-            </>
-          )}
-
-          {/* ── Action bar ── */}
-          {ticket.status === "PENDING_ADMIN" && (
-            <div className="atd-action-bar">
-              <Button
-                className="atd-btn-reject"
-                icon={<CloseCircleOutlined />}
-                onClick={() => setIsRejectModalOpen(true)}
-              >
-                Từ chối
-              </Button>
-              <Button
-                className="atd-btn-approve"
-                icon={<CheckCircleOutlined />}
-                loading={submitting}
-                onClick={() => handleApproveAction(true)}
-              >
-                Phê duyệt phiếu
-              </Button>
-            </div>
-          )}
+        <div className="atd-header-right">
+          <span className="atd-status-badge">
+            <span className="atd-status-dot" style={{ background: statusCfg.dot }} />
+            {statusCfg.label}
+          </span>
         </div>
       </div>
 
+      {/* ── Body 2-col ── */}
+      <div className="atd-body">
+        {/* Cột trái: Thông tin chung */}
+        <div className="atd-card">
+          <div className="atd-card-header">
+            <div className="atd-card-icon atd-card-icon--purple"><UserOutlined /></div>
+            <span className="atd-card-title">Thông tin chung</span>
+          </div>
+          <div className="atd-rows">
+            {/* Các trường quan trọng: highlight */}
+            <Row label="Người mượn" highlight highlightColor="purple">
+              <span className="atd-row-value--bold">{dash(ticket.requesterName)}</span>
+              {ticket.requesterRole && (
+                <Tag style={{ marginLeft: 8, borderRadius: 100, fontSize: "0.7rem", verticalAlign: "middle" }}>
+                  {ROLE_MAP[ticket.requesterRole] || ticket.requesterRole}
+                </Tag>
+              )}
+            </Row>
+            <Row label="GV Quản lý">
+              <span className="atd-row-value--bold">{dash(ticket.ownerApprovedByName)}</span>
+            </Row>
+            <Row label="Phòng Lab" highlight highlightColor="blue">
+              {ticket.roomName
+                ? <Tag color="blue" style={{ borderRadius: 100 }}>{ticket.roomName}</Tag>
+                : <span style={{ color: "#94a3b8" }}>—</span>}
+            </Row>
+            <Row label="Loại phiếu">
+              <Tag className="atd-tag" color={typeCfg.antColor}>{typeCfg.label}</Tag>
+            </Row>
+            <Row label="Môn học">{dash(ticket.subjectName)}</Row>
+            <Row label="Mã lớp">
+              {ticket.classCode
+                ? <span className="atd-row-value--mono">{ticket.classCode}</span>
+                : "—"}
+            </Row>
+            <Row label="Chi tiết bài">{dash(ticket.lessonDetail?.trim())}</Row>
+            <Row label="Mục đích">{PURPOSE_MAP[ticket.purposeType] || ticket.purposeType || "—"}</Row>
+            {ticket.note && (
+              <Row label="Ghi chú">
+                <span className="atd-row-value--note">{ticket.note}</span>
+              </Row>
+            )}
+          </div>
+        </div>
+
+        {/* Cột phải: Thời gian */}
+        <div className="atd-card">
+          <div className="atd-card-header">
+            <div className="atd-card-icon atd-card-icon--blue"><CalendarOutlined /></div>
+            <span className="atd-card-title">Thời gian</span>
+          </div>
+          <div className="atd-rows">
+            <Row label="Ngày tạo">{fmt(ticket.createdAt)}</Row>
+            <Row label="Ngày mượn" highlight highlightColor="blue">{fmt(ticket.borrowDate)}</Row>
+            <Row label="Hạn trả" highlight highlightColor="green">{fmt(ticket.expectedReturnDate)}</Row>
+            {ticket.ownerApprovedAt && <Row label="GV Duyệt lúc">{fmt(ticket.ownerApprovedAt)}</Row>}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Lý do từ chối ── */}
+      {ticket.rejectedReason && (
+        <div className="atd-reject-card">
+          <div className="atd-card-header">
+            <div className="atd-card-icon atd-card-icon--red"><CloseCircleOutlined /></div>
+            <span className="atd-card-title">Lý do từ chối</span>
+          </div>
+          <div className="atd-reject-reason">{ticket.rejectedReason}</div>
+        </div>
+      )}
+
+      {/* ── Danh sách hóa chất (khi mượn) ── */}
+      {isChemical && items.length > 0 && !showReturnInfo && (
+        <div className="atd-chem-card">
+          <div className="atd-card-header">
+            <div className="atd-card-icon atd-card-icon--green"><ExperimentOutlined /></div>
+            <span className="atd-card-title">Danh sách hóa chất &amp; dụng cụ mượn</span>
+          </div>
+          <table className="atd-chem-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Tên vật tư / hóa chất</th>
+                <th className="center">Số lượng mượn</th>
+                <th className="center">Đơn vị</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((item, i) => (
+                <tr key={item.detailId || i}>
+                  <td style={{ color: "#94a3b8", fontSize: "0.78rem", width: 36 }}>{i + 1}</td>
+                  <td><span className="atd-chem-name">{item.itemName}</span></td>
+                  <td className="center"><span className="atd-chem-qty">{item.quantityBorrowed}</span></td>
+                  <td className="center"><span className="atd-chem-unit">{item.itemUnit || "—"}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* ── Thông tin hoàn trả (PENDING_RETURN / RETURNED) ── */}
+      {showReturnInfo && (
+        <div className="atd-return-card">
+          <div className="atd-card-header">
+            <div className="atd-card-icon atd-card-icon--orange"><RollbackOutlined /></div>
+            <span className="atd-card-title">Thông tin hoàn trả</span>
+            <span style={{
+              marginLeft: "auto", fontSize: "0.75rem", fontWeight: 600,
+              color: ticket.status === "RETURNED" ? "#059669" : "#d97706",
+              background: ticket.status === "RETURNED" ? "#d1fae5" : "#fef3c7",
+              padding: "2px 10px", borderRadius: 100,
+            }}>
+              {ticket.status === "RETURNED" ? "Đã hoàn trả" : "Chờ xác nhận trả"}
+            </span>
+          </div>
+
+          {/* Ghi chú trả phòng (ROOM_ONLY) */}
+          {!isChemical && ticket.returnNote && (
+            <div className="atd-room-return-note">
+              <strong>Ghi chú khi trả phòng:</strong> {ticket.returnNote}
+            </div>
+          )}
+
+          {/* Bảng hoàn trả hóa chất */}
+          {isChemical && items.length > 0 && (
+            <table className="atd-return-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Tên vật tư / hóa chất</th>
+                  <th className="right">Đã mượn</th>
+                  <th className="right">Thực trả</th>
+                  <th className="center">Tình trạng</th>
+                  <th>Ghi chú trả</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item, i) => {
+                  const rs = RETURN_STATUS[item.returnStatus] || null;
+                  const isOk = item.quantityReturned != null && item.quantityReturned >= item.quantityBorrowed;
+                  return (
+                    <tr key={item.detailId || i}>
+                      <td style={{ color: "#94a3b8", fontSize: "0.78rem", width: 36 }}>{i + 1}</td>
+                      <td>
+                        <span className="atd-chem-name">{item.itemName}</span>
+                        {item.itemCode && (
+                          <div style={{ fontSize: "0.72rem", color: "#94a3b8", marginTop: 2 }}>
+                            Mã: {item.itemCode}
+                          </div>
+                        )}
+                      </td>
+                      <td className="right">
+                        <span className="atd-qty-borrowed">
+                          {item.quantityBorrowed ?? "—"} {item.itemUnit || ""}
+                        </span>
+                      </td>
+                      <td className="right">
+                        <span className={isOk ? "atd-qty-returned-ok" : "atd-qty-returned-bad"}>
+                          {item.quantityReturned ?? "—"} {item.itemUnit || ""}
+                        </span>
+                      </td>
+                      <td className="center">
+                        {rs
+                          ? <span className="atd-return-status" style={{ color: rs.color, background: rs.bg }}>
+                              {rs.label}
+                            </span>
+                          : <span style={{ color: "#94a3b8", fontSize: "0.78rem" }}>—</span>}
+                      </td>
+                      <td>
+                        {item.returnNote
+                          ? <span className="atd-return-note">{item.returnNote}</span>
+                          : <span style={{ color: "#cbd5e1", fontSize: "0.78rem" }}>Không có</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+
+          {/* Ghi chú chung khi trả hóa chất */}
+          {isChemical && ticket.returnNote && (
+            <div className="atd-room-return-note" style={{ margin: "0 18px 18px", marginTop: 0 }}>
+              <strong>Ghi chú chung:</strong> {ticket.returnNote}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Action bar ── */}
+      {ticket.status === "PENDING_ADMIN" && (
+        <div className="atd-action-bar">
+          <Button className="atd-btn-reject" icon={<CloseCircleOutlined />} onClick={() => setRejectOpen(true)}>
+            Từ chối phiếu
+          </Button>
+          <Button className="atd-btn-approve" icon={<CheckCircleOutlined />} loading={submitting}
+            onClick={() => handleApproveAction(true, "")}>
+            Phê duyệt phiếu
+          </Button>
+        </div>
+      )}
+
       {/* ── Modal từ chối ── */}
-      <Modal
-        className="atd-reject-modal"
-        title="Xác nhận từ chối phiếu"
-        open={isRejectModalOpen}
-        onOk={() => handleApproveAction(false)}
-        onCancel={() => setIsRejectModalOpen(false)}
-        confirmLoading={submitting}
-        okText="Xác nhận từ chối"
-        cancelText="Hủy"
-        okButtonProps={{ danger: true }}
-      >
-        <p className="atd-modal-label">
-          Vui lòng nhập lý do từ chối để người mượn hiểu rõ hơn:
-        </p>
-        <Input.TextArea
-          rows={4}
-          value={rejectReason}
+      <Modal className="atd-reject-modal" title="Xác nhận từ chối phiếu"
+        open={rejectOpen} onOk={onConfirmReject}
+        onCancel={() => { setRejectOpen(false); setRejectReason(""); }}
+        confirmLoading={submitting} okText="Xác nhận từ chối" cancelText="Hủy"
+        okButtonProps={{ danger: true }}>
+        <p className="atd-modal-label">Vui lòng nhập lý do từ chối để người mượn hiểu rõ hơn:</p>
+        <Input.TextArea rows={4} value={rejectReason}
           onChange={(e) => setRejectReason(e.target.value)}
-          placeholder="Mô tả lý do cụ thể..."
-        />
+          placeholder="Mô tả lý do cụ thể..." />
       </Modal>
     </div>
   );
-};
-
-export default AdminTicketDetail;
+}

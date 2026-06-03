@@ -17,6 +17,7 @@ import {
   DomainOutlined,
   ExpandMore,
   ExpandLess,
+  HourglassEmpty,
   LibraryBooks,
 } from "@mui/icons-material";
 
@@ -28,8 +29,16 @@ const NAV_ITEMS = [
     group: "CHỨC NĂNG CHÍNH",
     items: [
       { label: "Tổng Quan", icon: <Dashboard fontSize="small" />, path: "/admin" },
-      { label: "Duyệt Phiếu Mượn", icon: <Receipt fontSize="small" />, path: "/admin/tickets" },
-      { label: "Lịch sử mượn", icon: <LibraryBooks fontSize="small" />, path: "/admin/borrow-history" },
+      {
+        label: "Quản lý Phiếu Mượn",
+        icon: <Receipt fontSize="small" />,
+        path: "/admin/tickets",
+        groupKey: "tickets",
+        children: [
+          { label: "Duyệt Phiếu", icon: <HourglassEmpty fontSize="small" />, path: "/admin/tickets" },
+          { label: "Lịch sử Mượn", icon: <LibraryBooks fontSize="small" />, path: "/admin/borrow-history" },
+        ],
+      },
       { label: "Quản lý Hóa chất", icon: <Inventory fontSize="small" />, path: "/admin/materials" },
       {
         label: "Quản lý Phòng Lab",
@@ -71,7 +80,8 @@ export default function AdminLayout() {
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [expanded, setExpanded] = useState({
-    rooms: location.pathname.startsWith("/admin/rooms"),
+    rooms:   location.pathname.startsWith("/admin/rooms"),
+    tickets: location.pathname.startsWith("/admin/tickets") || location.pathname.startsWith("/admin/borrow-history"),
   });
 
   const handleLogout = () => {
@@ -92,9 +102,8 @@ export default function AdminLayout() {
     if (isChild) {
       return currentPath === path;
     } else {
-      // Logic cho trang Duyệt Phiếu 
       if (path === "/admin/tickets") {
-        return currentPath.startsWith("/admin/tickets");
+        return currentPath.startsWith("/admin/tickets") || currentPath.startsWith("/admin/borrow-history");
       }
       if (path === "/admin/users") {
         return currentPath.startsWith("/admin/users");

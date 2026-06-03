@@ -24,8 +24,8 @@ import UserManagementPage from "./pages/admin/users/UserManagementPage";
 
 // --- TICKETS (ADMIN) ---
 import AdminTicketManager from "./pages/admin/Tickets/AdminTicketManager";
-import AdminTicketDetail from "./pages/admin/Tickets/AdminTicketDetail";
 import AdminBorrowHistory from "./pages/admin/Tickets/AdminBorrowHistory";
+import AdminTicketDetail from "./pages/admin/Tickets/AdminTicketDetail";
 
 // --- USER BORROW ---
 import RoomRentPage from "./pages/rentticket/RoomRentPage";
@@ -107,11 +107,8 @@ function App() {
                 element={<RoomSupplyDistribution />}
               />
               <Route path="/admin/tickets" element={<AdminTicketManager />} />
-              <Route
-                path="/admin/tickets/:id"
-                element={<AdminTicketDetail />}
-              />
               <Route path="/admin/borrow-history" element={<AdminBorrowHistory />} />
+              <Route path="/admin/tickets/:id" element={<AdminTicketDetail />} />
               {/* Báo cáo sự cố (admin) */}
               <Route path="/admin/reports" element={<AdminReportPage />} />
             </Route>

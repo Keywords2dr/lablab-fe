@@ -1,0 +1,69 @@
+/* ── Header override: blue gradient cho trang lịch sử ─────── */
+.bh-header {
+  background: linear-gradient(135deg, #0c1a3a 0%, #1e3a5f 45%, #1d4ed8 100%) !important;
+}
+
+.bh-header-icon {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4) !important;
+}
+
+/* ── Stats bar ──────────────────────────────────────────────── */
+.bh-stats-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.bh-stat-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 22px;
+  text-align: center;
+  min-width: 100px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: transform 0.15s;
+}
+.bh-stat-card:hover { transform: translateY(-2px); }
+
+.bh-stat-num {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+.bh-stat-lbl {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #94a3b8;
+  margin-top: 5px;
+  white-space: nowrap;
+}
+
+.bh-stat-card--green {
+  border-color: #6ee7b7;
+}
+.bh-stat-card--green .bh-stat-num {
+  color: #059669;
+}
+
+.bh-stat-card--red {
+  border-color: #fca5a5;
+}
+.bh-stat-card--red .bh-stat-num {
+  color: #dc2626;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .bh-stats-bar { gap: 8px; }
+  .bh-stat-card { padding: 10px 16px; min-width: 80px; }
+  .bh-stat-num  { font-size: 1.3rem; }
+}
