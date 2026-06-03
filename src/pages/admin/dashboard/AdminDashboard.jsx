@@ -43,7 +43,6 @@ const AVATAR_COLORS = [
   "#6366f1",
 ];
 
-// Icon cho từng category của activity feed
 const FEED_CATEGORY_ICON = {
   TICKET: <Receipt style={{ fontSize: 15 }} />,
   ROOM: <MeetingRoom style={{ fontSize: 15 }} />,
@@ -230,7 +229,7 @@ export default function AdminDashboard() {
       value: statsLoading ? "—" : String(stats.lowStockCount),
       icon: <Inventory2 />,
       color: "orange",
-      path: "/admin/materials",
+      path: "/admin/stock-alerts",
     },
     {
       id: "users",
