@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { message } from "antd";
-import ticketApi from "../../../../api/ticketApi";
+import { rentTicketApi } from "../../../../api/rentTicketApi";
 
 export function useTicketDetail(id) {
   const [loading, setLoading] = useState(true);
@@ -10,7 +10,7 @@ export function useTicketDetail(id) {
   const loadDetail = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await ticketApi.getDetail(id);
+      const res = await rentTicketApi.getTicketById(id);
       setTicket(res?.data || res);
     } catch {
       message.error("Không thể tải chi tiết phiếu mượn!");
@@ -30,7 +30,7 @@ export function useTicketDetail(id) {
     }
     setSubmitting(true);
     try {
-      await ticketApi.adminApprove(id, {
+      await rentTicketApi.adminApprove(id, {
         approved,
         rejectedReason: approved ? null : rejectReason,
       });
