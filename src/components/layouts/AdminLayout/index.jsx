@@ -6,12 +6,13 @@ import { Avatar, Menu, MenuItem, ListItemIcon } from "@mui/material";
 import { Logout } from "@mui/icons-material";
 
 import NotificationBell from "../../common/NotificationBell";
+import AIChatBox from "../../common/AIChatBox";
 import SidebarNav from "./SidebarNav";
 
 import "./AdminLayout.css";
 
 export default function AdminLayout() {
-  const navigate         = useNavigate();
+  const navigate = useNavigate();
   const { user, logout } = useAuthStore();
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -72,6 +73,9 @@ export default function AdminLayout() {
           Đăng xuất
         </MenuItem>
       </Menu>
+
+      {/* AI Chat Assistant Widget */}
+      <AIChatBox />
     </div>
   );
 }

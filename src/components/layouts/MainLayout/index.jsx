@@ -2,20 +2,11 @@ import { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../../store/authStore";
 
-import {
-  Avatar,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-} from "@mui/material";
-import {
-  Logout,
-  Person,
-  Lock,
-  ScienceOutlined,
-} from "@mui/icons-material";
+import { Avatar, Menu, MenuItem, ListItemIcon } from "@mui/material";
+import { Logout, Person, Lock, ScienceOutlined } from "@mui/icons-material";
 
 import NotificationBell from "../../common/NotificationBell";
+import AIChatBox from "../../common/AIChatBox";
 import ChangePasswordDialog from "./ChangePasswordDialog";
 import { useChangePassword } from "./useChangePassword";
 
@@ -23,7 +14,7 @@ import "./MainLayout.css";
 
 export default function MainLayout() {
   const { user, logout } = useAuthStore();
-  const navigate         = useNavigate();
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
 
   const {
@@ -92,18 +83,33 @@ export default function MainLayout() {
         transformOrigin={{ horizontal: "right", vertical: "top" }}
         disableScrollLock
       >
-        <MenuItem onClick={() => { handleCloseMenu(); navigate("/profile"); }}>
-          <ListItemIcon><Person fontSize="small" /></ListItemIcon>
+        <MenuItem
+          onClick={() => {
+            handleCloseMenu();
+            navigate("/profile");
+          }}
+        >
+          <ListItemIcon>
+            <Person fontSize="small" />
+          </ListItemIcon>
           Hồ sơ cá nhân
         </MenuItem>
 
-        <MenuItem onClick={() => { handleCloseMenu(); openDialog(); }}>
-          <ListItemIcon><Lock fontSize="small" /></ListItemIcon>
+        <MenuItem
+          onClick={() => {
+            handleCloseMenu();
+            openDialog();
+          }}
+        >
+          <ListItemIcon>
+            <Lock fontSize="small" />
+          </ListItemIcon>
           Đổi mật khẩu
         </MenuItem>
-
         <MenuItem onClick={handleLogout} sx={{ color: "error.main" }}>
-          <ListItemIcon><Logout fontSize="small" color="error" /></ListItemIcon>
+          <ListItemIcon>
+            <Logout fontSize="small" color="error" />
+          </ListItemIcon>
           Đăng xuất
         </MenuItem>
       </Menu>
@@ -119,6 +125,9 @@ export default function MainLayout() {
         onToggleShow={toggleShow}
         onSetField={setField}
       />
+
+      {/* AI Chat Assistant Widget */}
+      <AIChatBox />
     </div>
   );
 }

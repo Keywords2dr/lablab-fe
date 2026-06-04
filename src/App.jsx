@@ -108,8 +108,14 @@ function App() {
                 element={<RoomSupplyDistribution />}
               />
               <Route path="/admin/tickets" element={<AdminTicketManager />} />
-              <Route path="/admin/borrow-history" element={<AdminBorrowHistory />} />
-              <Route path="/admin/tickets/:id" element={<AdminTicketDetail />} />
+              <Route
+                path="/admin/borrow-history"
+                element={<AdminBorrowHistory />}
+              />
+              <Route
+                path="/admin/tickets/:id"
+                element={<AdminTicketDetail />}
+              />
               <Route path="/admin/reports" element={<AdminReportPage />} />
               <Route path="/admin/stock-alerts" element={<StockAlertPage />} />
             </Route>
