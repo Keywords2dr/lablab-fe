@@ -1,0 +1,115 @@
+/* ── Threshold Table ── */
+.sa-table-wrap {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid #f1f5f9;
+}
+
+.sa-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.sa-table thead tr { background: #f8fafc; }
+
+.sa-table th {
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.sa-table th.center, .sa-table td.center { text-align: center; }
+.sa-table th.right, .sa-table td.right { text-align: right; }
+
+.sa-table tbody tr {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.15s;
+}
+
+.sa-table tbody tr:last-child { border-bottom: none; }
+.sa-table tbody tr:hover { background: #f8fafc; }
+
+.sa-table td {
+  padding: 11px 14px;
+  color: #374151;
+  vertical-align: middle;
+}
+
+.sa-chemical-code {
+  font-family: monospace;
+  font-size: 0.78rem;
+  background: #f0f4ff;
+  color: #4f46e5;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sa-chemical-name { font-weight: 600; color: #1e293b; }
+
+.sa-threshold-value {
+  font-weight: 700;
+  color: #f97316;
+  font-size: 0.95rem;
+}
+
+.sa-unit-badge {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ── Delete Button ── */
+.sa-btn-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; height: 30px;
+  border: 1.5px solid #fecaca;
+  background: #fef2f2;
+  color: #dc2626;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+}
+
+.sa-btn-del:hover { background: #fee2e2; transform: scale(1.08); }
+.sa-btn-del svg { font-size: 16px; }
+
+/* ── Empty State ── */
+.sa-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 16px;
+  color: #94a3b8;
+  gap: 8px;
+}
+
+.sa-empty svg { font-size: 36px; opacity: 0.4; }
+.sa-empty p { font-size: 0.9rem; margin: 0; }
+
+/* ── Loading spinner ── */
+.sa-spinner { display: flex; justify-content: center; padding: 24px; }
+
+.sa-spinner-ring {
+  width: 28px; height: 28px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #22c55e;
+  border-radius: 50%;
+  animation: saSpin 0.8s linear infinite;
+}
+
+@keyframes saSpin { to { transform: rotate(360deg); } }

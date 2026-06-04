@@ -17,7 +17,7 @@ import {
 } from "@mui/icons-material";
 
 import { useInventory } from "../hooks/useInventory";
-import "../styles/supply.css";
+
 
 /* ── helpers ─────────────────────────────────────────────────── */
 const RE_NOTE_ALLOWED = /[^a-zA-Z0-9À-ỹ\s.,\-_]/g;

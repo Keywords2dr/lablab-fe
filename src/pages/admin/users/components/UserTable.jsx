@@ -18,7 +18,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 import UserStatusBadge from "./UserStatusBadge";
 import UserActionMenu from "./UserActionMenu";
-import "../styles/UserTable.css";
+
 
 const ROLE_CLASS = {
   admin: "role-badge admin",

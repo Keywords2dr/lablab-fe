@@ -4,8 +4,7 @@ import { ManageAccounts } from "@mui/icons-material";
 import { useRooms } from "./hooks/useRooms";
 import { useRoomManagers } from "./hooks/useRoomManagers";
 import ManagerAssignPanel from "./components/ManagerAssignPanel";
-import "./styles/base.css";
-import "./styles/staff.css";
+import "./styles/index.css";
 
 export default function RoomManagerAssignment() {
   const { rooms, stats } = useRooms();

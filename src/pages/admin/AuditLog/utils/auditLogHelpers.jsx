@@ -2,7 +2,7 @@ import {
   ENTITY_DISPLAY_CONFIG,
   VALUE_LABELS,
   FIELD_BLACKLIST,
-} from "./auditLogConstants";
+} from "../constants/auditLogConstants";
 
 // ── Helper: parse JSON an toàn ─────────────────────────────────────────────
 export function parseSafe(jsonString) {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
-import axiosInstance from "../../../api/axiosInstance";
+import axiosInstance from "../../../../api/axiosInstance";
 
 export function useAuditLog() {
   const [logs, setLogs]             = useState([]);

@@ -12,7 +12,7 @@ import {
   DeleteSweep,
 } from "@mui/icons-material";
 import { toast } from "react-toastify";
-import "../styles/ChemicalTable.css";
+
 
 const SORT_OPTIONS = [
   { value: "itemCode,asc", label: "Mã: A → Z" },

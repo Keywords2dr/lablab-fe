@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import { Close, RestoreFromTrash, Delete } from "@mui/icons-material";
 import { chemicalApi } from "../../../../api/chemicalApi";
-import "../styles/TrashModal.css";
+
 
 export default function TrashModal({ open, onClose, onRestored }) {
   const [items, setItems] = useState([]);

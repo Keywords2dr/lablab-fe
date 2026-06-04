@@ -1,0 +1,73 @@
+/* ── Stats Grid ── */
+.adnew-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.adnew-stat-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  border: 1px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Accent bar trên đầu card */
+.adnew-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 16px 16px 0 0;
+}
+.adnew-stat-blue::before   { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.adnew-stat-green::before  { background: linear-gradient(90deg, #10b981, #34d399); }
+.adnew-stat-orange::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.adnew-stat-purple::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+
+.adnew-stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+/* Icon box */
+.adnew-stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.adnew-stat-blue   .adnew-stat-icon { background: #eff6ff; color: #3b82f6; }
+.adnew-stat-green  .adnew-stat-icon { background: #f0fdf4; color: #10b981; }
+.adnew-stat-orange .adnew-stat-icon { background: #fffbeb; color: #f59e0b; }
+.adnew-stat-purple .adnew-stat-icon { background: #f5f3ff; color: #8b5cf6; }
+
+/* Text */
+.adnew-stat-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.adnew-stat-label {
+  font-size: 0.78rem;
+  color: #64748b;
+  font-weight: 500;
+}
+.adnew-stat-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}

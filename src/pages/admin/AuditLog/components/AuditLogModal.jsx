@@ -1,5 +1,5 @@
-import { MODULE_LABELS, getActionStyle, getRoleStyle } from "./auditLogConstants";
-import { parseSafe, renderKV } from "./auditLogHelpers";
+import { MODULE_LABELS, getActionStyle, getRoleStyle } from "../constants/auditLogConstants";
+import { parseSafe, renderKV } from "../utils/auditLogHelpers";
 
 export default function AuditLogModal({ log, isOpen, onClose }) {
   if (!isOpen || !log) return null;

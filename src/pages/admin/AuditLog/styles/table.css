@@ -1,0 +1,224 @@
+/* ---------- Table Card ---------- */
+.al-table-card {
+  background: white;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  overflow: hidden;
+}
+
+.al-table-scroll {
+  overflow-x: auto;
+}
+
+.al-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.al-table thead tr {
+  background: linear-gradient(90deg, #f1f5f9 0%, #f8fafc 100%);
+}
+
+.al-table th {
+  padding: 13px 20px;
+  text-align: left;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1.5px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.al-table td {
+  padding: 14px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 13.5px;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.al-row {
+  transition: background 0.15s;
+  animation: fadeInRow 0.25s ease forwards;
+  cursor: pointer;
+}
+
+.al-row:hover {
+  background: #f0f4ff;
+}
+
+@keyframes fadeInRow {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.al-datetime {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.al-date {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.al-time {
+  font-size: 11.5px;
+  color: #94a3b8;
+}
+
+.al-user {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.al-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #6366f1, #a78bfa);
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.al-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.al-badge.revoke { background: #fee2e2; color: #b91c1c; }
+.al-badge.allocate { background: #dcfce7; color: #15803d; }
+.al-badge.assign { background: #e0f2fe; color: #0369a1; }
+.al-badge.update { background: #fef9c3; color: #a16207; }
+.al-badge.delete { background: #fce7f3; color: #9d174d; }
+.al-badge.create { background: #ede9fe; color: #6d28d9; }
+.al-badge.default { background: #f1f5f9; color: #475569; }
+
+.al-module-tag {
+  display: inline-block;
+  background: #ede9fe;
+  color: #6d28d9;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.al-role {
+  font-size: 12px;
+  font-weight: 500;
+  color: #475569;
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 5px;
+}
+
+.al-desc {
+  max-width: 320px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #64748b;
+}
+
+.al-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 52px 24px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.al-skeleton-row td {
+  padding: 14px 20px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.al-skeleton-cell {
+  height: 14px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  border-radius: 6px;
+  animation: shimmer 1.3s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ---------- Pagination ---------- */
+.al-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 20px;
+  border-top: 1px solid #f1f5f9;
+  background: #fafbff;
+}
+
+.al-page-info {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.al-page-buttons {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.al-page-btn {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1.5px solid #e2e8f0;
+  background: white;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.al-page-btn:hover:not(:disabled) {
+  border-color: #6366f1;
+  color: #6366f1;
+  background: #ede9fe;
+}
+
+.al-page-btn.active {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 2px 8px rgba(99,102,241,0.35);
+}
+
+.al-page-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}

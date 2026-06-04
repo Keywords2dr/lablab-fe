@@ -1,0 +1,5 @@
+@import "../../Rooms/styles/base.css";
+@import "./tickets.css";
+@import "./ticketManager.css";
+@import "./borrowHistory.css";
+@import "./ticketDetail.css";

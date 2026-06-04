@@ -1,0 +1,225 @@
+/* ---------- Table Card ---------- */
+.arp-table-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.arp-table-scroll { overflow-x: auto; }
+
+.arp-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.arp-table thead tr {
+  background: linear-gradient(90deg, #f1f5f9, #f8fafc);
+}
+
+.arp-table th {
+  padding: 12px 18px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1.5px solid #e2e8f0;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.arp-table td {
+  padding: 13px 18px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 13.5px;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.arp-row {
+  transition: background 0.15s;
+  animation: arpFadeIn 0.25s ease forwards;
+  cursor: pointer;
+}
+
+.arp-row:hover { background: #fff7ed; }
+
+@keyframes arpFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Type Badge */
+.arp-type-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.arp-type-badge.room     { background: #dbeafe; color: #1d4ed8; }
+.arp-type-badge.chemical { background: #f3e8ff; color: #7c3aed; }
+
+/* Description cell */
+.arp-desc-cell {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: #475569;
+}
+
+/* Action buttons */
+.arp-action-btns {
+  display: flex;
+  gap: 6px;
+}
+
+.arp-action-btn {
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #e2e8f0;
+  background: white;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.arp-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+
+.arp-action-btn.view:hover { background: #eff6ff; border-color: #93c5fd; }
+
+/* User cell */
+.arp-user {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.arp-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #f97316, #ef4444);
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Empty */
+.arp-empty {
+  padding: 56px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.arp-empty-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  border: 3px dashed #cbd5e1;
+  position: relative;
+}
+
+.arp-empty-icon::before,
+.arp-empty-icon::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 3px;
+  background: #cbd5e1;
+  border-radius: 2px;
+  top: 50%;
+  left: 50%;
+}
+
+.arp-empty-icon::before { transform: translate(-50%, -50%) rotate(45deg); }
+.arp-empty-icon::after { transform: translate(-50%, -50%) rotate(-45deg); }
+
+/* Skeleton */
+.arp-skeleton-row td { padding: 13px 18px; border-bottom: 1px solid #f1f5f9; }
+.arp-skeleton-cell {
+  height: 13px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  border-radius: 6px;
+  animation: arpShimmer 1.3s infinite;
+}
+
+@keyframes arpShimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Pagination */
+.arp-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  border-top: 1px solid #f1f5f9;
+  background: #fafbff;
+  flex-wrap: wrap;
+}
+
+.arp-page-info { font-size: 13px; color: #64748b; }
+
+.arp-page-buttons { display: flex; gap: 4px; }
+
+.arp-page-btn {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1.5px solid #e2e8f0;
+  background: white;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arp-page-btn:hover:not(:disabled) {
+  border-color: #f97316;
+  color: #f97316;
+  background: #fff7ed;
+}
+
+.arp-page-btn.active {
+  background: linear-gradient(135deg, #f97316, #ef4444);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 2px 8px rgba(249,115,22,0.35);
+}
+
+.arp-page-btn:disabled { opacity: 0.35; cursor: not-allowed; }

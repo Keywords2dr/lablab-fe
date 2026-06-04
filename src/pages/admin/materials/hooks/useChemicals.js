@@ -3,15 +3,7 @@ import { toast } from "react-toastify";
 import { chemicalApi } from "../../../../api/chemicalApi";
 import { stockAlertApi } from "../../../../api/stockAlertApi";
 
-const ITEMS_PER_PAGE = 10;
-
-export const DEFAULT_FILTERS = {
-  keyword: "",
-  packaging: "",
-  supplier: "",
-  unit: "",
-  sort: "itemCode,asc",
-};
+import { ITEMS_PER_PAGE, DEFAULT_FILTERS } from "../constants/materialConstants";
 
 export function useChemicals() {
   // ── Data state ──────────────────────────────────────

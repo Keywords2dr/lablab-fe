@@ -3,7 +3,7 @@ import { toast } from "react-toastify";
 import { Close, Save, Inventory } from "@mui/icons-material";
 import { chemicalApi } from "../../../../api/chemicalApi";
 import { roomApi } from "../../../../api/roomApi";
-import "../styles/ChemicalFormModal.css";
+
 
 const emptyForm = {
   itemCode: "",

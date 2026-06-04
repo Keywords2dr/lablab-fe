@@ -3,8 +3,7 @@ import { LocalShipping } from "@mui/icons-material";
 
 import { useRooms } from "./hooks/useRooms";
 import SupplyTransferPanel from "./components/SupplyTransferPanel";
-import "./styles/base.css";
-import "./styles/supply.css";
+import "./styles/index.css";
 
 export default function RoomSupplyDistribution() {
   const { rooms, stats } = useRooms();

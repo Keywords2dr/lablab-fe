@@ -5,9 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useApproveTickets } from "./hooks/useApproveTickets";
 import TicketTable from "./components/TicketTable";
 import { TICKET_TYPE, fmtDateTime } from "./components/ticketConstants";
-import "../../admin/rooms/styles/base.css";
-import "./styles/tickets.css";
-import "./styles/ticketManager.css";
+import "./styles/index.css";
 
 export default function AdminTicketManager() {
   const navigate = useNavigate();

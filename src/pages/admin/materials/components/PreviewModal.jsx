@@ -6,7 +6,7 @@ import {
   ErrorRounded,
   Upload,
 } from "@mui/icons-material";
-import "../styles/PreviewModal.css";
+
 
 export default function PreviewModal({
   open,

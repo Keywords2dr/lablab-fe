@@ -10,9 +10,7 @@ import {
   fmtDate,
   fmtDateTime,
 } from "./components/ticketConstants";
-import "../../admin/rooms/styles/base.css";
-import "./styles/tickets.css";
-import "./styles/borrowHistory.css";
+import "./styles/index.css";
 
 export default function AdminBorrowHistory() {
   const navigate = useNavigate();

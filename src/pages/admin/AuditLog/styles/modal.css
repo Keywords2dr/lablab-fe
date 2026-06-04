@@ -1,0 +1,347 @@
+.al-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(15, 23, 42, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.al-modal-content {
+  background: white;
+  border-radius: 20px;
+  width: 94%;
+  max-width: 1150px;
+  max-height: 94vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 25px 80px rgba(0,0,0,0.18);
+  animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.94) translateY(30px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Modal Header */
+.al-modal-header {
+  padding: 20px 28px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  flex-shrink: 0;
+}
+
+.al-modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.al-modal-header-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #EEEDFE;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.al-modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.al-modal-subid {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.al-modal-close {
+  width: 38px;
+  height: 38px;
+  border: 1px solid #e2e8f0;
+  background: transparent;
+  font-size: 24px;
+  color: #64748b;
+  cursor: pointer;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.al-modal-close:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+/* Modal Body */
+.al-modal-body {
+  padding: 24px 28px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ---------- Meta strip ---------- */
+.al-meta-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.al-meta-cell {
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.al-meta-label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.al-meta-value {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1e293b;
+  margin: 0;
+}
+
+/* ---------- Diff panels ---------- */
+.al-diff-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  flex: 1;
+}
+
+.al-diff-panel {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.al-diff-panel-header {
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.al-diff-old { background: #fff5f5; color: #b91c1c; }
+.al-diff-new { background: #f0fdf4; color: #15803d; }
+
+.al-diff-icon { font-size: 18px; font-weight: 700; }
+
+.al-diff-body {
+  background: #fafafa;
+  padding: 16px;
+  flex: 1;
+  overflow: auto;
+}
+
+.al-diff-text {
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.6;
+  margin: 0;
+  padding: 4px 0;
+}
+
+.al-diff-empty {
+  font-size: 14px;
+  color: #94a3b8;
+  font-style: italic;
+  padding: 4px 0;
+}
+
+/* ===== KEY-VALUE TABLE ===== */
+.al-kv-table {
+  width: 100%;
+}
+
+.al-kv-row {
+  display: grid;
+  grid-template-columns: 160px 1fr; 
+  gap: 14px;
+  align-items: baseline;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.al-kv-row:last-child {
+  border-bottom: none;
+}
+
+.al-kv-key {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  word-break: keep-all;
+  text-align: left;
+  line-height: 1.4;
+}
+
+.al-kv-val {
+  font-size: 13.5px;
+  color: #1e293b;
+  word-break: break-word;
+}
+
+.al-kv-str  { color: #1e293b; }
+.al-kv-num  { color: #0369a1; font-weight: 500; }
+.al-kv-bool { color: #7e22ce; font-weight: 600; }
+.al-kv-null { color: #94a3b8; font-style: italic; }
+
+.al-kv-nested {
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-top: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.al-kv-arr {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+  width: 100%;
+}
+
+.al-kv-arr-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  padding: 8px 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.al-kv-idx {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6366f1;
+  background: #ede9fe;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.al-kv-arr-val {
+  flex: 1;
+}
+
+/* JSON Pre */
+.al-json-pre {
+  background: #f8fafc;
+  padding: 18px 20px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 13.5px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow: auto;
+  max-height: 100%;
+  color: #1e293b;
+}
+
+/* Footer */
+.al-modal-footer {
+  padding: 16px 28px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.al-btn-close {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  background: white;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.al-btn-close:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #fca5a5;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(185,28,28,0.12);
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .al-modal-content {
+    width: 96%;
+    max-width: 960px;
+  }
+  .al-diff-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .al-kv-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}

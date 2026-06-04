@@ -7,9 +7,7 @@ import RoomFormModal from "./components/RoomFormModal";
 import RoomDeactivateModal from "./components/RoomDeactivateModal";
 import RoomActivateModal from "./components/RoomActivateModal";
 import RoomInventoryModal from "./components/RoomInventoryModal";
-import "./styles/base.css";
-import "./styles/table.css";
-import "./styles/modal.css";
+import "./styles/index.css";
 
 export default function RoomManagement() {
   const {
