@@ -1,24 +1,19 @@
-// src/components/wiki/components/Pagination.jsx
-import React from "react";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import "./Pagination.css";
 
 export default function Pagination({ currentPage, totalPages, onPageChange }) {
   if (totalPages <= 1) return null;
 
-  const pages = [];
   const maxVisible = 5;
-
   let startPage = Math.max(0, currentPage - Math.floor(maxVisible / 2));
-  let endPage = Math.min(totalPages - 1, startPage + maxVisible - 1);
+  let endPage   = Math.min(totalPages - 1, startPage + maxVisible - 1);
 
   if (endPage - startPage + 1 < maxVisible) {
     startPage = Math.max(0, endPage - maxVisible + 1);
   }
 
-  for (let i = startPage; i <= endPage; i++) {
-    pages.push(i);
-  }
+  const pages = [];
+  for (let i = startPage; i <= endPage; i++) pages.push(i);
 
   return (
     <div className="wiki-pagination">
@@ -50,10 +45,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
       {endPage < totalPages - 1 && (
         <>
           {endPage < totalPages - 2 && <span className="pg-ellipsis">...</span>}
-          <button 
-            className="pg-btn" 
-            onClick={() => onPageChange(totalPages - 1)}
-          >
+          <button className="pg-btn" onClick={() => onPageChange(totalPages - 1)}>
             {totalPages}
           </button>
         </>

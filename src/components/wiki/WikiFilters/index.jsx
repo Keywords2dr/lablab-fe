@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import "./WikiFilters.css";
 
+// ── Sub-component: một section có thể thu gọn ─────────────────────────────
 function FilterSection({ icon, title, children, defaultOpen = true }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
@@ -21,6 +22,36 @@ function FilterSection({ icon, title, children, defaultOpen = true }) {
   );
 }
 
+// ── Sub-component: một nhóm radio options ─────────────────────────────────
+function RadioGroup({ name, options, selected, onChange }) {
+  return (
+    <div className="wf-options">
+      <label className={`wf-option ${!selected ? "wf-option-active" : ""}`}>
+        <input
+          type="radio" name={name} value=""
+          checked={!selected}
+          onChange={() => onChange({ [name]: "" })}
+        />
+        <span>Tất cả</span>
+      </label>
+      {options.map((item, i) => (
+        <label
+          key={i}
+          className={`wf-option ${selected === item ? "wf-option-active" : ""}`}
+        >
+          <input
+            type="radio" name={name} value={item}
+            checked={selected === item}
+            onChange={() => onChange({ [name]: item })}
+          />
+          <span>{item}</span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
+// ── Component chính ────────────────────────────────────────────────────────
 export default function WikiFilters({ filters, formOptions = {}, onFilterChange, onReset }) {
   const { suppliers = [], units = [], packagings = [] } = formOptions;
 
@@ -36,9 +67,7 @@ export default function WikiFilters({ filters, formOptions = {}, onFilterChange,
             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
           </svg>
           <span>Bộ lọc</span>
-          {activeCount > 0 && (
-            <span className="wf-active-badge">{activeCount}</span>
-          )}
+          {activeCount > 0 && <span className="wf-active-badge">{activeCount}</span>}
         </div>
         <button className="wf-reset-btn" onClick={onReset} disabled={activeCount === 0}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="12" height="12">
@@ -51,7 +80,7 @@ export default function WikiFilters({ filters, formOptions = {}, onFilterChange,
         </button>
       </div>
 
-      {/* Active filters summary */}
+      {/* Active filter tags */}
       {activeCount > 0 && (
         <div className="wf-active-tags">
           {filters.supplier && (
@@ -87,29 +116,7 @@ export default function WikiFilters({ filters, formOptions = {}, onFilterChange,
             </svg>
           }
         >
-          <div className="wf-options">
-            <label className={`wf-option ${!filters.supplier ? "wf-option-active" : ""}`}>
-              <input
-                type="radio" name="supplier" value=""
-                checked={!filters.supplier}
-                onChange={() => onFilterChange({ supplier: "" })}
-              />
-              <span>Tất cả</span>
-            </label>
-            {suppliers.map((item, i) => (
-              <label
-                key={i}
-                className={`wf-option ${filters.supplier === item ? "wf-option-active" : ""}`}
-              >
-                <input
-                  type="radio" name="supplier" value={item}
-                  checked={filters.supplier === item}
-                  onChange={() => onFilterChange({ supplier: item })}
-                />
-                <span>{item}</span>
-              </label>
-            ))}
-          </div>
+          <RadioGroup name="supplier" options={suppliers} selected={filters.supplier} onChange={onFilterChange} />
         </FilterSection>
 
         <FilterSection
@@ -123,29 +130,7 @@ export default function WikiFilters({ filters, formOptions = {}, onFilterChange,
             </svg>
           }
         >
-          <div className="wf-options">
-            <label className={`wf-option ${!filters.unit ? "wf-option-active" : ""}`}>
-              <input
-                type="radio" name="unit" value=""
-                checked={!filters.unit}
-                onChange={() => onFilterChange({ unit: "" })}
-              />
-              <span>Tất cả</span>
-            </label>
-            {units.map((item, i) => (
-              <label
-                key={i}
-                className={`wf-option ${filters.unit === item ? "wf-option-active" : ""}`}
-              >
-                <input
-                  type="radio" name="unit" value={item}
-                  checked={filters.unit === item}
-                  onChange={() => onFilterChange({ unit: item })}
-                />
-                <span>{item}</span>
-              </label>
-            ))}
-          </div>
+          <RadioGroup name="unit" options={units} selected={filters.unit} onChange={onFilterChange} />
         </FilterSection>
 
         <FilterSection
@@ -157,29 +142,7 @@ export default function WikiFilters({ filters, formOptions = {}, onFilterChange,
             </svg>
           }
         >
-          <div className="wf-options">
-            <label className={`wf-option ${!filters.packaging ? "wf-option-active" : ""}`}>
-              <input
-                type="radio" name="packaging" value=""
-                checked={!filters.packaging}
-                onChange={() => onFilterChange({ packaging: "" })}
-              />
-              <span>Tất cả</span>
-            </label>
-            {packagings.map((item, i) => (
-              <label
-                key={i}
-                className={`wf-option ${filters.packaging === item ? "wf-option-active" : ""}`}
-              >
-                <input
-                  type="radio" name="packaging" value={item}
-                  checked={filters.packaging === item}
-                  onChange={() => onFilterChange({ packaging: item })}
-                />
-                <span>{item}</span>
-              </label>
-            ))}
-          </div>
+          <RadioGroup name="packaging" options={packagings} selected={filters.packaging} onChange={onFilterChange} />
         </FilterSection>
       </div>
     </div>

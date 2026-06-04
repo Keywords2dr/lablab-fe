@@ -1,19 +1,5 @@
-import React from "react";
+import { getCategoryStyle } from "../constants/chemicalConstants";
 import "./ChemicalCard.css";
-
-const CATEGORY_COLORS = {
-  "Axit": { bg: "#fee2e2", color: "#b91c1c" },
-  "Bazơ": { bg: "#dbeafe", color: "#1d4ed8" },
-  "Muối": { bg: "#d1fae5", color: "#065f46" },
-  "Hữu cơ": { bg: "#fef3c7", color: "#92400e" },
-  "Dung môi": { bg: "#ede9fe", color: "#6d28d9" },
-  "Kim loại": { bg: "#e0f2fe", color: "#0369a1" },
-};
-
-const getCategoryStyle = (cat = "") => {
-  const key = Object.keys(CATEGORY_COLORS).find(k => cat.includes(k));
-  return CATEGORY_COLORS[key] || { bg: "#f1f5f9", color: "#475569" };
-};
 
 export default function ChemicalCard({ chemical, onViewDetail }) {
   if (!chemical) return null;
@@ -29,13 +15,13 @@ export default function ChemicalCard({ chemical, onViewDetail }) {
           <div className="cc-molecule">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20">
               <circle cx="12" cy="12" r="3" />
-              <circle cx="4" cy="6" r="1.5" />
-              <circle cx="20" cy="6" r="1.5" />
-              <circle cx="4" cy="18" r="1.5" />
+              <circle cx="4"  cy="6"  r="1.5" />
+              <circle cx="20" cy="6"  r="1.5" />
+              <circle cx="4"  cy="18" r="1.5" />
               <circle cx="20" cy="18" r="1.5" />
-              <line x1="9.5" y1="10.7" x2="5.5" y2="7.3" />
-              <line x1="14.5" y1="10.7" x2="18.5" y2="7.3" />
-              <line x1="9.5" y1="13.3" x2="5.5" y2="16.7" />
+              <line x1="9.5"  y1="10.7" x2="5.5"  y2="7.3"  />
+              <line x1="14.5" y1="10.7" x2="18.5" y2="7.3"  />
+              <line x1="9.5"  y1="13.3" x2="5.5"  y2="16.7" />
               <line x1="14.5" y1="13.3" x2="18.5" y2="16.7" />
             </svg>
           </div>

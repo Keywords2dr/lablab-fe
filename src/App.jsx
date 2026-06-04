@@ -12,16 +12,16 @@ import WikiPage from "./pages/wiki/ChemicalWiki";
 
 // --- DASHBOARDS ---
 import DashboardPage from "./pages/dashboard/DashboardPage";
-import AdminDashboard from "./pages/admin/dashboard/AdminDashboard";
+import AdminDashboard from "./pages/admin/Dashboard/AdminDashboard";
 
 // --- ADMIN MANAGEMENT ---
-import MaterialManagement from "./pages/admin/materials/MaterialManagement";
+import MaterialManagement from "./pages/admin/Materials/MaterialManagement";
 import AuditLogPage from "./pages/admin/AuditLog/AuditLogPage";
-import RoomManagement from "./pages/admin/rooms/RoomManagement";
-import RoomManagerAssignment from "./pages/admin/rooms/RoomManagerAssignment";
-import RoomSupplyDistribution from "./pages/admin/rooms/RoomSupplyDistribution";
-import UserManagementPage from "./pages/admin/users/UserManagementPage";
-import StockAlertPage from "./pages/admin/stockAlerts/StockAlertPage";
+import RoomManagement from "./pages/admin/Rooms/RoomManagement";
+import RoomManagerAssignment from "./pages/admin/Rooms/RoomManagerAssignment";
+import RoomSupplyDistribution from "./pages/admin/Rooms/RoomSupplyDistribution";
+import UserManagementPage from "./pages/admin/Users/UserManagementPage";
+import StockAlertPage from "./pages/admin/StockAlerts/StockAlertPage";
 
 // --- TICKETS (ADMIN) ---
 import AdminTicketManager from "./pages/admin/Tickets/AdminTicketManager";
@@ -39,7 +39,7 @@ import BorrowHistoryPage from "./pages/mytickets/BorrowHistoryPage";
 
 // --- REPORTS ---
 import ReportPage from "./pages/reports/ReportPage";
-import AdminReportPage from "./pages/admin/reports/AdminReportPage";
+import AdminReportPage from "./pages/admin/Reports/AdminReportPage";
 
 // --- LAYOUTS ---
 import MainLayout from "./components/layouts/MainLayout";

@@ -1,4 +1,3 @@
-// src/components/wiki/hooks/useChemicalsWiki.js
 import { useState, useEffect, useCallback } from "react";
 import { chemicalApi } from "../../../api/chemicalApi";
 

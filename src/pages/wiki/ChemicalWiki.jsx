@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Search, Science, FilterList } from "@mui/icons-material";
 
 import { useChemicalsWiki } from "../../components/wiki/hooks/useChemicalsWiki";
-import ChemicalCard from "../../components/wiki/components/ChemicalCard";
-import ChemicalDetailModal from "../../components/wiki/components/ChemicalDetailModal";
-import WikiFilters from "../../components/wiki/components/WikiFilters";
-import Pagination from "../../components/wiki/components/Pagination";
+import ChemicalCard from "../../components/wiki/ChemicalCard";
+import ChemicalDetailModal from "../../components/wiki/ChemicalDetailModal";
+import WikiFilters from "../../components/wiki/WikiFilters";
+import Pagination from "../../components/wiki/Pagination";
 
 import "./ChemicalWiki.css";
 
