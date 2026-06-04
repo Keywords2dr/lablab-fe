@@ -21,17 +21,6 @@ import {
 } from "@mui/icons-material";
 import { roomApi } from "../../../api/roomApi";
 
-const HAZARD_CONFIG = {
-  LOW: { label: "Thấp", color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0" },
-  MEDIUM: {
-    label: "Trung bình",
-    color: "#d97706",
-    bg: "#fffbeb",
-    border: "#fde68a",
-  },
-  HIGH: { label: "Cao", color: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
-};
-
 function mapInventoryToChemical(inv) {
   const item = inv.item ?? inv.chemical ?? inv;
 
@@ -539,8 +528,6 @@ export default function StepRoomAndChemicals({
                     <div className="rac-chem-list">
                       {filteredChems.map((chem) => {
                         const isSel = !!selectedChemicals[chem.id];
-                        const hazard =
-                          HAZARD_CONFIG[chem.hazardLevel] ?? HAZARD_CONFIG.LOW;
                         const isLowStock = chem.available < 50;
                         return (
                           <div

@@ -100,14 +100,14 @@ export default function Profile() {
     ) {
       return;
     }
-    if (/[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(e.key)) {
+    if (/[0-9!@#$%^&*()_+=[\]{};':"\\|,.<>/?`~-]/.test(e.key)) {
       e.preventDefault();
     }
   };
 
   const handleFullNamePaste = (e) => {
     const pasted = e.clipboardData.getData("text");
-    if (/[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(pasted)) {
+    if (/[0-9!@#$%^&*()_+=[\]{};':"\\|,.<>/?`~-]/.test(pasted)) {
       e.preventDefault();
       toast.warning("Họ và tên không được chứa số hoặc ký tự đặc biệt!");
     }
@@ -261,9 +261,7 @@ export default function Profile() {
               placeholder="Nhập email"
               disabled={!isEditing}
             />
-            {errors.email && (
-              <span className="error-msg">{errors.email}</span>
-            )}
+            {errors.email && <span className="error-msg">{errors.email}</span>}
           </div>
 
           {/* Khoa */}

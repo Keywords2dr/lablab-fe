@@ -34,7 +34,7 @@ export default function TrashModal({ open, onClose, onRestored }) {
       setItems((prev) => prev.filter((i) => i.itemId !== item.itemId));
       onRestored(); // báo parent refresh bảng chính
     } catch (err) {
-      toast.error("❌ Khôi phục thất bại: " + (err.response?.data?.message || err.message));
+      toast.error(" Khôi phục thất bại: " + (err.response?.data?.message || err.message));
     } finally {
       setRestoring(null);
     }

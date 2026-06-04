@@ -19,11 +19,11 @@ export default function DeleteConfirmModal({ target, onClose, onConfirm }) {
       const status = err.response?.status;
       const msg = err.response?.data?.message || err.message;
       if (status === 403 || status === 401) {
-        toast.error("🔒 Không có quyền thực hiện thao tác này.");
+        toast.error(" Không có quyền thực hiện thao tác này.");
       } else if (status === 409) {
-        toast.error("❌ Không thể xóa: hóa chất đang được sử dụng trong kho.");
+        toast.error(" Không thể xóa: hóa chất đang được sử dụng trong kho.");
       } else {
-        toast.error("❌ Lỗi xóa: " + msg);
+        toast.error(" Lỗi xóa: " + msg);
       }
     } finally {
       setDeleting(false);

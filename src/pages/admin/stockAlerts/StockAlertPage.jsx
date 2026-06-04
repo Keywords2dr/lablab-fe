@@ -30,7 +30,11 @@ function DeleteConfirmModal({ target, onClose, onConfirm, loading }) {
           không thể hoàn tác.
         </p>
         <div className="sa-modal-actions">
-          <button className="sa-btn-cancel" onClick={onClose} disabled={loading}>
+          <button
+            className="sa-btn-cancel"
+            onClick={onClose}
+            disabled={loading}
+          >
             Hủy
           </button>
           <button
@@ -155,7 +159,7 @@ export default function StockAlertPage() {
     setDeleting(true);
     try {
       await stockAlertApi.deleteThreshold(deleteTarget.itemId);
-      toast.success("🗑️ Đã xóa ngưỡng cảnh báo!");
+      toast.success(" Đã xóa ngưỡng cảnh báo!");
       setDeleteTarget(null);
       fetchThresholds();
       fetchAlerts();
@@ -169,9 +173,9 @@ export default function StockAlertPage() {
 
   // ── Derived stats ─────────────────────────────────────────────────────────
   const criticalCount = alerts.filter(
-    (a) => a.alertLevel === "OUT_OF_STOCK"
+    (a) => a.alertLevel === "OUT_OF_STOCK",
   ).length;
-  const warningCount = alerts.length - criticalCount;
+  const _warningCount = alerts.length - criticalCount;
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -195,10 +199,7 @@ export default function StockAlertPage() {
             <div className="num">{thresholds.length}</div>
             <div className="lbl">Đã cài đặt</div>
           </div>
-          <div
-            className="sa-stat-badge alert-badge"
-            title="Đang cảnh báo"
-          >
+          <div className="sa-stat-badge alert-badge" title="Đang cảnh báo">
             <div className="num">{alerts.length}</div>
             <div className="lbl">Đang cảnh báo</div>
           </div>
@@ -428,9 +429,7 @@ export default function StockAlertPage() {
                           </span>
                         </td>
                         <td className="center">
-                          <span className="sa-unit-badge">
-                            {t.unit || "—"}
-                          </span>
+                          <span className="sa-unit-badge">{t.unit || "—"}</span>
                         </td>
                         <td className="center">
                           <button

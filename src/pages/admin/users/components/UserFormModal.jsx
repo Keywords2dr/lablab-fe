@@ -151,7 +151,7 @@ const UserFormModal = ({ open, user, onClose, onCreate, onUpdate }) => {
     try {
       let success;
       if (isEditMode) {
-        const { username, password, ...rest } = formData;
+        const { username: _username, password: _password, ...rest } = formData;
         // Chuyển các trường rỗng "" thành undefined để BE bỏ qua (@Pattern không validate null/undefined)
         const payload = Object.fromEntries(
           Object.entries(rest).map(([k, v]) => [k, v === "" ? undefined : v]),

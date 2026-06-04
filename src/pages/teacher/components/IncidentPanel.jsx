@@ -6,7 +6,6 @@ import {
   Person,
   CalendarToday,
 } from "@mui/icons-material";
-// ✅ Xóa import MOCK_INCIDENTS và INCIDENT_STATUS vì không tồn tại trong hook
 import "../styles/IncidentPanel.css";
 
 export default function IncidentPanel({

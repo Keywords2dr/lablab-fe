@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -11,19 +11,11 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 
-const ResetPasswordModal = ({ open, onClose, onConfirm }) => {
+const ResetPasswordModalContent = ({ onClose, onConfirm }) => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (open) {
-      setPassword("");
-      setShowPassword(false);
-      setError("");
-    }
-  }, [open]);
 
   const handleConfirm = async () => {
     if (!password.trim()) {
@@ -40,13 +32,7 @@ const ResetPasswordModal = ({ open, onClose, onConfirm }) => {
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="xs"
-      fullWidth
-      disableRestoreFocus
-    >
+    <>
       <DialogTitle sx={{ fontWeight: "bold" }}>Reset mật khẩu</DialogTitle>
       <DialogContent>
         <TextField
@@ -86,6 +72,22 @@ const ResetPasswordModal = ({ open, onClose, onConfirm }) => {
           {loading ? "Đang xử lý..." : "Xác nhận"}
         </Button>
       </DialogActions>
+    </>
+  );
+};
+
+const ResetPasswordModal = ({ open, onClose, onConfirm }) => {
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="xs"
+      fullWidth
+      disableRestoreFocus
+    >
+      {open && (
+        <ResetPasswordModalContent onClose={onClose} onConfirm={onConfirm} />
+      )}
     </Dialog>
   );
 };

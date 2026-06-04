@@ -36,8 +36,6 @@ export function useRoomManagement() {
   const [totalPages, setTotalPages] = useState(0);
   const [pendingCount, setPendingCount] = useState(0);
 
-  // initialLoading: true cho đến khi CẢ danh sách phòng lẫn chi tiết phòng đầu tiên đã sẵn sàng.
-  // Tránh flash "bạn chưa có phòng" do room=null trong khoảng giữa 2 useEffect cũ.
   const [initialLoading, setInitialLoading] = useState(true);
   const [tableLoading, setTableLoading] = useState(false);
   const [filterStatus, setFilterStatus] = useState("ALL");
@@ -76,10 +74,6 @@ export function useRoomManagement() {
     fetchChemicalDictionary();
   }, []);
 
-  // ─── FIX: Gộp fetchManagedRooms + fetchRoomDetail vào 1 luồng ────────────
-  // Trước đây: fetchManagedRooms xong → setInitialLoading(false) → room vẫn null
-  // → render "bạn chưa có phòng" → fetchRoomDetail mới chạy → setRoom → render lại.
-  // Giờ: chỉ setInitialLoading(false) sau khi cả 2 bước đều hoàn tất.
   useEffect(() => {
     const bootstrap = async () => {
       setInitialLoading(true);
@@ -120,9 +114,6 @@ export function useRoomManagement() {
     bootstrap();
   }, []);
 
-  // ─── Khi người dùng chọn phòng khác từ dropdown ──────────────────────────
-  // useEffect riêng, chỉ chạy khi selectedRoomId thay đổi SAU lần mount đầu.
-  // Lần mount đầu đã được xử lý trong bootstrap() rồi nên dùng ref để bỏ qua.
   const [isFirstMount, setIsFirstMount] = useState(true);
 
   useEffect(() => {

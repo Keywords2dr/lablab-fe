@@ -19,7 +19,7 @@ export default function RoomInventoryModal({ room, onClose }) {
     try {
       const res = await roomApi.getRoomInventory(room.roomId);
       setItems(Array.isArray(res.data) ? res.data : []);
-    } catch (err) {
+    } catch {
       setItems([]);
     } finally {
       setLoading(false);

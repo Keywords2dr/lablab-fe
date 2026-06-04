@@ -178,7 +178,6 @@ export default function PreviewModal({
     );
   }
 
-  // CẬP NHẬT LOGIC: Tách biến newCount và updatedCount
   const successCount = result?.successCount ?? 0;
   const newCount = result?.newCount ?? 0;
   const updatedCount = result?.updatedCount ?? 0;

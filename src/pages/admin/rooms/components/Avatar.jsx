@@ -5,11 +5,6 @@ const COLORS = [
   "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4",
 ];
 
-/**
- * @param {string}  name  - Họ tên đầy đủ
- * @param {number}  size  - Kích thước px (default: 36)
- * @param {object}  style - Style override
- */
 export default function Avatar({ name, size = 36, style = {} }) {
   const initials = name
     ? name.split(" ").slice(-2).map((w) => w[0]).join("").toUpperCase()

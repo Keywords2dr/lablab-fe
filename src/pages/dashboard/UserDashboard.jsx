@@ -24,9 +24,6 @@ import { useAuthStore } from "../../store/authStore";
 import labHeroImg from "../../assets/lab_hero.png";
 import "./UserDashboard.css";
 
-/* ═══════════════════════════════════════
-   INLINE SVG ILLUSTRATIONS
-   ═══════════════════════════════════════ */
 const WikiIllustration = () => (
   <svg viewBox="0 0 200 160" fill="none" className="feat-svg">
     <rect x="30" y="20" width="140" height="100" rx="12" fill="#EEF2FF" />

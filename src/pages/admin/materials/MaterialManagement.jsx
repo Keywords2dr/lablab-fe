@@ -104,7 +104,7 @@ export default function MaterialManagement() {
       fetchData(serverPage);
     } catch (err) {
       const msg = err.response?.data?.message || err.message;
-      toast.error(`❌ Import thất bại: ${msg}`);
+      toast.error(` Import thất bại: ${msg}`);
     }
   };
 
