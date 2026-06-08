@@ -5,7 +5,9 @@ export default function ProtectedRoute({ allowedRoles }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
 
-  if (!isAuthenticated) {
+  const token = useAuthStore((state) => state.token);
+
+  if (!isAuthenticated || !token) {
     return <Navigate to="/login" replace />;
   }
 
