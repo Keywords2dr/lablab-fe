@@ -226,10 +226,9 @@ function RoomItemSection({
 }
 
 /* ── Main component ──────────────────────────────────────────── */
-export default function SupplyTransferPanel({ rooms = [] }) {
-  const { globalItems, loading, submitting, allocate, revoke } = useInventory();
+export default function SupplyAllocatePanel({ rooms = [] }) {
+  const { globalItems, loading, submitting, allocate } = useInventory();
 
-  const [mode, setMode] = useState("allocate");
   const [itemSearch, setItemSearch] = useState("");
   const [roomSearch, setRoomSearch] = useState("");
 
@@ -237,9 +236,8 @@ export default function SupplyTransferPanel({ rooms = [] }) {
   const [note, setNote] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  /* ── reset khi đổi mode ── */
-  const switchMode = useCallback((m) => {
-    setMode(m);
+  /* ── reset helpers ── */
+  const resetAll = useCallback(() => {
     setRoomItems({});
     setNote("");
     setItemSearch("");
@@ -359,12 +357,7 @@ export default function SupplyTransferPanel({ rooms = [] }) {
       })),
     }));
 
-    let success;
-    if (mode === "allocate") {
-      success = await allocate(roomTargets, note);
-    } else {
-      success = await revoke(roomTargets, note);
-    }
+    let success = await allocate(roomTargets, note);
 
     if (success) {
       setRoomItems({});
@@ -386,23 +379,7 @@ export default function SupplyTransferPanel({ rooms = [] }) {
   /* ── render ── */
   return (
     <div className="stp-root">
-      {/* ── Mode tabs ── */}
-      <div className="stp-tabs">
-        <button
-          className={`stp-tab ${mode === "allocate" ? "stp-tab--active" : ""}`}
-          onClick={() => switchMode("allocate")}
-        >
-          <SendOutlined style={{ fontSize: 16 }} />
-          Phân phối vào phòng
-        </button>
-        <button
-          className={`stp-tab ${mode === "revoke" ? "stp-tab--active stp-tab--revoke" : ""}`}
-          onClick={() => switchMode("revoke")}
-        >
-          <UndoOutlined style={{ fontSize: 16 }} />
-          Thu hồi từ phòng
-        </button>
-      </div>
+      {/* Mode tabs removed since this is only Allocate */}
 
       {/* ── Body: 3-column layout ── */}
       <div className="stp-body stp-body--3col">
@@ -412,11 +389,7 @@ export default function SupplyTransferPanel({ rooms = [] }) {
             <div className="stp-card__header">
               <StepDot num={1} status={step1Status} />
               <div className="stp-card__title">
-                <span>
-                  {mode === "allocate"
-                    ? "Chọn phòng nhận"
-                    : "Chọn phòng thu hồi"}
-                </span>
+                <span>Chọn phòng nhận</span>
                 <CountBadge count={selectedRoomCount} />
               </div>
               <span className="stp-card__sub">Chọn nhiều được</span>
@@ -704,7 +677,7 @@ export default function SupplyTransferPanel({ rooms = [] }) {
 
             {/* Confirm button */}
             <button
-              className={`stp-confirm-btn ${mode === "revoke" ? "stp-confirm-btn--revoke" : ""}`}
+              className="stp-confirm-btn"
               disabled={!canConfirm}
               onClick={handleConfirm}
             >
@@ -713,15 +686,10 @@ export default function SupplyTransferPanel({ rooms = [] }) {
                   <span className="stp-spinner stp-spinner--white" />
                   Đang xử lý...
                 </>
-              ) : mode === "allocate" ? (
+              ) : (
                 <>
                   <SendOutlined style={{ fontSize: 17 }} />
                   Xác nhận phân phối
-                </>
-              ) : (
-                <>
-                  <UndoOutlined style={{ fontSize: 17 }} />
-                  Xác nhận thu hồi
                 </>
               )}
             </button>
@@ -738,26 +706,14 @@ export default function SupplyTransferPanel({ rooms = [] }) {
           <div className="stp-dialog" onClick={(e) => e.stopPropagation()}>
             {/* Header */}
             <div
-              className={`stp-dialog__header ${mode === "revoke" ? "stp-dialog__header--revoke" : ""}`}
+              className="stp-dialog__header"
             >
               <div className="stp-dialog__icon">
-                {mode === "allocate" ? (
-                  <SendOutlined style={{ fontSize: 22 }} />
-                ) : (
-                  <UndoOutlined style={{ fontSize: 22 }} />
-                )}
+                <SendOutlined style={{ fontSize: 22 }} />
               </div>
               <div>
-                <div className="stp-dialog__title">
-                  {mode === "allocate"
-                    ? "Xác nhận phân phối"
-                    : "Xác nhận thu hồi"}
-                </div>
-                <div className="stp-dialog__sub">
-                  {mode === "allocate"
-                    ? "Kiểm tra lại thông tin trước khi gửi"
-                    : "Hành động này sẽ thu hồi vật tư khỏi các phòng đã chọn"}
-                </div>
+                <div className="stp-dialog__title">Xác nhận phân phối</div>
+                <div className="stp-dialog__sub">Kiểm tra lại thông tin trước khi gửi</div>
               </div>
             </div>
 
@@ -828,7 +784,7 @@ export default function SupplyTransferPanel({ rooms = [] }) {
                 Quay lại
               </button>
               <button
-                className={`stp-dialog__ok-btn ${mode === "revoke" ? "stp-dialog__ok-btn--revoke" : ""}`}
+                className="stp-dialog__ok-btn"
                 onClick={handleFinalConfirm}
                 disabled={submitting}
               >
@@ -837,15 +793,10 @@ export default function SupplyTransferPanel({ rooms = [] }) {
                     <span className="stp-spinner stp-spinner--white" />
                     Đang xử lý...
                   </>
-                ) : mode === "allocate" ? (
+                ) : (
                   <>
                     <SendOutlined style={{ fontSize: 16 }} />
                     Xác nhận phân phối
-                  </>
-                ) : (
-                  <>
-                    <UndoOutlined style={{ fontSize: 16 }} />
-                    Xác nhận thu hồi
                   </>
                 )}
               </button>

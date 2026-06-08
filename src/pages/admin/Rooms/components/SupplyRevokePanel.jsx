@@ -1,0 +1,699 @@
+import React, { useState, useMemo, useCallback, useEffect } from "react";
+import {
+  UndoOutlined,
+  SearchOutlined,
+  CloseOutlined,
+  CheckCircleOutlined,
+  DomainOutlined,
+  AddOutlined,
+  RemoveOutlined,
+  StickyNote2Outlined,
+  WarningAmberOutlined,
+  ScienceOutlined,
+  ExpandMoreOutlined,
+  ExpandLessOutlined,
+} from "@mui/icons-material";
+
+import { useInventory } from "../hooks/useInventory";
+import { useRoomInventories } from "../hooks/useRoomInventories";
+
+const RE_NOTE_ALLOWED = /[^a-zA-Z0-9À-ỹ\s.,\-_]/g;
+const sanitizeNote = (val) => val.replace(RE_NOTE_ALLOWED, "");
+
+const RE_SEARCH = /^[\p{L}\p{N}\s]*$/u;
+const filterSearchInput = (val) =>
+  [...val].filter((ch) => RE_SEARCH.test(ch)).join("");
+
+function validatePackageCount(val) {
+  const n = Number(val);
+  if (!val && val !== 0) return "Bắt buộc";
+  if (!Number.isInteger(n) || n < 1) return "≥ 1 gói";
+  return "";
+}
+
+function CountBadge({ count }) {
+  if (!count) return null;
+  return <span className="stp-badge">{count}</span>;
+}
+
+function StepDot({ num, status }) {
+  return (
+    <div className={`stp-dot stp-dot--${status}`}>
+      {status === "done" ? <CheckCircleOutlined style={{ fontSize: 14 }} /> : num}
+    </div>
+  );
+}
+
+const getMaxPackages = (maxQuantity, amountPerPackage) => {
+  const amt = amountPerPackage ? Number(amountPerPackage) : 1;
+  const maxPkgs = Math.ceil(Number(maxQuantity) / amt);
+  return maxPkgs > 0 ? maxPkgs : 0;
+};
+
+function ItemCardRevoke({ item, selected, packageCount, onToggle, onChangeCount, maxQuantity }) {
+  const uid = item.itemId || item.itemCode;
+  const maxPkgs = getMaxPackages(maxQuantity, item.amountPerPackage);
+  let error = selected ? validatePackageCount(packageCount) : false;
+  
+  if (!error && selected) {
+    if (packageCount > maxPkgs) {
+      error = "Vượt tồn";
+    }
+  }
+
+  const handleCardClick = (e) => {
+    if (e.target.closest(".stp-inline-qty")) return;
+    onToggle(uid);
+  };
+
+  return (
+    <div
+      className={`stp-item-card ${selected ? "stp-item-card--selected" : ""} ${
+        selected && error ? "stp-item-card--error" : ""
+      }`}
+      onClick={handleCardClick}
+      role="button"
+    >
+      {selected && (
+        <div className="stp-item-card__check">
+          <CheckCircleOutlined style={{ fontSize: 14 }} />
+        </div>
+      )}
+      <div className="stp-item-card__name">{item.itemName}</div>
+      <div className="stp-item-card__code">{item.itemCode}</div>
+      <div className="stp-item-card__meta" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        {item.formula && (
+          <span className="stp-item-card__cat" style={{ alignSelf: 'flex-start' }}>{item.formula}</span>
+        )}
+        <div style={{ fontSize: '11px', color: '#64748b', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <span>Tổng: {item.totalQuantity !== undefined ? item.totalQuantity : "?"}</span>
+          <span>Khóa: {item.lockedQuantity !== undefined ? item.lockedQuantity : "?"}</span>
+          <span style={{ color: '#059669', fontWeight: 600 }}>Khả dụng: {maxQuantity} {item.unit || "gói"}</span>
+        </div>
+        {item.amountPerPackage && (
+          <div style={{ fontSize: '11px', color: '#8b5cf6', fontWeight: 500 }}>
+            Quy cách: {item.amountPerPackage} {item.unit} / {item.packaging || "gói"}
+          </div>
+        )}
+      </div>
+
+      {selected && (
+        <div className="stp-inline-qty" onClick={(e) => e.stopPropagation()}>
+          <button
+            className="stp-qty-btn"
+            onClick={() => onChangeCount(uid, Math.max(1, (Number(packageCount) || 1) - 1))}
+            disabled={Number(packageCount) <= 1}
+          >
+            <RemoveOutlined style={{ fontSize: 12 }} />
+          </button>
+          <input
+            type="text"
+            inputMode="numeric"
+            className={`stp-qty-input stp-qty-input--inline ${error ? "stp-qty-input--error" : ""}`}
+            style={{ minWidth: "30px", flexGrow: 1, textAlign: "center" }}
+            value={packageCount !== undefined ? packageCount : ""}
+            onClick={(e) => e.stopPropagation()}
+            onChange={(e) => {
+              let val = e.target.value.replace(/[^0-9]/g, "");
+              if (val) {
+                const num = Number(val);
+                if (num > maxPkgs) val = String(maxPkgs);
+              }
+              onChangeCount(uid, val);
+            }}
+          />
+          <button
+            className="stp-qty-btn"
+            onClick={() => onChangeCount(uid, Math.min(maxPkgs, (Number(packageCount) || 0) + 1))}
+            disabled={Number(packageCount) >= maxPkgs}
+          >
+            <AddOutlined style={{ fontSize: 12 }} />
+          </button>
+        </div>
+      )}
+      {selected && error && <div className="stp-item-card__errmsg">{error}</div>}
+    </div>
+  );
+}
+
+function RoomItemSectionRevoke({
+  room,
+  items,
+  roomItemsData,
+  onToggleItem,
+  onChangeCount,
+  onRemoveRoom,
+  globalItems
+}) {
+  const [expanded, setExpanded] = useState(true);
+  const roomItems = roomItemsData[room.roomId] || {};
+  const selectedCount = Object.keys(roomItems).length;
+
+  let hasError = false;
+  Object.entries(roomItems).forEach(([itemId, cnt]) => {
+    let err = validatePackageCount(cnt);
+    if (!err) {
+      const itemInv = items.find(i => i.itemId === itemId || i.itemCode === itemId);
+      const itemGlobal = globalItems.find(i => i.itemId === itemId || i.itemCode === itemId);
+      if (itemInv) {
+        const maxPkgs = getMaxPackages(itemInv.availableQuantity, itemGlobal?.amountPerPackage);
+        if (cnt > maxPkgs) {
+          err = "Vượt tồn";
+        }
+      }
+    }
+    if (err) hasError = true;
+  });
+
+  return (
+    <div className="stp-room-section">
+      <div className={`stp-room-section__header ${hasError && selectedCount > 0 ? "stp-room-section__header--warn" : ""}`}>
+        <button
+          className="stp-room-section__toggle"
+          onClick={() => setExpanded((v) => !v)}
+        >
+          <DomainOutlined style={{ fontSize: 16, flexShrink: 0 }} />
+          <span className="stp-room-section__name">{room.roomName}</span>
+          {selectedCount > 0 && (
+            <span className="stp-room-section__count">
+              {selectedCount} hóa chất
+              {hasError && <WarningAmberOutlined style={{ fontSize: 13, color: "#d97706", marginLeft: 3 }} />}
+            </span>
+          )}
+          {expanded ? <ExpandLessOutlined style={{ fontSize: 18, marginLeft: "auto" }} /> : <ExpandMoreOutlined style={{ fontSize: 18, marginLeft: "auto" }} />}
+        </button>
+        <button className="stp-room-section__remove" onClick={() => onRemoveRoom(room.roomId)}>
+          <CloseOutlined style={{ fontSize: 14 }} />
+        </button>
+      </div>
+
+      {expanded && (
+        <div className="stp-room-section__body">
+          {items.length === 0 ? (
+            <div className="stp-empty stp-empty--sm">Không có hóa chất</div>
+          ) : (
+            <div className="stp-item-grid stp-item-grid--compact">
+              {items.map(item => {
+                const uid = item.itemId || item.itemCode;
+                const globalItem = globalItems.find(g => g.itemId === uid || g.itemCode === uid);
+                return (
+                  <ItemCardRevoke
+                    key={uid}
+                    item={{...item, ...globalItem}}
+                    selected={roomItems[uid] !== undefined}
+                    packageCount={roomItems[uid]}
+                    onToggle={() => onToggleItem(room.roomId, uid)}
+                    onChangeCount={(id, val) => onChangeCount(room.roomId, uid, val)}
+                    maxQuantity={item.availableQuantity}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function SupplyRevokePanel({ rooms = [] }) {
+  const { globalItems, submitting, revoke } = useInventory();
+  const { inventories, loading: invLoading, fetchInventories } = useRoomInventories();
+
+  const [subMode, setSubMode] = useState("byRoom"); // byRoom | byItem
+  
+  // States for byRoom
+  const [selectedRoomsForByRoom, setSelectedRoomsForByRoom] = useState([]);
+  const [roomItemsData, setRoomItemsData] = useState({}); // { roomId: { itemId: count } }
+  
+  // States for byItem
+  const [selectedItemForByItem, setSelectedItemForByItem] = useState(null);
+  const [itemRoomsData, setItemRoomsData] = useState({}); // { roomId: count }
+
+  const [search1, setSearch1] = useState("");
+  const [search2, setSearch2] = useState("");
+  const [note, setNote] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  // When switching modes, clear states
+  const handleSwitchSubMode = (mode) => {
+    setSubMode(mode);
+    setSearch1("");
+    setSearch2("");
+    setNote("");
+    if (mode === "byItem") {
+      // Need to fetch all rooms inventory to find which room has which item
+      const allRoomIds = rooms.map(r => r.roomId);
+      fetchInventories(allRoomIds);
+      setSelectedItemForByItem(null);
+      setItemRoomsData({});
+    } else {
+      setSelectedRoomsForByRoom([]);
+      setRoomItemsData({});
+    }
+  };
+
+  // ----- BY ROOM LOGIC -----
+  const toggleRoomInByRoom = (roomId) => {
+    if (selectedRoomsForByRoom.includes(roomId)) {
+      setSelectedRoomsForByRoom(prev => prev.filter(id => id !== roomId));
+      setRoomItemsData(prev => {
+        const next = { ...prev };
+        delete next[roomId];
+        return next;
+      });
+    } else {
+      setSelectedRoomsForByRoom(prev => [...prev, roomId]);
+      // fetch if not cached
+      if (!inventories[roomId]) {
+        fetchInventories([roomId]);
+      }
+      setRoomItemsData(prev => ({ ...prev, [roomId]: {} }));
+    }
+  };
+
+  const toggleItemInByRoom = (roomId, itemId) => {
+    setRoomItemsData(prev => {
+      const roomData = { ...(prev[roomId] || {}) };
+      if (roomData[itemId] !== undefined) {
+        delete roomData[itemId];
+      } else {
+        roomData[itemId] = 1;
+      }
+      return { ...prev, [roomId]: roomData };
+    });
+  };
+
+  const setCountInByRoom = (roomId, itemId, val) => {
+    setRoomItemsData(prev => ({
+      ...prev,
+      [roomId]: { ...(prev[roomId] || {}), [itemId]: val }
+    }));
+  };
+
+  // ----- BY ITEM LOGIC -----
+  // Compute flat items from all fetched inventories
+  const itemsInRooms = useMemo(() => {
+    const map = {};
+    Object.values(inventories).forEach(roomInv => {
+      roomInv.forEach(item => {
+        const id = item.itemId || item.itemCode;
+        if (!map[id]) {
+          map[id] = { ...item, totalAvailableGlobal: 0 };
+        }
+        map[id].totalAvailableGlobal += Number(item.availableQuantity || 0);
+      });
+    });
+    return Object.values(map).filter(i => i.totalAvailableGlobal > 0);
+  }, [inventories]);
+
+  const toggleRoomInByItem = (roomId) => {
+    setItemRoomsData(prev => {
+      const next = { ...prev };
+      if (next[roomId] !== undefined) {
+        delete next[roomId];
+      } else {
+        next[roomId] = 1;
+      }
+      return next;
+    });
+  };
+
+  const setCountInByItem = (roomId, val) => {
+    setItemRoomsData(prev => ({ ...prev, [roomId]: val }));
+  };
+
+
+  // ----- SHARED LOGIC -----
+  // Validation for submit
+  let canConfirm = false;
+  let summaryData = []; // [{ roomId, items: [{ itemId, count, error }] }]
+  
+  if (subMode === "byRoom") {
+    summaryData = selectedRoomsForByRoom.map(roomId => {
+      const room = rooms.find(r => r.roomId === roomId);
+      const itemsMap = roomItemsData[roomId] || {};
+      const itemsList = Object.entries(itemsMap).map(([itemId, count]) => {
+        const itemInv = (inventories[roomId] || []).find(i => (i.itemId === itemId || i.itemCode === itemId));
+        const itemGlobal = globalItems.find(i => (i.itemId === itemId || i.itemCode === itemId));
+        let error = validatePackageCount(count);
+        if (!error && itemInv) {
+           const maxPkgs = getMaxPackages(itemInv.availableQuantity, itemGlobal?.amountPerPackage);
+           if (count > maxPkgs) {
+             error = "Vượt tồn";
+           }
+        }
+        return { itemId, count, error, itemName: itemInv?.itemName || "Unknown", packaging: itemGlobal?.packaging || "gói" };
+      });
+      return { roomId, roomName: room?.roomName, items: itemsList };
+    }).filter(d => d.items.length > 0);
+    
+    canConfirm = summaryData.length > 0 && summaryData.every(d => d.items.every(i => !i.error)) && !submitting;
+  } else {
+    // byItem
+    if (selectedItemForByItem) {
+      const itemGlobal = globalItems.find(i => (i.itemId === selectedItemForByItem || i.itemCode === selectedItemForByItem));
+      const itemsListByRoom = Object.entries(itemRoomsData).map(([roomId, count]) => {
+        const room = rooms.find(r => r.roomId === roomId);
+        const itemInv = (inventories[roomId] || []).find(i => (i.itemId === selectedItemForByItem || i.itemCode === selectedItemForByItem));
+        let error = validatePackageCount(count);
+        if (!error && itemInv) {
+           const maxPkgs = getMaxPackages(itemInv.availableQuantity, itemGlobal?.amountPerPackage);
+           if (count > maxPkgs) {
+             error = "Vượt tồn";
+           }
+        }
+        return { roomId, roomName: room?.roomName, count, error };
+      });
+      
+      summaryData = itemsListByRoom.map(r => ({
+        roomId: r.roomId,
+        roomName: r.roomName,
+        items: [{ itemId: selectedItemForByItem, count: r.count, error: r.error, itemName: itemGlobal?.itemName || "Unknown", packaging: itemGlobal?.packaging || "gói" }]
+      }));
+      
+      canConfirm = summaryData.length > 0 && summaryData.every(d => d.items.every(i => !i.error)) && !submitting;
+    }
+  }
+
+  const handleFinalConfirm = async () => {
+    const roomTargets = summaryData.map(d => ({
+      roomId: d.roomId,
+      items: d.items.map(i => ({
+        itemId: i.itemId,
+        packageCount: Number(i.count)
+      }))
+    }));
+
+    const success = await revoke(roomTargets, note);
+    if (success) {
+      if (subMode === "byRoom") {
+        setRoomItemsData({});
+        setSelectedRoomsForByRoom([]);
+      } else {
+        setItemRoomsData({});
+        setSelectedItemForByItem(null);
+      }
+      setNote("");
+      setConfirmOpen(false);
+      // refetch to update UI
+      fetchInventories(rooms.map(r => r.roomId));
+    }
+  };
+
+  // ----- RENDER -----
+  return (
+    <div className="stp-root">
+      <div className="stp-tabs--sub">
+        <button
+          className={`stp-tab--sub ${subMode === "byRoom" ? "stp-tab--active" : ""}`}
+          onClick={() => handleSwitchSubMode("byRoom")}
+        >
+          <DomainOutlined style={{ fontSize: 16 }} /> Chọn theo phòng
+        </button>
+        <button
+          className={`stp-tab--sub ${subMode === "byItem" ? "stp-tab--active" : ""}`}
+          onClick={() => handleSwitchSubMode("byItem")}
+        >
+          <ScienceOutlined style={{ fontSize: 16 }} /> Chọn theo hóa chất
+        </button>
+      </div>
+
+      <div className="stp-body stp-body--3col">
+        {/* COL 1 */}
+        <div className="stp-col" style={{ gridColumn: "1" }}>
+          <div className="stp-card stp-card--full-height">
+            <div className="stp-card__header">
+              <StepDot num={1} status={subMode === "byRoom" ? (selectedRoomsForByRoom.length > 0 ? "done" : "active") : (selectedItemForByItem ? "done" : "active")} />
+              <div className="stp-card__title">
+                {subMode === "byRoom" ? "Chọn phòng thu hồi" : "Chọn hóa chất cần thu hồi"}
+              </div>
+            </div>
+            
+            <div className="stp-search-row">
+              <SearchOutlined style={{ fontSize: 16, color: "var(--stp-muted)" }} />
+              <input
+                className="stp-input"
+                placeholder={subMode === "byRoom" ? "Tìm phòng..." : "Tìm hóa chất..."}
+                value={search1}
+                onChange={(e) => setSearch1(filterSearchInput(e.target.value))}
+              />
+            </div>
+
+            <div className="stp-room-list stp-room-list--full">
+              {subMode === "byRoom" ? (
+                rooms.filter(r => !search1 || r.roomName.toLowerCase().includes(search1.toLowerCase())).map(room => {
+                  const sel = selectedRoomsForByRoom.includes(room.roomId);
+                  return (
+                    <button key={room.roomId} className={`stp-room-item ${sel ? "stp-room-item--selected" : ""}`} onClick={() => toggleRoomInByRoom(room.roomId)}>
+                      <DomainOutlined style={{ fontSize: 18 }} />
+                      <div className="stp-room-item__info">
+                        <span className="stp-room-item__name">{room.roomName}</span>
+                      </div>
+                      {sel && <CheckCircleOutlined style={{ fontSize: 16 }} />}
+                    </button>
+                  );
+                })
+              ) : (
+                invLoading ? <div style={{padding: 20}}>Đang tải dữ liệu...</div> : 
+                itemsInRooms.filter(i => !search1 || i.itemName?.toLowerCase().includes(search1.toLowerCase()) || i.itemCode?.toLowerCase().includes(search1.toLowerCase())).map(item => {
+                  const uid = item.itemId || item.itemCode;
+                  const sel = selectedItemForByItem === uid;
+                  return (
+                    <button key={uid} className={`stp-room-item ${sel ? "stp-room-item--selected" : ""}`} onClick={() => { setSelectedItemForByItem(uid); setItemRoomsData({}); }}>
+                      <ScienceOutlined style={{ fontSize: 18 }} />
+                      <div className="stp-room-item__info">
+                        <span className="stp-room-item__name">{item.itemName}</span>
+                        <span style={{ fontSize: 11, color: '#64748b' }}>Có tại {rooms.filter(r => (inventories[r.roomId] || []).some(inv => (inv.itemId === uid || inv.itemCode === uid) && inv.availableQuantity > 0)).length} phòng</span>
+                      </div>
+                      {sel && <CheckCircleOutlined style={{ fontSize: 16 }} />}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* COL 2 */}
+        <div className="stp-col" style={{ gridColumn: "2" }}>
+          <div className={`stp-card ${subMode === "byRoom" ? (selectedRoomsForByRoom.length === 0 ? "stp-card--dim" : "") : (!selectedItemForByItem ? "stp-card--dim" : "")}`}>
+            <div className="stp-card__header">
+              <StepDot num={2} status={(subMode === "byRoom" ? summaryData.length > 0 : Object.keys(itemRoomsData).length > 0) ? "done" : "active"} />
+              <div className="stp-card__title">
+                {subMode === "byRoom" ? "Chọn hóa chất cần thu hồi" : "Chọn phòng thu hồi"}
+              </div>
+            </div>
+
+            <div className="stp-search-row">
+              <SearchOutlined style={{ fontSize: 16, color: "var(--stp-muted)" }} />
+              <input
+                className="stp-input"
+                placeholder={subMode === "byRoom" ? "Tìm hóa chất trong phòng..." : "Tìm phòng..."}
+                value={search2}
+                onChange={(e) => setSearch2(filterSearchInput(e.target.value))}
+              />
+            </div>
+
+            <div className="stp-room-sections" style={{ flex: 1, overflowY: 'auto' }}>
+              {subMode === "byRoom" ? (
+                selectedRoomsForByRoom.map(roomId => {
+                  const room = rooms.find(r => r.roomId === roomId);
+                  const roomInv = inventories[roomId] || [];
+                  const filteredInv = roomInv.filter(i => (!search2 || i.itemName?.toLowerCase().includes(search2.toLowerCase())) && i.availableQuantity > 0);
+                  
+                  return (
+                    <RoomItemSectionRevoke
+                      key={roomId}
+                      room={room}
+                      items={filteredInv}
+                      roomItemsData={roomItemsData}
+                      onToggleItem={toggleItemInByRoom}
+                      onChangeCount={setCountInByRoom}
+                      onRemoveRoom={toggleRoomInByRoom}
+                      globalItems={globalItems}
+                    />
+                  );
+                })
+              ) : (
+                selectedItemForByItem && (() => {
+                  // Find all rooms that have this item
+                  const roomsWithItem = rooms.filter(r => {
+                    const inv = inventories[r.roomId] || [];
+                    return inv.some(i => (i.itemId === selectedItemForByItem || i.itemCode === selectedItemForByItem) && i.availableQuantity > 0);
+                  });
+                  
+                  const filteredRooms = roomsWithItem.filter(r => !search2 || r.roomName.toLowerCase().includes(search2.toLowerCase()));
+                  const globalItem = globalItems.find(g => g.itemId === selectedItemForByItem || g.itemCode === selectedItemForByItem);
+
+                  if (filteredRooms.length === 0) return <div style={{padding: 20}}>Không có phòng nào chứa hóa chất này.</div>;
+
+                  return (
+                    <div className="stp-item-grid stp-item-grid--compact">
+                      {filteredRooms.map(room => {
+                        const invItem = (inventories[room.roomId] || []).find(i => i.itemId === selectedItemForByItem || i.itemCode === selectedItemForByItem);
+                        const sel = itemRoomsData[room.roomId] !== undefined;
+                        const packageCount = itemRoomsData[room.roomId];
+                        const maxPkgs = getMaxPackages(invItem.availableQuantity, globalItem?.amountPerPackage);
+                        let error = sel ? validatePackageCount(packageCount) : false;
+                        if (!error && sel) {
+                          if (packageCount > maxPkgs) error = "Vượt tồn";
+                        }
+
+                        const handleRoomCardClick = (e) => {
+                          if (e.target.closest(".stp-inline-qty")) return;
+                          toggleRoomInByItem(room.roomId);
+                        };
+
+                        return (
+                          <div
+                            key={room.roomId}
+                            className={`stp-item-card ${sel ? "stp-item-card--selected" : ""} ${sel && error ? "stp-item-card--error" : ""}`}
+                            onClick={handleRoomCardClick}
+                            role="button"
+                          >
+                            {sel && (
+                              <div className="stp-item-card__check">
+                                <CheckCircleOutlined style={{ fontSize: 14 }} />
+                              </div>
+                            )}
+                            <div className="stp-item-card__name">{room.roomName}</div>
+                            <div className="stp-item-card__code">
+                              <DomainOutlined style={{ fontSize: 14, marginRight: 4, verticalAlign: 'middle' }} />
+                              Phòng Thí Nghiệm
+                            </div>
+                            <div className="stp-item-card__meta" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              {globalItem?.formula && (
+                                <span className="stp-item-card__cat" style={{ alignSelf: 'flex-start' }}>{globalItem.formula}</span>
+                              )}
+                              <div style={{ fontSize: '11px', color: '#64748b', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                <span>Tổng: {invItem.totalQuantity !== undefined ? invItem.totalQuantity : "?"}</span>
+                                <span>Khóa: {invItem.lockedQuantity !== undefined ? invItem.lockedQuantity : "?"}</span>
+                                <span style={{ color: '#059669', fontWeight: 600 }}>Khả dụng: {invItem.availableQuantity} {globalItem?.unit || invItem.unit || "gói"}</span>
+                              </div>
+                              {globalItem?.amountPerPackage && (
+                                <div style={{ fontSize: '11px', color: '#8b5cf6', fontWeight: 500 }}>
+                                  Quy cách: {globalItem.amountPerPackage} {globalItem.unit || invItem.unit} / {globalItem.packaging || "gói"}
+                                </div>
+                              )}
+                            </div>
+
+                            {sel && (
+                              <div className="stp-inline-qty" onClick={(e) => e.stopPropagation()}>
+                                <button className="stp-qty-btn" onClick={() => setCountInByItem(room.roomId, Math.max(1, (Number(packageCount) || 1) - 1))} disabled={Number(packageCount) <= 1}>
+                                  <RemoveOutlined style={{ fontSize: 12 }} />
+                                </button>
+                                <input
+                                  type="text"
+                                  className={`stp-qty-input stp-qty-input--inline ${error ? "stp-qty-input--error" : ""}`}
+                                  style={{ minWidth: "30px", flexGrow: 1, textAlign: "center" }}
+                                  value={packageCount !== undefined ? packageCount : ""}
+                                  onChange={(e) => {
+                                    let val = e.target.value.replace(/[^0-9]/g, "");
+                                    if (val) {
+                                      const num = Number(val);
+                                      if (num > maxPkgs) val = String(maxPkgs);
+                                    }
+                                    setCountInByItem(room.roomId, val);
+                                  }}
+                                />
+                                <button className="stp-qty-btn" onClick={() => setCountInByItem(room.roomId, Math.min(maxPkgs, (Number(packageCount) || 0) + 1))} disabled={Number(packageCount) >= maxPkgs}>
+                                  <AddOutlined style={{ fontSize: 12 }} />
+                                </button>
+                              </div>
+                            )}
+                            {sel && error && <div className="stp-item-card__errmsg">{error}</div>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* COL 3 */}
+        <div className="stp-col" style={{ gridColumn: "3" }}>
+          <div className={`stp-card stp-card--full-height stp-confirm-card ${summaryData.length === 0 ? "stp-card--dim" : ""}`}>
+            <div className="stp-card__header">
+              <StepDot num={3} status={canConfirm ? "active" : "idle"} />
+              <div className="stp-card__title">Xác nhận Thu hồi</div>
+            </div>
+
+            <div className="stp-summary">
+               {summaryData.length > 0 && (
+                 <div className="stp-summary__items stp-summary__items--expanded">
+                   {summaryData.map((d) => (
+                     <div key={d.roomId} className="stp-summary__room-block">
+                       <div className="stp-summary__room-label">
+                         <DomainOutlined style={{ fontSize: 12, color: "#059669" }} /> {d.roomName}
+                       </div>
+                       {d.items.map((i) => (
+                         <div key={i.itemId} className={`stp-summary__chip stp-summary__chip--lg ${i.error ? "stp-summary__chip--err" : ""}`}>
+                           <span className="stp-summary__chip-name">{i.itemName}</span>
+                           {i.error ? (
+                             <span style={{ color: "#dc2626", fontSize: 11 }}>{i.error}</span>
+                           ) : (
+                             <span className="stp-summary__chip-qty">{i.count} {i.packaging}</span>
+                           )}
+                         </div>
+                       ))}
+                     </div>
+                   ))}
+                 </div>
+               )}
+            </div>
+
+            <div className="stp-note-row">
+              <StickyNote2Outlined style={{ fontSize: 15, color: "var(--stp-muted)" }} />
+              <input className="stp-input" placeholder="Ghi chú..." value={note} onChange={(e) => setNote(sanitizeNote(e.target.value))} maxLength={255} />
+            </div>
+
+            <button className="stp-confirm-btn stp-confirm-btn--revoke" disabled={!canConfirm} onClick={() => setConfirmOpen(true)}>
+              {submitting ? "Đang xử lý..." : "Xác nhận thu hồi"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {confirmOpen && (
+        <div className="stp-dialog-overlay" onClick={() => setConfirmOpen(false)}>
+          <div className="stp-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="stp-dialog__header stp-dialog__header--revoke">
+              <div className="stp-dialog__icon"><UndoOutlined style={{ fontSize: 22 }} /></div>
+              <div>
+                <div className="stp-dialog__title">Xác nhận thu hồi</div>
+                <div className="stp-dialog__sub">Hành động này sẽ thu hồi vật tư khỏi các phòng đã chọn</div>
+              </div>
+            </div>
+            
+            <div className="stp-dialog__body">
+               {summaryData.map(d => (
+                 <div key={d.roomId} style={{ marginBottom: 14 }}>
+                   <div className="stp-dialog__section-label"><DomainOutlined style={{ fontSize: 14 }} /> {d.roomName}</div>
+                   <div className="stp-dialog__list">
+                     {d.items.map(i => (
+                       <div key={i.itemId} className="stp-dialog__row">
+                         <span className="stp-dialog__row-name">{i.itemName}</span>
+                         <span className="stp-dialog__row-qty">{i.count} {i.packaging}</span>
+                       </div>
+                     ))}
+                   </div>
+                 </div>
+               ))}
+            </div>
+
+            <div className="stp-dialog__footer">
+              <button className="stp-dialog__cancel-btn" onClick={() => setConfirmOpen(false)}>Hủy</button>
+              <button className="stp-dialog__ok-btn stp-dialog__ok-btn--revoke" onClick={handleFinalConfirm}>
+                Xác nhận thu hồi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
