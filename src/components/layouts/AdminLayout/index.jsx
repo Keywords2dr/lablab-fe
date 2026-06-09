@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../../store/authStore";
 
-import { Avatar, Menu, MenuItem, ListItemIcon } from "@mui/material";
-import { Logout } from "@mui/icons-material";
+import { Avatar, Menu, MenuItem, ListItemIcon, IconButton } from "@mui/material";
+import { Logout, ChevronLeft, ChevronRight } from "@mui/icons-material";
 
 import NotificationBell from "../../common/NotificationBell";
 import AIChatBox from "../../common/AIChatBox";
@@ -15,6 +15,7 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
   const [anchorEl, setAnchorEl] = useState(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const handleLogout = () => {
     setAnchorEl(null);
@@ -25,11 +26,26 @@ export default function AdminLayout() {
   return (
     <div className="admin-layout-root">
       {/* ── Sidebar ── */}
-      <aside className="admin-sidebar">
-        <div className="admin-sidebar-logo" onClick={() => navigate("/admin")}>
-          Lab<span>Lab.</span>
+      <aside className={`admin-sidebar ${isCollapsed ? "collapsed" : ""}`}>
+        <div className="admin-sidebar-header">
+          <div className="admin-sidebar-logo" onClick={() => navigate("/admin")}>
+            {isCollapsed ? "L." : <>Lab<span>Lab.</span></>}
+          </div>
         </div>
-        <SidebarNav />
+        
+        <div className="admin-sidebar-scroll">
+          <SidebarNav isCollapsed={isCollapsed} />
+        </div>
+
+        <div className="admin-sidebar-footer">
+          <IconButton 
+            onClick={() => setIsCollapsed(!isCollapsed)} 
+            size="small" 
+            sx={{ color: '#cbd5e1' }}
+          >
+            {isCollapsed ? <ChevronRight /> : <ChevronLeft />}
+          </IconButton>
+        </div>
       </aside>
 
       {/* ── Main area ── */}
