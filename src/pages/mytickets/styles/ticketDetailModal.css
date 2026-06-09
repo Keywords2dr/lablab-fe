@@ -1,7 +1,3 @@
-/* ══════════════════════════════════════════════════════
-   TICKET DETAIL MODAL
-   ══════════════════════════════════════════════════════ */
-
 .tdm-overlay {
   position: fixed;
   inset: 0;
@@ -17,13 +13,15 @@
 
 .tdm-modal {
   background: #fff;
-  border-radius: 20px;
+  border-radius: 28px;
   width: 100%;
   max-width: 620px;
   max-height: 85vh;
-  overflow-y: auto;
-  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.3);
-  animation: tdmSlideUp 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(255,255,255,0.2);
+  animation: tdmSlideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
 }
 
 /* ── Modal Header ────────────────────────────────── */
@@ -86,7 +84,22 @@
 
 /* ── Modal Body ──────────────────────────────────── */
 .tdm-body {
-  padding: 24px 28px;
+  padding: 20px 28px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.tdm-body::-webkit-scrollbar { 
+  width: 14px; 
+}
+.tdm-body::-webkit-scrollbar-track { 
+  background: transparent; 
+}
+.tdm-body::-webkit-scrollbar-thumb { 
+  background: #cbd5e1; 
+  border-radius: 99px; 
+  border: 4px solid #fff;
+  background-clip: padding-box;
 }
 
 /* Info grid */
