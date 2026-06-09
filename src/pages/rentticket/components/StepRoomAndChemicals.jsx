@@ -345,7 +345,6 @@ export default function StepRoomAndChemicals({
                             {room.location}
                           </div>
                         )}
-                        {/* Manager: show shimmer while loading, name when ready */}
                         {managerLoading ? (
                           <div
                             style={{

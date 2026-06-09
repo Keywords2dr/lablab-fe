@@ -47,7 +47,6 @@ export default function RoomInventoryModal({ room, onClose }) {
 
   return (
     <div className="rm-overlay">
-      {/* ĐÃ XÓA SỰ KIỆN onClick Ở TRÊN ĐỂ CHẶN ĐÓNG KHI CLICK RA NGOÀI */}
       <div
         className="rm-modal"
         style={{

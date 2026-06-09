@@ -119,7 +119,6 @@ const FIELD_KEYWORDS = [
       "g/goi",
     ],
   },
-  // --- BỔ SUNG 2 CỘT MỚI ---
   {
     field: "roomName",
     keywords: ["noi luu chua", "phong", "vi tri", "kho"],

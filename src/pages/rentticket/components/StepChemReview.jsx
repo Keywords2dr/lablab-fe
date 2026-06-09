@@ -26,7 +26,6 @@ export default function StepReview({
     });
   };
 
-  // Tự động nhận diện: Nếu có chọn hóa chất thì chắc chắn là phiếu mượn hóa chất
   const chemicals = Object.values(selectedChemicals || {});
   const isChemTicket =
     chemicals.length > 0 || form.ticketType === "CHEMICAL_ONLY";
@@ -155,7 +154,6 @@ export default function StepReview({
           )}
         </div>
 
-        {/* Bảng danh sách hóa chất (Chỉ hiển thị nếu có hóa chất hoặc là phiếu hóa chất) */}
         {isChemTicket && (
           <div
             className="cr-chem-section"

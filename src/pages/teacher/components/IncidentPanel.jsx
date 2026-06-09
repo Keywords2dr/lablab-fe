@@ -13,7 +13,6 @@ export default function IncidentPanel({
   setNewIncident,
   incidentSent,
   handleIncidentSubmit,
-  // ✅ Thêm prop incidents nếu sau này muốn truyền dữ liệu thật từ API
   incidents = [],
 }) {
   return (
@@ -66,7 +65,6 @@ export default function IncidentPanel({
             Sự cố đã báo cáo
           </div>
 
-          {/* ✅ Dùng prop incidents thay vì MOCK_INCIDENTS */}
           {incidents.length === 0 ? (
             <div className="trm-empty">Chưa có sự cố nào được báo cáo.</div>
           ) : (
