@@ -1,14 +1,9 @@
 import React, { useState, useMemo, useCallback } from "react";
 import {
-  Inventory2Outlined,
   SendOutlined,
-  UndoOutlined,
   SearchOutlined,
   CloseOutlined,
-  CheckCircleOutlined,
   DomainOutlined,
-  AddOutlined,
-  RemoveOutlined,
   StickyNote2Outlined,
   WarningAmberOutlined,
   DeleteSweepOutlined,
@@ -17,67 +12,25 @@ import {
 } from "@mui/icons-material";
 
 import { useInventory } from "../hooks/useInventory";
-
-
-/* ── helpers ─────────────────────────────────────────────────── */
-const RE_NOTE_ALLOWED = /[^a-zA-Z0-9À-ỹ\s.,\-_]/g;
-const sanitizeNote = (val) => val.replace(RE_NOTE_ALLOWED, "");
-
-const RE_SEARCH = /^[\p{L}\p{N}\s]*$/u;
-const filterSearchInput = (val) =>
-  [...val].filter((ch) => RE_SEARCH.test(ch)).join("");
-
-function validatePackageCount(val) {
-  const n = Number(val);
-  if (!val && val !== 0) return "Bắt buộc";
-  if (!Number.isInteger(n) || n < 1) return "≥ 1 gói";
-  return "";
-}
-
-/* ── sub-components ──────────────────────────────────────────── */
-function CountBadge({ count }) {
-  if (!count) return null;
-  return <span className="stp-badge">{count}</span>;
-}
-
-function StepDot({ num, status }) {
-  return (
-    <div className={`stp-dot stp-dot--${status}`}>
-      {status === "done" ? (
-        <CheckCircleOutlined style={{ fontSize: 14 }} />
-      ) : (
-        num
-      )}
-    </div>
-  );
-}
+import { sanitizeNote, filterSearchInput, validatePackageCount } from "../utils/supplyHelpers";
+import CountBadge from "./shared/CountBadge";
+import StepDot from "./shared/StepDot";
+import SupplyConfirmDialog from "./shared/SupplyConfirmDialog";
+import ItemCardBase from "./shared/ItemCardBase";
 
 function ItemCard({ item, selected, packageCount, onToggle, onChangeCount }) {
   const uid = item.itemId || item.itemCode;
   const error = selected ? validatePackageCount(packageCount) : false;
 
-  const handleCardClick = (e) => {
-    if (e.target.closest(".stp-inline-qty")) return;
-    onToggle(uid);
-  };
-
   return (
-    <div
-      className={`stp-item-card ${selected ? "stp-item-card--selected" : ""} ${
-        selected && error ? "stp-item-card--error" : ""
-      }`}
-      onClick={handleCardClick}
-      role="button"
-      aria-pressed={selected}
-      tabIndex={0}
-      onKeyDown={(e) => e.key === "Enter" && handleCardClick(e)}
+    <ItemCardBase
+      selected={selected}
+      error={error}
+      onToggle={() => onToggle(uid)}
+      packageCount={packageCount}
+      onChangeCount={(val) => onChangeCount(uid, val)}
+      inputAriaLabel={`Số lượng ${item.itemName}`}
     >
-      {selected && (
-        <div className="stp-item-card__check">
-          <CheckCircleOutlined style={{ fontSize: 14 }} />
-        </div>
-      )}
-
       <div className="stp-item-card__name">{item.itemName}</div>
       <div className="stp-item-card__code">{item.itemCode}</div>
 
@@ -95,48 +48,7 @@ function ItemCard({ item, selected, packageCount, onToggle, onChangeCount }) {
       {item.supplier && (
         <div className="stp-item-card__supplier">{item.supplier}</div>
       )}
-
-      {selected && (
-        <div className="stp-inline-qty" onClick={(e) => e.stopPropagation()}>
-          <button
-            className="stp-qty-btn"
-            onClick={() =>
-              onChangeCount(uid, Math.max(1, (Number(packageCount) || 1) - 1))
-            }
-            disabled={Number(packageCount) <= 1}
-            aria-label="Giảm"
-          >
-            <RemoveOutlined style={{ fontSize: 12 }} />
-          </button>
-
-          <input
-            type="text"
-            inputMode="numeric"
-            className={`stp-qty-input stp-qty-input--inline ${error ? "stp-qty-input--error" : ""}`}
-            style={{ minWidth: "30px", flexGrow: 1, textAlign: "center" }}
-            value={packageCount !== undefined ? packageCount : ""}
-            onClick={(e) => e.stopPropagation()}
-            onChange={(e) => {
-              const val = e.target.value.replace(/[^0-9]/g, "");
-              onChangeCount(uid, val);
-            }}
-            aria-label={`Số lượng ${item.itemName}`}
-          />
-
-          <button
-            className="stp-qty-btn"
-            onClick={() => onChangeCount(uid, (Number(packageCount) || 0) + 1)}
-            aria-label="Tăng"
-          >
-            <AddOutlined style={{ fontSize: 12 }} />
-          </button>
-        </div>
-      )}
-
-      {selected && error && (
-        <div className="stp-item-card__errmsg">{error}</div>
-      )}
-    </div>
+    </ItemCardBase>
   );
 }
 
@@ -157,7 +69,6 @@ function RoomItemSection({
 
   return (
     <div className="stp-room-section">
-      {/* ── Room header bar ── */}
       <div
         className={`stp-room-section__header ${!allValid && selectedCount > 0 ? "stp-room-section__header--warn" : ""}`}
       >
@@ -195,7 +106,6 @@ function RoomItemSection({
         </button>
       </div>
 
-      {/* ── Item grid ── */}
       {expanded && (
         <div className="stp-room-section__body">
           {items.length === 0 ? (
@@ -225,7 +135,6 @@ function RoomItemSection({
   );
 }
 
-/* ── Main component ──────────────────────────────────────────── */
 export default function SupplyAllocatePanel({ rooms = [] }) {
   const { globalItems, loading, submitting, allocate } = useInventory();
 
@@ -235,14 +144,6 @@ export default function SupplyAllocatePanel({ rooms = [] }) {
   const [roomItems, setRoomItems] = useState({});
   const [note, setNote] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
-
-  /* ── reset helpers ── */
-  const resetAll = useCallback(() => {
-    setRoomItems({});
-    setNote("");
-    setItemSearch("");
-    setRoomSearch("");
-  }, []);
 
   /* ── filter helpers ── */
   const filteredItems = useMemo(() => {
@@ -366,6 +267,31 @@ export default function SupplyAllocatePanel({ rooms = [] }) {
     }
   };
 
+  const summaryData = useMemo(() => {
+    return selectedRoomIds.map(roomId => {
+      const room = rooms.find((r) => r.roomId === roomId);
+      const items = roomItems[roomId];
+      const itemIds = Object.keys(items);
+      const itemsList = itemIds.map(itemId => {
+        const item = globalItems.find(i => i.itemId === itemId || i.itemCode === itemId);
+        const cnt = items[itemId];
+        const error = validatePackageCount(cnt);
+        return {
+          itemId,
+          itemName: item?.itemName || "Unknown",
+          count: cnt,
+          packaging: item?.packaging || "gói",
+          error
+        };
+      });
+      return {
+        roomId,
+        roomName: room?.roomName,
+        items: itemsList
+      };
+    }).filter(d => d.items.length > 0 || true); // keep all selected rooms
+  }, [selectedRoomIds, rooms, roomItems, globalItems]);
+
   /* ── step status ── */
   const step1Status = selectedRoomCount > 0 ? "done" : "active";
   const step2Status =
@@ -379,11 +305,8 @@ export default function SupplyAllocatePanel({ rooms = [] }) {
   /* ── render ── */
   return (
     <div className="stp-root">
-      {/* Mode tabs removed since this is only Allocate */}
-
-      {/* ── Body: 3-column layout ── */}
       <div className="stp-body stp-body--3col">
-        {/* ══ COL 1: Chọn phòng ══ */}
+        {/* COL 1 */}
         <div className="stp-col stp-col--rooms" style={{ gridColumn: "1" }}>
           <div className="stp-card stp-card--full-height">
             <div className="stp-card__header">
@@ -473,9 +396,9 @@ export default function SupplyAllocatePanel({ rooms = [] }) {
                               {cnt} HC
                             </span>
                           )}
-                          <CheckCircleOutlined
-                            style={{ fontSize: 16, flexShrink: 0 }}
-                          />
+                          <div className="stp-item-card__check" style={{position: 'static', margin: 0, padding: 0}}>
+                             <StepDot num={null} status="done" />
+                          </div>
                         </>
                       )}
                     </button>
@@ -486,7 +409,7 @@ export default function SupplyAllocatePanel({ rooms = [] }) {
           </div>
         </div>
 
-        {/* ══ COL 2: Hóa chất cho từng phòng ══ */}
+        {/* COL 2 */}
         <div
           className={`stp-col stp-col--items ${selectedRoomCount === 0 ? "" : ""}`}
           style={{ gridColumn: "2" }}
@@ -503,7 +426,6 @@ export default function SupplyAllocatePanel({ rooms = [] }) {
               <span className="stp-card__sub">Mỗi phòng có số lượng riêng</span>
             </div>
 
-            {/* search bar hóa chất */}
             <div className="stp-search-row">
               <SearchOutlined
                 style={{ fontSize: 16, color: "var(--stp-muted)" }}
@@ -562,7 +484,7 @@ export default function SupplyAllocatePanel({ rooms = [] }) {
           </div>
         </div>
 
-        {/* ══ COL 3: Xác nhận ══ */}
+        {/* COL 3 */}
         <div className="stp-col stp-col--confirm" style={{ gridColumn: "3" }}>
           <div
             className={`stp-card stp-card--full-height stp-confirm-card ${
@@ -574,7 +496,6 @@ export default function SupplyAllocatePanel({ rooms = [] }) {
               <div className="stp-card__title">Xác nhận & Gửi</div>
             </div>
 
-            {/* Summary */}
             <div className="stp-summary">
               <div className="stp-summary__row">
                 <span className="stp-summary__label">Phòng</span>
@@ -597,55 +518,26 @@ export default function SupplyAllocatePanel({ rooms = [] }) {
                 </span>
               </div>
 
-              {/* Chi tiết từng phòng */}
               {selectedRoomCount > 0 && hasAnyItem && (
                 <div className="stp-summary__items stp-summary__items--expanded">
-                  {selectedRoomIds.map((roomId) => {
-                    const room = rooms.find((r) => r.roomId === roomId);
-                    if (!room) return null;
-                    const items = roomItems[roomId];
-                    const itemIds = Object.keys(items);
-                    if (itemIds.length === 0) return null;
-                    return (
-                      <div key={roomId} className="stp-summary__room-block">
-                        <div className="stp-summary__room-label">
-                          <DomainOutlined
-                            style={{ fontSize: 12, color: "#059669" }}
-                          />
-                          {room.roomName}
-                        </div>
-                        {itemIds.map((itemId) => {
-                          const item = globalItems.find(
-                            (i) => i.itemId === itemId || i.itemCode === itemId,
-                          );
-                          if (!item) return null;
-                          const cnt = items[itemId];
-                          const err = validatePackageCount(cnt);
-                          return (
-                            <div
-                              key={itemId}
-                              className={`stp-summary__chip stp-summary__chip--lg ${err ? "stp-summary__chip--err" : ""}`}
-                            >
-                              <span className="stp-summary__chip-name">
-                                {item.itemName}
-                              </span>
-                              {err ? (
-                                <span
-                                  style={{ color: "#dc2626", fontSize: 11 }}
-                                >
-                                  {err}
-                                </span>
-                              ) : (
-                                <span className="stp-summary__chip-qty">
-                                  {cnt} {item.packaging || "gói"}
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })}
+                  {summaryData.filter(d => d.items.length > 0).map((d) => (
+                    <div key={d.roomId} className="stp-summary__room-block">
+                      <div className="stp-summary__room-label">
+                        <DomainOutlined style={{ fontSize: 12, color: "#059669" }} />
+                        {d.roomName}
                       </div>
-                    );
-                  })}
+                      {d.items.map(i => (
+                        <div key={i.itemId} className={`stp-summary__chip stp-summary__chip--lg ${i.error ? "stp-summary__chip--err" : ""}`}>
+                          <span className="stp-summary__chip-name">{i.itemName}</span>
+                          {i.error ? (
+                            <span style={{ color: "#dc2626", fontSize: 11 }}>{i.error}</span>
+                          ) : (
+                            <span className="stp-summary__chip-qty">{i.count} {i.packaging}</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
                 </div>
               )}
 
@@ -657,7 +549,6 @@ export default function SupplyAllocatePanel({ rooms = [] }) {
               )}
             </div>
 
-            {/* Note */}
             <div className="stp-note-row">
               <StickyNote2Outlined
                 style={{
@@ -675,7 +566,6 @@ export default function SupplyAllocatePanel({ rooms = [] }) {
               />
             </div>
 
-            {/* Confirm button */}
             <button
               className="stp-confirm-btn"
               disabled={!canConfirm}
@@ -697,113 +587,15 @@ export default function SupplyAllocatePanel({ rooms = [] }) {
         </div>
       </div>
 
-      {/* ── Confirmation Dialog ── */}
-      {confirmOpen && (
-        <div
-          className="stp-dialog-overlay"
-          onClick={() => setConfirmOpen(false)}
-        >
-          <div className="stp-dialog" onClick={(e) => e.stopPropagation()}>
-            {/* Header */}
-            <div
-              className="stp-dialog__header"
-            >
-              <div className="stp-dialog__icon">
-                <SendOutlined style={{ fontSize: 22 }} />
-              </div>
-              <div>
-                <div className="stp-dialog__title">Xác nhận phân phối</div>
-                <div className="stp-dialog__sub">Kiểm tra lại thông tin trước khi gửi</div>
-              </div>
-            </div>
-
-            {/* Body — hiển thị theo từng phòng */}
-            <div className="stp-dialog__body">
-              {selectedRoomIds.map((roomId) => {
-                const room = rooms.find((r) => r.roomId === roomId);
-                if (!room) return null;
-                const items = roomItems[roomId];
-                const itemIds = Object.keys(items);
-                return (
-                  <div key={roomId} style={{ marginBottom: 14 }}>
-                    <div className="stp-dialog__section-label">
-                      <DomainOutlined style={{ fontSize: 14 }} />
-                      {room.roomName}
-                    </div>
-                    <div className="stp-dialog__list">
-                      {itemIds.length === 0 ? (
-                        <div
-                          style={{
-                            padding: "4px 0",
-                            fontSize: 12,
-                            color: "#94a3b8",
-                          }}
-                        >
-                          Không có hóa chất
-                        </div>
-                      ) : (
-                        itemIds.map((itemId) => {
-                          const item = globalItems.find(
-                            (i) => i.itemId === itemId || i.itemCode === itemId,
-                          );
-                          if (!item) return null;
-                          return (
-                            <div key={itemId} className="stp-dialog__row">
-                              <span className="stp-dialog__row-name">
-                                {item.itemName}
-                              </span>
-                              <span className="stp-dialog__row-qty">
-                                {items[itemId]} {item.packaging || "gói"}
-                              </span>
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-
-              {note && (
-                <div className="stp-dialog__note">
-                  <StickyNote2Outlined
-                    style={{ fontSize: 13, flexShrink: 0 }}
-                  />
-                  <span>{note}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="stp-dialog__footer">
-              <button
-                className="stp-dialog__cancel-btn"
-                onClick={() => setConfirmOpen(false)}
-                disabled={submitting}
-              >
-                Quay lại
-              </button>
-              <button
-                className="stp-dialog__ok-btn"
-                onClick={handleFinalConfirm}
-                disabled={submitting}
-              >
-                {submitting ? (
-                  <>
-                    <span className="stp-spinner stp-spinner--white" />
-                    Đang xử lý...
-                  </>
-                ) : (
-                  <>
-                    <SendOutlined style={{ fontSize: 16 }} />
-                    Xác nhận phân phối
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SupplyConfirmDialog
+        type="allocate"
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleFinalConfirm}
+        submitting={submitting}
+        summaryData={summaryData.filter(d => d.items.length > 0)}
+        note={note}
+      />
     </div>
   );
 }

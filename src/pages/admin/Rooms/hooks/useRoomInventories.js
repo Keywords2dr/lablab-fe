@@ -20,7 +20,7 @@ export function useRoomInventories() {
         newInv[res.roomId] = res.items;
       });
       
-      setInventories(newInv);
+      setInventories((prev) => ({ ...prev, ...newInv }));
     } catch (error) {
       console.error("Lỗi khi tải kho phòng:", error);
       toast.error("Không thể tải dữ liệu vật tư trong phòng!");
